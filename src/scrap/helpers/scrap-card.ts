@@ -28,16 +28,29 @@ export async function scrapCard({
         const link = await $link.getAttribute('href');
         const title = await $link.textContent();
         const $image = await $post.$('img.wp-post-image');
-        const $author = await $post.$('.author>span')
-        const author = await $author?.textContent() || faker.person.fullName();
         if(!$image){
             continue;
         }
+        // const $author = await $post.$('.author>span')
+        // const author = await $author?.textContent() || faker.person.fullName();
+        const gender = faker.number.int({
+            min: 0,
+            max: 1,
+        }) === 0 ? 'men' : 'women';
+        const numberOfPerson = faker.number.int({
+            min: 0,
+            max: 90,
+        });
+        const author = faker.person.fullName({
+            sex: gender === 'women' ? 'female' : 'male'
+        });
+        const authorImage = `https://randomuser.me/api/portraits/${gender}/${numberOfPerson}.jpg`
         const image = await $image.getAttribute('src');
         const slug = link.split('tec.mx/').at(-1)
         posts.push({
             title,
             author,
+            authorImage,
             slug,
             link,
             image,

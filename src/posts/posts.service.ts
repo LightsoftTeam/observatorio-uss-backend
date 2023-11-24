@@ -48,17 +48,23 @@ export class PostsService {
     return `This action returns all posts`;
   }
 
-  find({param}: {param: string}) {
-    switch(param){
-      case 'top':
-        return [
-          ...this.eduNews.slice(0, 2),
-          ...this.eduReads.slice(0, 1),
+  find() {
+    const top = [
+          ...this.eduNews.slice(0, 3),
           ...this.eduBits.slice(0, 2),
         ]
-      default:
-        return [];
+      const secondary = this.eduNews.slice(3, 8)
+      const extras = this.eduNews.slice(8, 12)
+      const tubes = this.eduTubes.slice(0, 5)
+      const reads = this.eduReads.slice(0, 2)
+      const resp = {
+        top,
+        secondary,
+        extras,
+        tubes,
+        reads,
       }
+      return resp;
   }
 
   findOne(id: number) {

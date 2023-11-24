@@ -1,26 +1,15 @@
 [
   {
     "title": "¿Cómo aplicar la agencia de cambio desde la enseñanza? Dos ejemplos de buenas prácticas educativas",
-    "author": "Lori King III",
-    "authorImage": "https://randomuser.me/api/portraits/women/32.jpg",
+    "author": "Nohemí Vilchis",
     "slug": "edu-news/ejemplos-buenas-practicas-educativas/",
     "link": "https://observatorio.tec.mx/edu-news/ejemplos-buenas-practicas-educativas/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2022/11/buenas-practicas-educativas-Ashoka-1-348x381.png",
     "category": "edu-news"
   },
   {
-    "title": "Estudiar para ser… ¿Influencer?",
-    "author": "Mrs. Alexandra Farrell-Block",
-    "authorImage": "https://randomuser.me/api/portraits/women/4.jpg",
-    "slug": "edu-news/estudiar-para-ser-influencer/",
-    "link": "https://observatorio.tec.mx/edu-news/estudiar-para-ser-influencer/",
-    "image": "https://observatorio.tec.mx/wp-content/uploads/2023/11/INFLUENCER-345x207.png",
-    "category": "edu-news"
-  },
-  {
     "title": "Día Internacional del Hombre: ¿un día para celebrar o reflexionar?",
-    "author": "Ray Gerlach",
-    "authorImage": "https://randomuser.me/api/portraits/men/87.jpg",
+    "author": "Daniel Mata",
     "slug": "edu-news/dia-internacional-del-hombre-un-dia-para-reflexionar/",
     "link": "https://observatorio.tec.mx/edu-news/dia-internacional-del-hombre-un-dia-para-reflexionar/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/11/Dia-interncional-del-Hombre-2023-345x207.jpeg",
@@ -28,8 +17,7 @@
   },
   {
     "title": "Opinión | Escuela para señoritos",
-    "author": "Amelia Hammes PhD",
-    "authorImage": "https://randomuser.me/api/portraits/women/28.jpg",
+    "author": "Andrés García Barrios",
     "slug": "edu-news/opinion-escuela-para-senoritos/",
     "link": "https://observatorio.tec.mx/edu-news/opinion-escuela-para-senoritos/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/11/escuela-para-senoritos-345x207.jpeg",
@@ -37,8 +25,7 @@
   },
   {
     "title": "Opinión | Lo más antipedagógico del mundo",
-    "author": "Orville Herzog",
-    "authorImage": "https://randomuser.me/api/portraits/men/1.jpg",
+    "author": "Andrés García Barrios",
     "slug": "edu-news/opinion-lo-mas-antipedagogico-del-mundo/",
     "link": "https://observatorio.tec.mx/edu-news/opinion-lo-mas-antipedagogico-del-mundo/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/11/poesia-345x207.jpg",
@@ -46,8 +33,7 @@
   },
   {
     "title": "Historias 100 % humanas enriquecidas con inteligencia artificial",
-    "author": "Sammy Medhurst II",
-    "authorImage": "https://randomuser.me/api/portraits/men/90.jpg",
+    "author": "Rubí Román",
     "slug": "edu-news/historias-100-humanas-enriquecidas-con-inteligencia-artificial/",
     "link": "https://observatorio.tec.mx/edu-news/historias-100-humanas-enriquecidas-con-inteligencia-artificial/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/11/Historias-100-humanas-enriquecidas-con-inteligencia-artificial-345x207.jpg",
@@ -55,8 +41,7 @@
   },
   {
     "title": "Apps prácticas para personas neurodivergentes",
-    "author": "Dr. Dale Mueller",
-    "authorImage": "https://randomuser.me/api/portraits/men/76.jpg",
+    "author": "Melissa Guerra Jáuregui",
     "slug": "edu-news/apps-practicas-para-personas-neurodivergentes/",
     "link": "https://observatorio.tec.mx/edu-news/apps-practicas-para-personas-neurodivergentes/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/10/iStock-1410067648-345x207.jpg",
@@ -64,8 +49,7 @@
   },
   {
     "title": "¿Te gustaría compartir tu experiencia educativa con la comunidad docente?",
-    "author": "Woodrow Feeney",
-    "authorImage": "https://randomuser.me/api/portraits/men/51.jpg",
+    "author": "Rubí Román",
     "slug": "edu-news/convocatoria-edu-bits-2023-2024/",
     "link": "https://observatorio.tec.mx/edu-news/convocatoria-edu-bits-2023-2024/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/10/Convocatoria-Edu-Bits_1920x1080px-345x207.jpg",
@@ -73,8 +57,7 @@
   },
   {
     "title": "Opinión | Salud mental: Locos productivos en el aula",
-    "author": "Rex Lehner",
-    "authorImage": "https://randomuser.me/api/portraits/men/75.jpg",
+    "author": "Andrés García Barrios",
     "slug": "edu-news/opinion-salud-mental-locos-productivos-en-el-aula/",
     "link": "https://observatorio.tec.mx/edu-news/opinion-salud-mental-locos-productivos-en-el-aula/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/10/i-would-prefer-not-to-345x207.jpg",
@@ -82,8 +65,7 @@
   },
   {
     "title": "Herramientas de IA que todo profesor debe conocer",
-    "author": "Tomas Nader",
-    "authorImage": "https://randomuser.me/api/portraits/men/77.jpg",
+    "author": "Melissa Guerra Jáuregui",
     "slug": "edu-news/herramientas-de-ia-que-todo-profesor-debe-conocer/",
     "link": "https://observatorio.tec.mx/edu-news/herramientas-de-ia-que-todo-profesor-debe-conocer/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/10/iStock-1736973846-345x207.jpg",
@@ -91,8 +73,7 @@
   },
   {
     "title": "Mes de la concientización sobre el TDAH",
-    "author": "Mrs. Lorraine Grimes DVM",
-    "authorImage": "https://randomuser.me/api/portraits/women/39.jpg",
+    "author": "Andrea Cristina Alvarez Pacheco",
     "slug": "edu-news/mes-concientizacion-tdah/",
     "link": "https://observatorio.tec.mx/edu-news/mes-concientizacion-tdah/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/10/pxfuel.com-4-345x207.jpg",
@@ -100,8 +81,7 @@
   },
   {
     "title": "De la distracción a la organización: cuatro apps que convertirán a tu celular en aliado",
-    "author": "Kristy Stark",
-    "authorImage": "https://randomuser.me/api/portraits/women/20.jpg",
+    "author": "Mariana Sofía Jiménez Nájera",
     "slug": "edu-news/convierte-a-tu-celular-en-aliado/",
     "link": "https://observatorio.tec.mx/edu-news/convierte-a-tu-celular-en-aliado/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/10/MACROVECTOR-345x207.png",
@@ -109,8 +89,7 @@
   },
   {
     "title": "Cómo apostar por el protagonismo juvenil para la transformación educativa",
-    "author": "Lynette Aufderhar",
-    "authorImage": "https://randomuser.me/api/portraits/women/18.jpg",
+    "author": "Nohemí Vilchis",
     "slug": "edu-news/ashoka-protagonismo-juvenil-transformacion-educativa/",
     "link": "https://observatorio.tec.mx/edu-news/ashoka-protagonismo-juvenil-transformacion-educativa/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/10/local-icon.png-345x207.webp",
@@ -118,8 +97,7 @@
   },
   {
     "title": "¡El tiempo es oro! Aprende a gestionarlo",
-    "author": "Everett Nolan",
-    "authorImage": "https://randomuser.me/api/portraits/men/41.jpg",
+    "author": "Andrea Cristina Alvarez Pacheco",
     "slug": "edu-news/el-tiempo-es-oro-gestiona/",
     "link": "https://observatorio.tec.mx/edu-news/el-tiempo-es-oro-gestiona/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/10/Administracion-del-tiempo-345x207.jpg",
@@ -127,8 +105,7 @@
   },
   {
     "title": "Opinión | No eres como yo y no espero nada de ti",
-    "author": "Mario Homenick",
-    "authorImage": "https://randomuser.me/api/portraits/men/69.jpg",
+    "author": "Andrés García Barrios",
     "slug": "edu-news/opinion-no-eres-como-yo-y-no-espero-nada-de-ti/",
     "link": "https://observatorio.tec.mx/edu-news/opinion-no-eres-como-yo-y-no-espero-nada-de-ti/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/10/Observatorio-Faro-luz-345x207.jpg",
@@ -136,8 +113,7 @@
   },
   {
     "title": "Los estudiantes como agentes de cambio",
-    "author": "Blanche Walter",
-    "authorImage": "https://randomuser.me/api/portraits/women/48.jpg",
+    "author": "Andrea Cristina Alvarez Pacheco",
     "slug": "edu-news/movimientos-estudiantiles/",
     "link": "https://observatorio.tec.mx/edu-news/movimientos-estudiantiles/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/10/Movimientos-estudiantiles-en-el-mundo-345x207.jpg",
@@ -145,8 +121,7 @@
   },
   {
     "title": "Aprendizaje a lo largo de la vida: competencias clave",
-    "author": "Tyler Wyman-Jenkins",
-    "authorImage": "https://randomuser.me/api/portraits/men/66.jpg",
+    "author": "Melissa Guerra Jáuregui",
     "slug": "edu-news/aprendizaje-a-lo-largo-de-la-vida-competencias-clave/",
     "link": "https://observatorio.tec.mx/edu-news/aprendizaje-a-lo-largo-de-la-vida-competencias-clave/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/10/iStock-1393223390-345x207.jpg",
@@ -154,8 +129,7 @@
   },
   {
     "title": "Conoce el primer eBook con recursos de Realidad Aumentada especializado en sostenibilidad",
-    "author": "Mathew Littel",
-    "authorImage": "https://randomuser.me/api/portraits/men/1.jpg",
+    "author": "Perla Téllez Garza",
     "slug": "edu-news/conoce-el-primer-ebook-con-recursos-de-realidad-aumentada-especializado-en-sostenibilidad/",
     "link": "https://observatorio.tec.mx/edu-news/conoce-el-primer-ebook-con-recursos-de-realidad-aumentada-especializado-en-sostenibilidad/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/10/ebook-sostenibilidad-con-recursos-de-realidad-aumentada-345x207.jpg",
@@ -163,8 +137,7 @@
   },
   {
     "title": "Opinión | ¿El poder de las palabras o las palabras del poder?",
-    "author": "George Walsh",
-    "authorImage": "https://randomuser.me/api/portraits/men/24.jpg",
+    "author": "Andrés García Barrios",
     "slug": "edu-news/opinion-el-poder-de-las-palabras-o-las-palabras-del-poder/",
     "link": "https://observatorio.tec.mx/edu-news/opinion-el-poder-de-las-palabras-o-las-palabras-del-poder/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/10/palabras-poder-345x207.jpg",
@@ -172,8 +145,7 @@
   },
   {
     "title": "Tec de Monterrey crea TECgpt, el primer modelo propio de IA generativa en Latinoamérica",
-    "author": "Sheryl Franecki",
-    "authorImage": "https://randomuser.me/api/portraits/women/33.jpg",
+    "author": "Ricardo Treviño",
     "slug": "edu-news/tec-de-monterrey-crea-tecgpt-el-primer-modelo-propio-de-ia-generativa-en-latinoamerica/",
     "link": "https://observatorio.tec.mx/edu-news/tec-de-monterrey-crea-tecgpt-el-primer-modelo-propio-de-ia-generativa-en-latinoamerica/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/10/ai-day-tec-de-monterrey-tecgpt_0-345x207.jpg",
@@ -181,8 +153,7 @@
   },
   {
     "title": "Hablemos de innovación: ¿realmente estamos innovando?",
-    "author": "Percy Borer",
-    "authorImage": "https://randomuser.me/api/portraits/men/47.jpg",
+    "author": "Paulette Delgado",
     "slug": "edu-news/hablemos-de-innovacion-realmente-estamos-innovando/",
     "link": "https://observatorio.tec.mx/edu-news/hablemos-de-innovacion-realmente-estamos-innovando/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/10/iStock-1414910820-345x207.jpg",
@@ -190,8 +161,7 @@
   },
   {
     "title": "Opinión | Mujeres luchando por su vida",
-    "author": "Jim Hauck",
-    "authorImage": "https://randomuser.me/api/portraits/men/25.jpg",
+    "author": "Andrés García Barrios",
     "slug": "edu-news/opinion-violencia-contra-las-mujeres/",
     "link": "https://observatorio.tec.mx/edu-news/opinion-violencia-contra-las-mujeres/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/09/Contra_el_patriarcado-345x207.jpeg",
@@ -199,8 +169,7 @@
   },
   {
     "title": "Falso o verdadero: La alfabetización mediática",
-    "author": "Nadine Wilderman",
-    "authorImage": "https://randomuser.me/api/portraits/women/23.jpg",
+    "author": "Mariana Sofía Jiménez Nájera",
     "slug": "edu-news/falso-o-verdadero-la-alfabetizacion-mediatica/",
     "link": "https://observatorio.tec.mx/edu-news/falso-o-verdadero-la-alfabetizacion-mediatica/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/09/freepik.es_-345x207.png",
@@ -208,8 +177,7 @@
   },
   {
     "title": "Septiembre: Mes de la Concientización sobre la Prevención del Suicidio",
-    "author": "Carolyn Herman",
-    "authorImage": "https://randomuser.me/api/portraits/women/38.jpg",
+    "author": "Andrea Cristina Alvarez Pacheco",
     "slug": "edu-news/prevencion-del-suicidio/",
     "link": "https://observatorio.tec.mx/edu-news/prevencion-del-suicidio/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/09/Prevencion-del-Suicidio-345x207.jpg",
@@ -217,8 +185,7 @@
   },
   {
     "title": "Lenguaje inclusivo: dar a las personas su verdadero nombre",
-    "author": "Amber O'Hara",
-    "authorImage": "https://randomuser.me/api/portraits/women/11.jpg",
+    "author": "Andrés García Barrios",
     "slug": "edu-news/lenguaje-inclusivo-dar-a-las-personas-su-verdadero-nombre/",
     "link": "https://observatorio.tec.mx/edu-news/lenguaje-inclusivo-dar-a-las-personas-su-verdadero-nombre/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/09/lenguaje-inclusivo-345x207.jpeg",
@@ -226,8 +193,7 @@
   },
   {
     "title": "Las mejores IA para el investigador moderno",
-    "author": "Eva Wisoky",
-    "authorImage": "https://randomuser.me/api/portraits/women/55.jpg",
+    "author": "Melissa Guerra Jáuregui",
     "slug": "edu-news/las-mejores-ia-para-el-investigador-moderno/",
     "link": "https://observatorio.tec.mx/edu-news/las-mejores-ia-para-el-investigador-moderno/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/09/iStock-951657490-345x207.jpg",
@@ -235,8 +201,7 @@
   },
   {
     "title": "Inversión educativa en tecnología, ¿resulta útil o su alcance es reducido?",
-    "author": "Jeanette Klocko",
-    "authorImage": "https://randomuser.me/api/portraits/women/12.jpg",
+    "author": "Nohemí Vilchis",
     "slug": "edu-news/reporte-unesco-edtech-2023/",
     "link": "https://observatorio.tec.mx/edu-news/reporte-unesco-edtech-2023/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/09/iStock-1133537960-1-345x207.jpg",
@@ -244,8 +209,7 @@
   },
   {
     "title": "¿Piensas en cómo piensas?",
-    "author": "Luis Gutmann",
-    "authorImage": "https://randomuser.me/api/portraits/men/24.jpg",
+    "author": "Mariana Sofía Jiménez Nájera",
     "slug": "edu-news/piensas-en-como-piensas-metacognicion/",
     "link": "https://observatorio.tec.mx/edu-news/piensas-en-como-piensas-metacognicion/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/09/VERAZINHA_FREEPIK-345x207.jpg",
@@ -253,8 +217,7 @@
   },
   {
     "title": "El profesor universitario: por amor al arte",
-    "author": "Miss Ana Gutkowski",
-    "authorImage": "https://randomuser.me/api/portraits/women/61.jpg",
+    "author": "Andrea Cristina Alvarez Pacheco",
     "slug": "edu-news/el-profesor-universitario/",
     "link": "https://observatorio.tec.mx/edu-news/el-profesor-universitario/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/09/pxfuel.com-2-345x207.jpg",
@@ -262,8 +225,7 @@
   },
   {
     "title": "Punto Blanco: el Tec en la espiritualidad",
-    "author": "Joseph Wintheiser",
-    "authorImage": "https://randomuser.me/api/portraits/men/71.jpg",
+    "author": "Andrés García Barrios",
     "slug": "edu-news/punto-blanco-el-espacio-de-meditacion-del-tec/",
     "link": "https://observatorio.tec.mx/edu-news/punto-blanco-el-espacio-de-meditacion-del-tec/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/07/espacio-de-reflexion-5-345x207.jpg",
@@ -271,8 +233,7 @@
   },
   {
     "title": "¿Puedo ser lo que quiera ser?",
-    "author": "Kenny VonRueden",
-    "authorImage": "https://randomuser.me/api/portraits/men/81.jpg",
+    "author": "Melissa Guerra Jáuregui",
     "slug": "edu-news/puedo-ser-lo-que-quiera-ser/",
     "link": "https://observatorio.tec.mx/edu-news/puedo-ser-lo-que-quiera-ser/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/09/iStock-1299120940-345x207.jpg",
@@ -280,8 +241,7 @@
   },
   {
     "title": "La Feria Internacional del Libro Monterrey «Las letras llevan al Norte»",
-    "author": "Pablo Kilback",
-    "authorImage": "https://randomuser.me/api/portraits/men/58.jpg",
+    "author": "Dra. Katherina Gallardo",
     "slug": "edu-news/la-feria-internacional-del-libro-monterrey-las-letras-llevan-al-norte/",
     "link": "https://observatorio.tec.mx/edu-news/la-feria-internacional-del-libro-monterrey-las-letras-llevan-al-norte/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/09/Master-Libro-Horizontal-345x207.jpg",
@@ -289,8 +249,7 @@
   },
   {
     "title": "A cuidar nuestra salud sexual",
-    "author": "Jordan Homenick DVM",
-    "authorImage": "https://randomuser.me/api/portraits/men/59.jpg",
+    "author": "Oficina de Género y Comunidad Segura",
     "slug": "edu-news/dia-mundial-de-la-salud-sexual/",
     "link": "https://observatorio.tec.mx/edu-news/dia-mundial-de-la-salud-sexual/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/09/Dia-Mundial-de-la-Salud-Sexual-345x207.jpg",
@@ -298,8 +257,7 @@
   },
   {
     "title": "La sombra que acecha: los enemigos del aprendizaje",
-    "author": "Lamar Hermann",
-    "authorImage": "https://randomuser.me/api/portraits/men/63.jpg",
+    "author": "Mariana Sofía Jiménez Nájera",
     "slug": "edu-news/la-sombra-que-acecha-los-enemigos-del-aprendizaje/",
     "link": "https://observatorio.tec.mx/edu-news/la-sombra-que-acecha-los-enemigos-del-aprendizaje/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/08/Imagen-de-pch.vector-en-Freepik-345x207.jpg",
@@ -307,8 +265,7 @@
   },
   {
     "title": "Dime cuánto mides y te diré quién eres (extrañas variables en el desempeño escolar)",
-    "author": "Mrs. Elsa Donnelly",
-    "authorImage": "https://randomuser.me/api/portraits/women/52.jpg",
+    "author": "Andrés García Barrios",
     "slug": "edu-news/el-modelo-panoptico-en-las-escuelas/",
     "link": "https://observatorio.tec.mx/edu-news/el-modelo-panoptico-en-las-escuelas/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/08/La-estatura-de-los-estudiantes-como-determinante-de-su-desarrollo-345x207.jpg",
@@ -316,8 +273,7 @@
   },
   {
     "title": "Alianza entre Tec de Monterrey y ONU Mujeres impulsa programa de igualdad",
-    "author": "Ora Howell",
-    "authorImage": "https://randomuser.me/api/portraits/women/12.jpg",
+    "author": "Marlene González",
     "slug": "edu-news/alianza-entre-tec-de-monterrey-y-onu-mujeres-campus-seguros/",
     "link": "https://observatorio.tec.mx/edu-news/alianza-entre-tec-de-monterrey-y-onu-mujeres-campus-seguros/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/08/los-asistentes-al-kick-off-de-programa-campus-seguro-345x207.jpg",
@@ -325,8 +281,7 @@
   },
   {
     "title": "Hablar en público: la peor pesadilla para introvertidos y no tan introvertidos",
-    "author": "Albert O'Reilly",
-    "authorImage": "https://randomuser.me/api/portraits/men/28.jpg",
+    "author": "Mariana Sofía Jiménez Nájera",
     "slug": "edu-news/hablar-en-publico-la-peor-pesadilla/",
     "link": "https://observatorio.tec.mx/edu-news/hablar-en-publico-la-peor-pesadilla/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/08/Talking-in-public_Mariana-Jimenez-345x207.png",
@@ -334,8 +289,7 @@
   },
   {
     "title": "Opinión | Demagogos y pedagogos: ¿En qué se distinguen?",
-    "author": "Leslie Hahn",
-    "authorImage": "https://randomuser.me/api/portraits/men/12.jpg",
+    "author": "Andrés García Barrios",
     "slug": "edu-news/opinion-que-implica-el-proceso-de-ensenanza-aprendizaje/",
     "link": "https://observatorio.tec.mx/edu-news/opinion-que-implica-el-proceso-de-ensenanza-aprendizaje/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/06/ensenanza-1-345x207.jpg",
@@ -343,8 +297,7 @@
   },
   {
     "title": "El ciclo sin fin",
-    "author": "Billy Rutherford",
-    "authorImage": "https://randomuser.me/api/portraits/men/58.jpg",
+    "author": "Melissa Guerra Jáuregui",
     "slug": "edu-news/el-ciclo-sin-fin/",
     "link": "https://observatorio.tec.mx/edu-news/el-ciclo-sin-fin/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/08/iStock-1450161709-345x207.jpg",
@@ -352,8 +305,7 @@
   },
   {
     "title": "Google, ¿destronado?",
-    "author": "Gail Schuppe",
-    "authorImage": "https://randomuser.me/api/portraits/women/13.jpg",
+    "author": "Mariana Sofía Jiménez Nájera",
     "slug": "edu-news/google-destronado/",
     "link": "https://observatorio.tec.mx/edu-news/google-destronado/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/08/emp-345x207.png",
@@ -361,8 +313,7 @@
   },
   {
     "title": "El valor transformador de la docencia desde la agencia de cambio",
-    "author": "Nathaniel Schmeler",
-    "authorImage": "https://randomuser.me/api/portraits/men/25.jpg",
+    "author": "Nohemí Vilchis",
     "slug": "edu-news/ashoka-docentes-agentes-de-cambio/",
     "link": "https://observatorio.tec.mx/edu-news/ashoka-docentes-agentes-de-cambio/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/07/docentes-agentes-de-cambio-Fundacion-Share-345x207.png",
@@ -370,8 +321,7 @@
   },
   {
     "title": "¿Oyes o escuchas?",
-    "author": "Guy Nader",
-    "authorImage": "https://randomuser.me/api/portraits/men/26.jpg",
+    "author": "Mariana Sofía Jiménez Nájera",
     "slug": "edu-news/oyes-o-escuchas/",
     "link": "https://observatorio.tec.mx/edu-news/oyes-o-escuchas/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/08/franco-antonio-giovanella-PVDWaEhSIAg-unsplash-345x207.jpg",
@@ -379,8 +329,7 @@
   },
   {
     "title": "Consejos para adaptarte al primer semestre de la universidad",
-    "author": "Dallas Klocko",
-    "authorImage": "https://randomuser.me/api/portraits/men/30.jpg",
+    "author": "Andrea Cristina Alvarez Pacheco",
     "slug": "edu-news/consejos-para-adaptarte-a-la-universidad/",
     "link": "https://observatorio.tec.mx/edu-news/consejos-para-adaptarte-a-la-universidad/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/08/Estudiantes-universitarios-345x207.jpg",
@@ -388,8 +337,7 @@
   },
   {
     "title": "La educación en tiempos de guerra",
-    "author": "Anita Kshlerin",
-    "authorImage": "https://randomuser.me/api/portraits/women/53.jpg",
+    "author": "Melissa Guerra Jáuregui",
     "slug": "edu-news/la-educacion-en-tiempos-de-guerra/",
     "link": "https://observatorio.tec.mx/edu-news/la-educacion-en-tiempos-de-guerra/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/08/iStock-1466383105-345x207.jpg",
@@ -397,8 +345,7 @@
   },
   {
     "title": "No eres tú, el calor sí afecta tu desempeño",
-    "author": "Mildred Schaden",
-    "authorImage": "https://randomuser.me/api/portraits/women/53.jpg",
+    "author": "Paulette Delgado",
     "slug": "edu-news/no-eres-tu-el-calor-si-afecta-tu-desempeno/",
     "link": "https://observatorio.tec.mx/edu-news/no-eres-tu-el-calor-si-afecta-tu-desempeno/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/07/iStock-1456882589-345x207.jpg",
@@ -406,8 +353,7 @@
   },
   {
     "title": "Definen a nueva generación de IFE Explora",
-    "author": "Dan Hane",
-    "authorImage": "https://randomuser.me/api/portraits/men/66.jpg",
+    "author": "Nohemí Vilchis",
     "slug": "edu-news/ife-explora-2023-demoday/",
     "link": "https://observatorio.tec.mx/edu-news/ife-explora-2023-demoday/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/07/iStock-1412574838-1-345x207.jpg",
@@ -415,8 +361,7 @@
   },
   {
     "title": "«Soy muy viejo para aprender»",
-    "author": "Terrence Reynolds",
-    "authorImage": "https://randomuser.me/api/portraits/men/43.jpg",
+    "author": "Mariana Sofía Jiménez Nájera",
     "slug": "edu-news/soy-muy-viejo-para-aprender/",
     "link": "https://observatorio.tec.mx/edu-news/soy-muy-viejo-para-aprender/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/07/pexels-andrea-piacquadio-3823494-345x207.jpg",
@@ -424,8 +369,7 @@
   },
   {
     "title": "¿Qué es el pensamiento complejo?",
-    "author": "Johnny Bergstrom",
-    "authorImage": "https://randomuser.me/api/portraits/men/30.jpg",
+    "author": "Rubí Román",
     "slug": "edu-news/que-es-el-pensamiento-complejo/",
     "link": "https://observatorio.tec.mx/edu-news/que-es-el-pensamiento-complejo/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/07/Mundo-VICA-e1689787389722-345x207.jpg",
@@ -433,146 +377,10 @@
   },
   {
     "title": "Navegando positivo en el mar digital",
-    "author": "Jean Schinner",
-    "authorImage": "https://randomuser.me/api/portraits/men/24.jpg",
+    "author": "Melissa Guerra Jáuregui",
     "slug": "edu-news/navegando-positivo-en-el-mar-digital/",
     "link": "https://observatorio.tec.mx/edu-news/navegando-positivo-en-el-mar-digital/",
     "image": "https://observatorio.tec.mx/wp-content/uploads/2023/07/iStock-1410953126-345x207.jpg",
-    "category": "edu-news"
-  },
-  {
-    "title": "No soy yo, eres… ¿yo?",
-    "author": "Ada Schuster",
-    "authorImage": "https://randomuser.me/api/portraits/women/18.jpg",
-    "slug": "edu-news/no-soy-yo-eres-yo/",
-    "link": "https://observatorio.tec.mx/edu-news/no-soy-yo-eres-yo/",
-    "image": "https://observatorio.tec.mx/wp-content/uploads/2023/06/SINDROME-IMPOSTOR-345x207.png",
-    "category": "edu-news"
-  },
-  {
-    "title": "Aprendemos siempre: comentarios al reporte Edu Trends, Aprendizaje a lo largo de la vida",
-    "author": "Jeremiah Bahringer",
-    "authorImage": "https://randomuser.me/api/portraits/men/56.jpg",
-    "slug": "edu-news/aprendemos-siempre-comentarios-al-reporte-edu-trends-aprendizaje-a-lo-largo-de-la-vida/",
-    "link": "https://observatorio.tec.mx/edu-news/aprendemos-siempre-comentarios-al-reporte-edu-trends-aprendizaje-a-lo-largo-de-la-vida/",
-    "image": "https://observatorio.tec.mx/wp-content/uploads/2023/07/Screenshot-2023-07-19-110400-345x207.png",
-    "category": "edu-news"
-  },
-  {
-    "title": "Diversidad sexual: Orgullo y pertenencia",
-    "author": "Lena Crist",
-    "authorImage": "https://randomuser.me/api/portraits/women/76.jpg",
-    "slug": "edu-news/diversidad-sexual-orgullo-y-pertenencia/",
-    "link": "https://observatorio.tec.mx/edu-news/diversidad-sexual-orgullo-y-pertenencia/",
-    "image": "https://observatorio.tec.mx/wp-content/uploads/2023/06/diversidadeinclusion-1-345x207.png",
-    "category": "edu-news"
-  },
-  {
-    "title": "ChatGPT: Humano, muy humano",
-    "author": "Guillermo Ritchie",
-    "authorImage": "https://randomuser.me/api/portraits/men/71.jpg",
-    "slug": "edu-news/chatgpt-humano-muy-humano/",
-    "link": "https://observatorio.tec.mx/edu-news/chatgpt-humano-muy-humano/",
-    "image": "https://observatorio.tec.mx/wp-content/uploads/2023/06/gpt-computer-laptop-personal-computer-netbook-peripheral-1673488-pxhere.com_-345x207.jpg",
-    "category": "edu-news"
-  },
-  {
-    "title": "La siesta como impulsora de la productividad",
-    "author": "Marie Ziemann",
-    "authorImage": "https://randomuser.me/api/portraits/women/55.jpg",
-    "slug": "edu-news/siesta-como-impulsora-de-la-productividad/",
-    "link": "https://observatorio.tec.mx/edu-news/siesta-como-impulsora-de-la-productividad/",
-    "image": "https://observatorio.tec.mx/wp-content/uploads/2023/06/iStock-1365087908-345x207.jpg",
-    "category": "edu-news"
-  },
-  {
-    "title": "¡Deja el multitasking a las computadoras!",
-    "author": "Jenna Grimes III",
-    "authorImage": "https://randomuser.me/api/portraits/women/63.jpg",
-    "slug": "edu-news/deja-el-multitasking-a-las-computadoras/",
-    "link": "https://observatorio.tec.mx/edu-news/deja-el-multitasking-a-las-computadoras/",
-    "image": "https://observatorio.tec.mx/wp-content/uploads/2023/06/MULTI-345x207.png",
-    "category": "edu-news"
-  },
-  {
-    "title": "170 millones de estudiantes en América Latina y el Caribe enfrentan crisis de aprendizaje",
-    "author": "Claudia Prosacco",
-    "authorImage": "https://randomuser.me/api/portraits/women/86.jpg",
-    "slug": "edu-news/170-millones-de-estudiantes-en-america-latina-y-el-caribe-enfrentan-crisis-de-aprendizaje/",
-    "link": "https://observatorio.tec.mx/edu-news/170-millones-de-estudiantes-en-america-latina-y-el-caribe-enfrentan-crisis-de-aprendizaje/",
-    "image": "https://observatorio.tec.mx/wp-content/uploads/2023/06/iStock-1437852988-345x207.jpg",
-    "category": "edu-news"
-  },
-  {
-    "title": "Jóvenes emprendedores presentan proyectos para transformar el ámbito educativo",
-    "author": "Gilberto Orn",
-    "authorImage": "https://randomuser.me/api/portraits/men/8.jpg",
-    "slug": "edu-news/proyectos-finales-lei/",
-    "link": "https://observatorio.tec.mx/edu-news/proyectos-finales-lei/",
-    "image": "https://observatorio.tec.mx/wp-content/uploads/2023/06/IMG-5934-345x207.jpg",
-    "category": "edu-news"
-  },
-  {
-    "title": "Ser un gran maestro pero no un buen padre",
-    "author": "Dana MacGyver",
-    "authorImage": "https://randomuser.me/api/portraits/men/60.jpg",
-    "slug": "edu-news/ser-un-gran-maestro-pero-no-un-buen-padre/",
-    "link": "https://observatorio.tec.mx/edu-news/ser-un-gran-maestro-pero-no-un-buen-padre/",
-    "image": "https://observatorio.tec.mx/wp-content/uploads/2023/06/Edgar_Morin-345x207.jpeg",
-    "category": "edu-news"
-  },
-  {
-    "title": "Más allá de ChatGPT: Hacia la regulación de la inteligencia artificial",
-    "author": "Marcos Funk",
-    "authorImage": "https://randomuser.me/api/portraits/men/86.jpg",
-    "slug": "edu-news/mas-alla-de-chatgpt-hacia-la-regulacion-de-la-inteligencia-artificial/",
-    "link": "https://observatorio.tec.mx/edu-news/mas-alla-de-chatgpt-hacia-la-regulacion-de-la-inteligencia-artificial/",
-    "image": "https://observatorio.tec.mx/wp-content/uploads/2023/06/ChatGPT-345x207.jpg",
-    "category": "edu-news"
-  },
-  {
-    "title": "Tec de Monterrey invita a participar en la IFE Conference, antes CIIE",
-    "author": "Nick Quitzon",
-    "authorImage": "https://randomuser.me/api/portraits/men/66.jpg",
-    "slug": "edu-news/tec-de-monterrey-invita-a-participar-en-la-ife-conference-antes-ciie/",
-    "link": "https://observatorio.tec.mx/edu-news/tec-de-monterrey-invita-a-participar-en-la-ife-conference-antes-ciie/",
-    "image": "https://observatorio.tec.mx/wp-content/uploads/2023/06/PanelCerrarLaBrechaEntreInvestigacionYPracticaEnLaAccionClimatica_CIIE2023_2-345x207.jpg",
-    "category": "edu-news"
-  },
-  {
-    "title": "Lenguaje e inclusión, la nueva guía del Tecnológico de Monterrey",
-    "author": "Dana Kuphal",
-    "authorImage": "https://randomuser.me/api/portraits/men/33.jpg",
-    "slug": "edu-news/lenguaje-e-inclusion-guia-del-tecnologico-de-monterrey/",
-    "link": "https://observatorio.tec.mx/edu-news/lenguaje-e-inclusion-guia-del-tecnologico-de-monterrey/",
-    "image": "https://observatorio.tec.mx/wp-content/uploads/2023/06/iStock-1402731566-345x207.jpg",
-    "category": "edu-news"
-  },
-  {
-    "title": "Textos alarmistas sobre inteligencia artificial",
-    "author": "George Howe",
-    "authorImage": "https://randomuser.me/api/portraits/men/29.jpg",
-    "slug": "edu-news/la-educacion-que-queremos-textos-alarmistas-sobre-inteligencia-artificial/",
-    "link": "https://observatorio.tec.mx/edu-news/la-educacion-que-queremos-textos-alarmistas-sobre-inteligencia-artificial/",
-    "image": "https://observatorio.tec.mx/wp-content/uploads/2023/06/lenguaje-html-345x207.jpg",
-    "category": "edu-news"
-  },
-  {
-    "title": "¿Por qué hemos dejado de leer?",
-    "author": "Armando Bashirian",
-    "authorImage": "https://randomuser.me/api/portraits/men/83.jpg",
-    "slug": "edu-news/por-que-hemos-dejado-de-leer/",
-    "link": "https://observatorio.tec.mx/edu-news/por-que-hemos-dejado-de-leer/",
-    "image": "https://observatorio.tec.mx/wp-content/uploads/2023/06/freepik.es_-345x207.png",
-    "category": "edu-news"
-  },
-  {
-    "title": "IFE Launch abre su convocatoria para emprendimientos educativos",
-    "author": "Belinda Bergstrom",
-    "authorImage": "https://randomuser.me/api/portraits/women/53.jpg",
-    "slug": "edu-news/ife-launch-2023/",
-    "link": "https://observatorio.tec.mx/edu-news/ife-launch-2023/",
-    "image": "https://observatorio.tec.mx/wp-content/uploads/2023/06/iStock-1415798856-1-345x207.jpg",
     "category": "edu-news"
   }
 ]

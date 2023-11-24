@@ -5,7 +5,6 @@ import { scrapCard } from "../helpers/scrap-card";
 export async function scrapPosts({page, category}: {page: Page, category: string}){
     const url = `https://${category === 'edutrendspodcast' ? 'observatory' : 'observatorio'}.tec.mx/${category}`;
     const outputFile = `src/scrap/db/${category}.json`;
-    console.log(category === 'edutrendspodcast')
     const articleSelector = category === 'edutrendspodcast' ? '.post-edutube.podcast' : '.entry-content.default';
     const posts = await scrapCard({
         page,

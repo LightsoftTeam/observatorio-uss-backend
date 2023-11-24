@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestj
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
+const path = require('path');
 
 @Controller('posts')
 export class PostsController {
@@ -17,11 +18,9 @@ export class PostsController {
     return this.postsService.findAll();
   }
 
-  @Get('/find/:param')
-  find(@Param('param') param: string) {
-    return this.postsService.find({
-      param
-    });
+  @Get('/find/home')
+  find() {
+    return this.postsService.find();
   }
 
   @Get(':id')
