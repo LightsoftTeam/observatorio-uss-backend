@@ -5,7 +5,7 @@ import { scrapCard } from "../helpers/scrap-card";
 export async function scrapPosts({page, category}: {page: Page, category: string}){
     const url = `https://${category === 'edutrendspodcast' ? 'observatory' : 'observatorio'}.tec.mx/${category}`;
     const outputFile = `src/scrap/db/${category}.json`;
-    const articleSelector = category === 'edutrendspodcast' ? '.post-edutube.podcast' : '.entry-content.default';
+    const articleSelector = category === 'edutrendspodcast' ? '.post-edutube.podcast' : '.entry-content';
     const posts = await scrapCard({
         page,
         url,
@@ -15,5 +15,6 @@ export async function scrapPosts({page, category}: {page: Page, category: string
         loadMoreTimes: category === 'edutrendspodcast' ? 2 : 3,
         linkSelector: category === 'edutrendspodcast' ? 'h2>a' : undefined
     })
-    await writeFile(outputFile, JSON.stringify(posts, null, 2));
+    console.log(posts)
+    // await writeFile(outputFile, JSON.stringify(posts, null, 2));
 }

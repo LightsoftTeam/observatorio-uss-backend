@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { readFile } from 'fs/promises';
+import { GetPostsDto } from './dto/get-posts.dto';
+import { Category } from './types/category.enum';
 const path = require('path');
 
 @Injectable()
@@ -44,8 +46,23 @@ export class PostsService {
     return 'This action adds a new post';
   }
 
-  findAll() {
-    return `This action returns all posts`;
+  findAll({
+    category
+  }: GetPostsDto) {
+    switch (category) {
+      case Category.NEWS:
+        return this.eduNews;
+      case Category.READS:
+        return this.eduReads;
+      case Category.BITS:
+        return this.eduBits;
+      case Category.TUBES:
+        return this.eduTubes;
+      case Category.PODCAST:
+        return this.eduTrendsPodcast;
+      default:
+        return [];
+    }
   }
 
   find() {
@@ -55,7 +72,7 @@ export class PostsService {
         ]
       const secondary = this.eduNews.slice(3, 8)
       const extras = this.eduNews.slice(8, 12)
-      const tubes = this.eduTubes.slice(0, 5)
+      const tubes = this.eduTubes.slice(0, 6)
       const reads = this.eduReads.slice(0, 2)
       const resp = {
         top,

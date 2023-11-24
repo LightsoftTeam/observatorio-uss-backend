@@ -9,19 +9,19 @@ const HEADLESS_MODE = true;
     const page = await browser.newPage();
     const postCategories = [
         'edu-news',
-        'edu-bits',
-        'edutrendspodcast'
+        // 'edu-bits',
+        // 'edutrendspodcast'
     ]
     for (const category of postCategories) {
         await scrapPosts({page, category});
     }
-    const tubeCategories = [
-        'edu-tube',
-        'edu-reads',
-    ]
-    for (const category of tubeCategories) {
-        await scrapTubes({page, category});
-    }
+    // const tubeCategories = [
+    //     'edu-tube',
+    //     'edu-reads',
+    // ]
+    // for (const category of tubeCategories) {
+    //     await scrapTubes({page, category});
+    // }
     await browser.close();
 })();
 
