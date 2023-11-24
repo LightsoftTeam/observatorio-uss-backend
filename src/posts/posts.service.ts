@@ -66,9 +66,11 @@ export class PostsService {
   }
 
   find() {
+    const topEduNews = this.eduNews.filter(post => post.description)
+    const topEduBits = this.eduBits.filter(post => post.description)
     const top = [
-          ...this.eduNews.slice(0, 3),
-          ...this.eduBits.slice(0, 2),
+          ...topEduNews.slice(0, 3),
+          ...topEduBits.slice(0, 2),
         ]
       const secondary = this.eduNews.slice(3, 8)
       const extras = this.eduNews.slice(8, 12)

@@ -15,6 +15,5 @@ export async function scrapPosts({page, category}: {page: Page, category: string
         loadMoreTimes: category === 'edutrendspodcast' ? 2 : 3,
         linkSelector: category === 'edutrendspodcast' ? 'h2>a' : undefined
     })
-    console.log(posts)
-    // await writeFile(outputFile, JSON.stringify(posts, null, 2));
+    await writeFile(outputFile, JSON.stringify(posts, null, 2));
 }

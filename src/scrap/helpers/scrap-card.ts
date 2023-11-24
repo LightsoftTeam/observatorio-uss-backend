@@ -25,14 +25,12 @@ export async function scrapCard({
     const posts = []
     for (const $post of $posts) {
         const $link: Locator = await $post.$(linkSelector);
-        const link = await $link.getAttribute('href');
-        const title = await $link.textContent();
         const $image = await $post.$('img.wp-post-image');
-        if(!$image){
+        if(!$image || !$link){
             continue;
         }
-        // const $author = await $post.$('.author>span')
-        // const author = await $author?.textContent() || faker.person.fullName();
+        const link = await $link.getAttribute('href');
+        const title = await $link.textContent();
         const gender = faker.number.int({
             min: 0,
             max: 1,
@@ -47,6 +45,8 @@ export async function scrapCard({
         const authorImage = `https://randomuser.me/api/portraits/${gender}/${numberOfPerson}.jpg`
         const image = await $image.getAttribute('src');
         const slug = link.split('tec.mx/').at(-1)
+        const $description = await $post.$('.excerpt>p');
+        const description = await $description?.textContent() || null;
         posts.push({
             title,
             author,
@@ -54,6 +54,7 @@ export async function scrapCard({
             slug,
             link,
             image,
+            description,
             category,
         });
     }
