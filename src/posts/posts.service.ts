@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { writeFile, readFile } from 'fs/promises';
+import { readFile } from 'fs/promises';
+const path = require('path');
 
 @Injectable()
 export class PostsService {
@@ -12,12 +13,17 @@ export class PostsService {
   eduTrendsPodcast: any[];
 
   constructor(){
+    const pathEduNews = path.join(__dirname, '../scrap/db/edu-news.json');
+    const pathEduBits = path.join(__dirname, '../scrap/db/edu-bits.json');
+    const pathEduReads = path.join(__dirname, '../scrap/db/edu-reads.json');
+    const pathEduTubes = path.join(__dirname, '../scrap/db/edu-tube.json');
+    const pathEduTrendsPodcast = path.join(__dirname, '../scrap/db/edutrendspodcast.json');
     Promise.all([
-      readFile('src/scrap/db/edu-news.json'),
-      readFile('src/scrap/db/edu-reads.json'),
-      readFile('src/scrap/db/edu-bits.json'),
-      readFile('src/scrap/db/edu-tube.json'),
-      readFile('src/scrap/db/edutrendspodcast.json'),
+      readFile(pathEduNews),
+      readFile(pathEduReads),
+      readFile(pathEduBits),
+      readFile(pathEduTubes),
+      readFile(pathEduTrendsPodcast),
     ])
     .then(([
       eduNews,
