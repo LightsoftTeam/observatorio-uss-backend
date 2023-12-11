@@ -92,7 +92,7 @@ export class PostsService {
   }
 
   findOne(slug: string) {
-    return (this.posts as any[]).find(post => post.slug === slug);
+    return this.posts.find(post => post.slug === slug);
   }
 
   update(id: number, updatePostDto: UpdatePostDto) {
