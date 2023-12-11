@@ -4,6 +4,7 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { readFile } from 'fs/promises';
 import { GetPostsDto } from './dto/get-posts.dto';
 import { Category } from './types/category.enum';
+import * as posts from "../scrap/db/posts/posts.json";
 const path = require('path');
 
 @Injectable()
@@ -86,8 +87,8 @@ export class PostsService {
       return resp;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} post`;
+  findOne(slug: string) {
+    return (posts as any[]).find(post => post.slug === slug);
   }
 
   update(id: number, updatePostDto: UpdatePostDto) {
