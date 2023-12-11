@@ -4,7 +4,6 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { readFile } from 'fs/promises';
 import { GetPostsDto } from './dto/get-posts.dto';
 import { Category } from './types/category.enum';
-import * as posts from "../scrap/db/posts/posts.json";
 const path = require('path');
 
 @Injectable()
@@ -14,6 +13,7 @@ export class PostsService {
   eduBits: any[];
   eduTubes: any[];
   eduTrendsPodcast: any[];
+  posts: any[];
 
   constructor(){
     const pathEduNews = path.join(__dirname, '../scrap/db/edu-news.json');
@@ -21,12 +21,14 @@ export class PostsService {
     const pathEduReads = path.join(__dirname, '../scrap/db/edu-reads.json');
     const pathEduTubes = path.join(__dirname, '../scrap/db/edu-tube.json');
     const pathEduTrendsPodcast = path.join(__dirname, '../scrap/db/edutrendspodcast.json');
+    const posts = path.join(__dirname, '../scrap/db/posts/posts.json');
     Promise.all([
       readFile(pathEduNews),
       readFile(pathEduReads),
       readFile(pathEduBits),
       readFile(pathEduTubes),
       readFile(pathEduTrendsPodcast),
+      readFile(posts),
     ])
     .then(([
       eduNews,
@@ -34,12 +36,14 @@ export class PostsService {
       eduBits,
       eduTubes,
       eduTrendsPodcast,
+      posts,
     ]) => {
       this.eduNews = JSON.parse(eduNews.toString());
       this.eduReads = JSON.parse(eduReads.toString());
       this.eduBits = JSON.parse(eduBits.toString());
       this.eduTubes = JSON.parse(eduTubes.toString());
       this.eduTrendsPodcast = JSON.parse(eduTrendsPodcast.toString());
+      this.posts = JSON.parse(posts.toString());
     })
   }
 
@@ -88,7 +92,7 @@ export class PostsService {
   }
 
   findOne(slug: string) {
-    return (posts as any[]).find(post => post.slug === slug);
+    return (this.posts as any[]).find(post => post.slug === slug);
   }
 
   update(id: number, updatePostDto: UpdatePostDto) {
