@@ -1,51 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { readFile } from 'fs/promises';
 import { GetPostsDto } from './dto/get-posts.dto';
-import { Category } from './types/category.enum';
-const path = require('path');
+
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Category, Post } from './entities/post.entity';
 
 @Injectable()
 export class PostsService {
-  eduNews: any[];
-  eduReads: any[];
-  eduBits: any[];
-  eduTubes: any[];
-  eduTrendsPodcast: any[];
-  posts: any[];
-
-  constructor(){
-    const pathEduNews = path.join(__dirname, '../scrap/db/edu-news.json');
-    const pathEduBits = path.join(__dirname, '../scrap/db/edu-bits.json');
-    const pathEduReads = path.join(__dirname, '../scrap/db/edu-reads.json');
-    const pathEduTubes = path.join(__dirname, '../scrap/db/edu-tube.json');
-    const pathEduTrendsPodcast = path.join(__dirname, '../scrap/db/edutrendspodcast.json');
-    const posts = path.join(__dirname, '../scrap/db/posts/posts.json');
-    Promise.all([
-      readFile(pathEduNews),
-      readFile(pathEduReads),
-      readFile(pathEduBits),
-      readFile(pathEduTubes),
-      readFile(pathEduTrendsPodcast),
-      readFile(posts),
-    ])
-    .then(([
-      eduNews,
-      eduReads,
-      eduBits,
-      eduTubes,
-      eduTrendsPodcast,
-      posts,
-    ]) => {
-      this.eduNews = JSON.parse(eduNews.toString());
-      this.eduReads = JSON.parse(eduReads.toString());
-      this.eduBits = JSON.parse(eduBits.toString());
-      this.eduTubes = JSON.parse(eduTubes.toString());
-      this.eduTrendsPodcast = JSON.parse(eduTrendsPodcast.toString());
-      this.posts = JSON.parse(posts.toString());
-    })
-  }
+  constructor(
+    @InjectRepository(Post)
+    private postsRepository: Repository<Post>,
+  ){}
 
   create(createPostDto: CreatePostDto) {
     return 'This action adds a new post';
@@ -54,45 +22,71 @@ export class PostsService {
   findAll({
     category
   }: GetPostsDto) {
-    switch (category) {
-      case Category.NEWS:
-        return this.eduNews;
-      case Category.READS:
-        return this.eduReads;
-      case Category.BITS:
-        return this.eduBits;
-      case Category.TUBES:
-        return this.eduTubes;
-      case Category.PODCAST:
-        return this.eduTrendsPodcast;
-      default:
-        return [];
-    }
+    return this.postsRepository.find({
+      where: {
+        category
+      }
+    });
   }
 
-  find() {
-    const topEduNews = this.eduNews.filter(post => post.description)
-    const topEduBits = this.eduBits.filter(post => post.description)
-    const top = [
+  async find() {
+    //TODO: order by priority
+    const topEduNewsPromise = this.postsRepository.find({
+      where: {
+        category: Category.NEWS
+      },
+      take: 12
+    });
+    const topEduBitsPromise = this.postsRepository.find({
+      where: {
+        category: Category.BITS
+      }
+    });
+    const topEdutubesPromise = this.postsRepository.find({
+      where: {
+        category: Category.TUBES
+      },
+      take: 6
+    });
+    const eduReadsPromise = this.postsRepository.find({  
+      where: {
+        category: Category.READS
+      },
+      take: 2
+    });
+
+    const [
+      topEduNews,
+      topEduBits,
+      topEdutubes,
+      eduReads
+    ] = await Promise.all([
+      topEduNewsPromise,
+      topEduBitsPromise,
+      topEdutubesPromise,
+      eduReadsPromise
+    ]);
+
+
+      const resp = {
+        top: [
           ...topEduNews.slice(0, 3),
           ...topEduBits.slice(0, 2),
-        ]
-      const secondary = this.eduNews.slice(3, 8)
-      const extras = this.eduNews.slice(8, 12)
-      const tubes = this.eduTubes.slice(0, 6)
-      const reads = this.eduReads.slice(0, 2)
-      const resp = {
-        top,
-        secondary,
-        extras,
-        tubes,
-        reads,
+        ],
+        secondary: topEduNews.slice(3, 8),
+        extras: topEduNews.slice(8, 12),
+        tubes: topEdutubes,
+        reads: eduReads
       }
       return resp;
   }
 
   findOne(slug: string) {
-    return this.posts.find(post => post.slug === slug);
+    return this.postsRepository.findOne({
+      where: {
+        slug
+      }
+    });
   }
 
   update(id: number, updatePostDto: UpdatePostDto) {

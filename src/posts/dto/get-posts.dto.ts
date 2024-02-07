@@ -1,5 +1,6 @@
-import { Category } from "../types/category.enum";
+
 import { ApiProperty } from '@nestjs/swagger';
+import { Category } from '../entities/post.entity';
 
 export class GetPostsDto {
     @ApiProperty({

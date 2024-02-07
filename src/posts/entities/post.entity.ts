@@ -1,5 +1,25 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Tag } from "src/tags/entities/tag.entity";
+import { User } from "src/users/entities/user.entity";
+import { Column, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
+export enum Category{
+    NEWS = 'edu-news',
+    BITS = 'edu-bits',
+    READS = 'edu-reads',
+    TUBES = 'edu-tubes',
+    // PODCAST = 'edutrendspodcast',
+    PODCAST = 'edu-podcast',
+}
+
+export enum SubCategory{
+    EDUTRENDS = 'edutrends',
+    EDUBOOKS = 'edubooks',
+    WEBINARS = 'webinars',
+    DIÁLOGOS = 'dialogues',
+    ENTREVISTAS = 'interviews',
+    RIE360 = 'rie360',
+    VIDEOTRENDS = 'videotrends',
+}
 @Entity()
 export class Post {
     @PrimaryGeneratedColumn()
@@ -9,40 +29,72 @@ export class Post {
     title: string;
     
     @Column()
-    author: string;
-    
-    @Column()
-    authorImage: string;
-    
-    @Column()
     slug: string;
     
     @Column()
     category: string;
     
-    @Column()
+    @Column({
+        nullable: true,
+    })
     subCategory: string;
     
     @Column()
     date: string;
     
-    @Column()
-    readingTime: string;
+    @Column({
+        nullable: true,
+    })
+    readingTime: number;
     
-    @Column()
+    @Column({
+        type: 'text',
+        nullable: true,
+    })
     description: string;
     
-    @Column()
+    @Column({
+        nullable: true,
+    })
     videoUrl: string;
+
+    @Column({
+        nullable: true,
+    })
+    podcastUrl: string;
     
     @Column({
         type: 'text',
     })
     content: string;
+
+    @Column({
+        nullable: true,
+    })
+    imageUrl: string;
     
-    @Column()
+    @Column({
+        nullable: true,
+    })
     imageDescription: string;
     
-    @Column()
+    @Column({
+        default: 0,
+    })
     likes: number;
+
+    @ManyToOne(() => User)
+    user: User;
+
+    @Column()
+    userId: number;
+
+    @Column({
+        type: 'simple-array',
+    })
+    attachments: string[];
+
+    @ManyToMany(() => Tag)
+    @JoinTable()
+    tags: Tag[];
 }

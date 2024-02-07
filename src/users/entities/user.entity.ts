@@ -1,5 +1,9 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
+export enum Role{
+    ADMIN = 'admin',
+    AUTHOR = 'author',
+}
 @Entity()
 export class User {
     @PrimaryGeneratedColumn()
@@ -8,12 +12,37 @@ export class User {
     @Column()
     name: string;
 
-    @Column()
+    @Column({
+        nullable: true,
+    })
+    image: string;
+
+    @Column({
+        unique: true,
+    })
     email: string;
 
     @Column()
     password: string;
 
+    @Column({
+        type: 'enum',
+        enum: Role,
+        default: Role.AUTHOR,
+    })
+    role: Role;
+
     @Column({ default: true })
     isActive: boolean;
+
+    toJson(){
+        return {
+            id: this.id,
+            name: this.name,
+            email: this.email,
+            role: this.role,
+            image: this.image,
+            isActive: this.isActive,
+        }
+    }
 }

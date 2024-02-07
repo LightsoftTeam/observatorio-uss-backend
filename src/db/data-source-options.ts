@@ -1,3 +1,6 @@
+
+import { Post } from 'src/posts/entities/post.entity';
+import { Tag } from 'src/tags/entities/tag.entity';
 import { User } from 'src/users/entities/user.entity';
 import { DataSource, DataSourceOptions } from 'typeorm';
 
@@ -10,12 +13,10 @@ export const dbdatasource: DataSourceOptions = {
     username: process.env.PGUSER,
     password: process.env.PGPASSWORD,
     database: process.env.PGDATABASE,
-    entities: [User],
+    entities: [User, Tag, Post],
     synchronize: true,
     migrations: ['dist/db/migrations/*.js' as string],
 }
-
-console.log({dbdatasource});
 
 const dataSource = new DataSource(dbdatasource);
 export default dataSource;
