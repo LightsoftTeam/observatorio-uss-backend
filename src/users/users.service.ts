@@ -19,6 +19,9 @@ export class UsersService {
       where: {
         role,
       },
+      order: {
+        createdAt: 'DESC'
+      }
     });
   }
   

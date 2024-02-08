@@ -16,6 +16,9 @@ export class TagsService {
             where: [
                 { name: Like(`%${search}%`) },
             ],
+            order: {
+                createdAt: 'DESC'
+            }
         });
     }
 
