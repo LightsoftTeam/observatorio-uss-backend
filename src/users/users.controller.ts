@@ -1,7 +1,8 @@
-import { BadRequestException, Body, Controller, Get, Post } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
+import { Role } from './entities/user.entity';
 
 @ApiTags('Users')
 @Controller('users')
@@ -10,8 +11,8 @@ export class UsersController {
 
   @ApiResponse({ status: 200, description: 'Return all users' })
   @Get()
-  async findAll() {
-    const users = await this.userService.findAll();
+  async findAll(@Query('role') role: Role){
+    const users = await this.userService.findAll(role);
     return users.map(user => user.toJson());
   }
 
