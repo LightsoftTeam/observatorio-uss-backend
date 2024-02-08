@@ -1,6 +1,3 @@
-import { Post } from "@nestjs/common";
-import { AppDataSource } from "src/db/seeders";
-
 export function generateSlug(title: string): string{
     let slug = title.toLowerCase();
     
@@ -11,8 +8,8 @@ export function generateSlug(title: string): string{
     return slug;
 }
 
-export async function generateUniquePostSlug(title: string): Promise<string>{
-    const posts = await AppDataSource.manager.find(Post);
+export async function generateUniquePostSlug(title: string, postRepository: any): Promise<string>{
+    const posts = await postRepository.find();
     const slugs = posts.map(post => post.slug);
     let slug = generateSlug(title);
     let uniqueSlug = slug;
