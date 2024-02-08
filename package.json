@@ -23,7 +23,7 @@
     "migration:generate": "npm run typeorm -- migration:generate",
     "migration:run": "npm run typeorm -- migration:run",
     "migration:revert": "npm run typeorm -- migration:revert",
-    "seed": "npm run build && node dist/db/seeders/index.js",
+    "seed": "npm run build && node dist/src/db/seeders/index.js",
     "start:azure": "npm run build && func host start"
   },
   "dependencies": {

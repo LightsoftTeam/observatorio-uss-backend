@@ -6,21 +6,23 @@ import { calculateReadTime } from 'src/posts/helpers/calculate-read-time.helper'
 import { generateSlug } from 'src/posts/helpers/generate-slug.helper';
 import { AppDataSource } from '.';
 import { Tag } from 'src/tags/entities/tag.entity';
+import { readFile } from 'fs/promises';
 
-export function postsSeeder({
+export async function postsSeeder({
     users,
     tags
 }: {
     users: User[],
     tags: Tag[]
 }){
-    const newPosts = ([] as any[]).map(post => {
+    const postsJson = await readFile('src/scrap/db/posts/posts.json', 'utf-8');
+    const posts = JSON.parse(postsJson);
+    const newPosts = (posts as any[]).map(post => {
         const user = users[Math.floor(Math.random() * users.length)];
         const newPost = new Post();
         newPost.title = post.title;
         newPost.description = post.description;
         newPost.content = post.content;
-        newPost.date = faker.date.recent().toISOString() ?? null;
         newPost.user = user;
         newPost.imageUrl = post.image ?? null;
         newPost.imageDescription = post.imageDescription ?? null;
@@ -55,6 +57,5 @@ export function postsSeeder({
             )
         return newPost;
     });
-    console.log(JSON.stringify(newPosts, null, 2));
     AppDataSource.manager.save(Post, newPosts);
 }

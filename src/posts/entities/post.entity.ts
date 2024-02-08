@@ -39,9 +39,6 @@ export class Post {
     })
     subCategory: string;
     
-    @Column()
-    date: string;
-    
     @Column({
         nullable: true,
     })
@@ -97,4 +94,16 @@ export class Post {
     @ManyToMany(() => Tag)
     @JoinTable()
     tags: Tag[];
+
+    @Column({
+        type: 'timestamp',
+        default: () => 'CURRENT_TIMESTAMP',
+    })
+    createdAt: Date;
+
+    @Column({
+        type: 'timestamp',
+        default: () => 'CURRENT_TIMESTAMP',
+    })
+    updatedAt: Date;
 }
