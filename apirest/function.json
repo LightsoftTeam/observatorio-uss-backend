@@ -5,11 +5,7 @@
       "type": "httpTrigger",
       "direction": "in",
       "name": "req",
-      "route": "{*segments}",
-      "methods": [
-        "get",
-        "post"
-      ]
+      "route": "{*segments}"
     },
     {
       "type": "http",
@@ -17,5 +13,5 @@
       "name": "res"
     }
   ],
-  "scriptFile": "../dist/api/index.js"
+  "scriptFile": "../dist/apirest/index.js"
 }

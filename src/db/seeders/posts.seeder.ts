@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { User } from '../../users/entities/user.entity';
-import * as posts from '../../scrap/db/posts/posts.json';
+// import * as posts from '../../scrap/db/posts/posts.json';
 import { Category, Post } from 'src/posts/entities/post.entity';
 import { calculateReadTime } from 'src/posts/helpers/calculate-read-time.helper';
 import { generateSlug } from 'src/posts/helpers/generate-slug.helper';
@@ -14,7 +14,7 @@ export function postsSeeder({
     users: User[],
     tags: Tag[]
 }){
-    const newPosts = (posts as any[]).map(post => {
+    const newPosts = ([] as any[]).map(post => {
         const user = users[Math.floor(Math.random() * users.length)];
         const newPost = new Post();
         newPost.title = post.title;
