@@ -60,7 +60,8 @@ export class PostsService {
       },
       order: {
         createdAt: 'DESC'
-      }
+      },
+      relations: ['tags', 'user']
     });
     return posts.map(post => {
       delete post.content;
@@ -74,23 +75,35 @@ export class PostsService {
       where: {
         category: Category.NEWS
       },
+      relations: [
+        'user',
+      ],
       take: 12
     });
     const topEduBitsPromise = this.postsRepository.find({
       where: {
         category: Category.BITS
-      }
+      },
+      relations: [
+        'user',
+      ],
     });
     const topEdutubesPromise = this.postsRepository.find({
       where: {
         category: Category.TUBES
       },
+      relations: [
+        'user',
+      ],
       take: 6
     });
     const eduReadsPromise = this.postsRepository.find({  
       where: {
         category: Category.READS
       },
+      relations: [
+        'user',
+      ],
       take: 2
     });
 
@@ -124,7 +137,8 @@ export class PostsService {
     return this.postsRepository.findOne({
       where: {
         slug
-      }
+      },
+      relations: ['tags', 'user']
     });
   }
 
