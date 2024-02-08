@@ -58,6 +58,9 @@ export class PostsService {
       where: {
         category
       },
+      order: {
+        createdAt: 'DESC'
+      }
     });
     return posts.map(post => {
       delete post.content;
