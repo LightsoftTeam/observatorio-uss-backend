@@ -35,7 +35,8 @@ export class CreateUserDto {
 
     @ApiProperty({
         description: 'The role of the user',
-        example: 'author'
+        example: 'author',
+        nullable: true,
     })
     @IsEnum(Role)
     @IsOptional()

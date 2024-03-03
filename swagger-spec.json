@@ -416,6 +416,106 @@
           "Storage"
         ]
       }
+    },
+    "/api/authorities": {
+      "post": {
+        "operationId": "AuthoritiesController_create",
+        "summary": "Create an authority",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAuthorityDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The authority has been successfully created."
+          },
+          "400": {
+            "description": "Bad request."
+          }
+        },
+        "tags": [
+          "Authorities"
+        ]
+      },
+      "get": {
+        "operationId": "AuthoritiesController_findAll",
+        "summary": "Get all authorities",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Return all authorities."
+          }
+        },
+        "tags": [
+          "Authorities"
+        ]
+      }
+    },
+    "/api/authorities/{id}": {
+      "put": {
+        "operationId": "AuthoritiesController_update",
+        "summary": "Update an authority",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAuthorityDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The authority has been successfully updated."
+          },
+          "404": {
+            "description": "Authority not found"
+          }
+        },
+        "tags": [
+          "Authorities"
+        ]
+      },
+      "delete": {
+        "operationId": "AuthoritiesController_remove",
+        "summary": "Delete an authority",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The authority has been successfully deleted."
+          }
+        },
+        "tags": [
+          "Authorities"
+        ]
+      }
     }
   },
   "info": {
@@ -444,7 +544,8 @@
           "description": {
             "type": "string",
             "description": "Description of the post",
-            "example": "This is a description of the post"
+            "example": "This is a description of the post",
+            "nullable": true
           },
           "category": {
             "type": "string",
@@ -454,27 +555,32 @@
           "videoUrl": {
             "type": "string",
             "description": "",
-            "example": ""
+            "example": "",
+            "nullable": true
           },
           "podcastUrl": {
             "type": "string",
             "description": "",
-            "example": ""
+            "example": "",
+            "nullable": true
           },
           "content": {
             "type": "string",
             "description": "",
-            "example": ""
+            "example": "",
+            "nullable": true
           },
           "imageUrl": {
             "type": "string",
             "description": "",
-            "example": ""
+            "example": "",
+            "nullable": true
           },
           "imageDescription": {
             "type": "string",
             "description": "",
-            "example": ""
+            "example": "",
+            "nullable": true
           },
           "userId": {
             "type": "string",
@@ -560,7 +666,8 @@
           "role": {
             "type": "string",
             "description": "The role of the user",
-            "example": "author"
+            "example": "author",
+            "nullable": true
           }
         },
         "required": [
@@ -597,7 +704,8 @@
           "role": {
             "type": "string",
             "description": "The role of the user",
-            "example": "author"
+            "example": "author",
+            "nullable": true
           }
         }
       },
@@ -619,6 +727,81 @@
           "email",
           "password"
         ]
+      },
+      "CreateAuthorityDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the authority",
+            "example": "John Doe"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the authority",
+            "example": "This is a description of the authority",
+            "nullable": true
+          },
+          "imageUrl": {
+            "type": "string",
+            "description": "The image of the authority",
+            "example": "https://example.com/image.jpg",
+            "nullable": true
+          },
+          "position": {
+            "type": "string",
+            "description": "The position of the authority",
+            "example": "CEO",
+            "nullable": true
+          },
+          "hierarchy": {
+            "type": "number",
+            "description": "The hierarchy of the authority",
+            "example": 0,
+            "nullable": true
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "imageUrl",
+          "position",
+          "hierarchy"
+        ]
+      },
+      "UpdateAuthorityDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the authority",
+            "example": "John Doe"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the authority",
+            "example": "This is a description of the authority",
+            "nullable": true
+          },
+          "imageUrl": {
+            "type": "string",
+            "description": "The image of the authority",
+            "example": "https://example.com/image.jpg",
+            "nullable": true
+          },
+          "position": {
+            "type": "string",
+            "description": "The position of the authority",
+            "example": "CEO",
+            "nullable": true
+          },
+          "hierarchy": {
+            "type": "number",
+            "description": "The hierarchy of the authority",
+            "example": 0,
+            "nullable": true
+          }
+        }
       }
     }
   }

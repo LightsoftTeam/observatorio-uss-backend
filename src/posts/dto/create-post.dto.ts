@@ -5,7 +5,7 @@ import { Category } from "../entities/post.entity";
 export class CreatePostDto {
     @ApiProperty({
         description: 'The title of the post',
-        example: 'How to create a NestJS application?'
+        example: 'How to create a NestJS application?',
     })
     @IsString()
     @IsNotEmpty()
@@ -14,6 +14,7 @@ export class CreatePostDto {
     @ApiProperty({
         description: 'Description of the post',
         example: 'This is a description of the post',
+        nullable: true,
     })
     @IsString()
     @IsOptional()
@@ -29,6 +30,7 @@ export class CreatePostDto {
     @ApiProperty({
         description: '',
         example: '',
+        nullable: true,
     })
     @IsString()
     @IsOptional()
@@ -37,6 +39,7 @@ export class CreatePostDto {
     @ApiProperty({
         description: '',
         example: '',
+        nullable: true,
     })
     @IsString()
     @IsOptional()
@@ -45,6 +48,7 @@ export class CreatePostDto {
     @ApiProperty({
         description: '',
         example: '',
+        nullable: true,
     })
     @IsString()
     @IsOptional()
@@ -53,6 +57,7 @@ export class CreatePostDto {
     @ApiProperty({
         description: '',
         example: '',
+        nullable: true,
     })
     @IsString()
     @IsOptional()
@@ -61,6 +66,7 @@ export class CreatePostDto {
     @ApiProperty({
         description: '',
         example: '',
+        nullable: true,
     })
     @IsString()
     @IsOptional()

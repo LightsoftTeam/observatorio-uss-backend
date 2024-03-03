@@ -10,6 +10,7 @@ import { AzureCosmosDbModule } from '@nestjs/azure-database';
 import { CommonModule } from './common/common.module';
 import { StorageModule } from './storage/storage.module';
 import { AzureStorageModule } from '@nestjs/azure-storage';
+import { AuthoritiesModule } from './authorities/authorities.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { AzureStorageModule } from '@nestjs/azure-storage';
     AuthModule,
     CommonModule,
     StorageModule,
+    AuthoritiesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
