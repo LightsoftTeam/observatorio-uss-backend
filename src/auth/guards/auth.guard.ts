@@ -1,14 +1,15 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Observable } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
 
   constructor(
-    private jwtService: JwtService,
-    private configService: ConfigService
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+    private readonly usersService: UsersService,
     ){}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -24,6 +25,13 @@ export class AuthGuard implements CanActivate {
       // 💡 We're assigning the payload to the request object here
       // so that we can access it in our route handlers
       request['userId'] = sub;
+      const startDate = new Date().getTime();
+      const user = await this.usersService.findOne(sub);
+      const endDate = new Date().getTime();
+      console.log('Time taken to get user in seconds : ', (endDate - startDate) / 1000);
+      if (!user.isActive) {
+        throw new UnauthorizedException();
+      }
     } catch {
       throw new UnauthorizedException();
     }

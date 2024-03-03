@@ -33,6 +33,9 @@
         "responses": {
           "201": {
             "description": "The post has been successfully created."
+          },
+          "401": {
+            "description": "Unauthorized."
           }
         },
         "tags": [
@@ -100,6 +103,9 @@
           "400": {
             "description": "Bad request."
           },
+          "401": {
+            "description": "Unauthorized."
+          },
           "404": {
             "description": "Post not found."
           }
@@ -124,6 +130,9 @@
         "responses": {
           "204": {
             "description": "The post has been successfully deleted."
+          },
+          "401": {
+            "description": "Unauthorized."
           }
         },
         "tags": [
@@ -261,6 +270,9 @@
           },
           "400": {
             "description": "User already exists"
+          },
+          "401": {
+            "description": "Unauthorized."
           }
         },
         "tags": [
@@ -298,6 +310,9 @@
           },
           "400": {
             "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized."
           },
           "404": {
             "description": "User not found"

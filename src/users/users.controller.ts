@@ -1,9 +1,10 @@
-import { BadRequestException, Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Role } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
 
 @ApiTags('Users')
 @Controller('users')
@@ -17,6 +18,11 @@ export class UsersController {
     return this.userService.findAll(role);
   }
 
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized.',
+  })
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Create a user' })
   @ApiResponse({ status: 201, description: 'Create a new user' })
   @ApiResponse({ status: 400, description: 'User already exists' })
@@ -29,6 +35,11 @@ export class UsersController {
     return this.userService.create(createUserDto);
   }
 
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized.',
+  })
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Update a user' })
   @ApiResponse({ status: 200, description: 'User updated succesfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
