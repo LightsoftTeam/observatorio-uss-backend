@@ -8,6 +8,8 @@ import { AuthModule } from './auth/auth.module';
 import { TagsModule } from './tags/tags.module';
 import { AzureCosmosDbModule } from '@nestjs/azure-database';
 import { CommonModule } from './common/common.module';
+import { StorageModule } from './storage/storage.module';
+import { AzureStorageModule } from '@nestjs/azure-storage';
 
 @Module({
   imports: [
@@ -15,7 +17,7 @@ import { CommonModule } from './common/common.module';
       isGlobal: true,
     }),
     AzureCosmosDbModule.forRootAsync({
-      imports: [ConfigModule],
+      // imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         dbName: configService.get('DB_NAME'),
         endpoint: configService.get('DB_ENDPOINT'),
@@ -28,6 +30,7 @@ import { CommonModule } from './common/common.module';
     UsersModule,
     AuthModule,
     CommonModule,
+    StorageModule,
   ],
   controllers: [AppController],
   providers: [AppService],

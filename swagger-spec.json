@@ -365,6 +365,42 @@
           "Auth"
         ]
       }
+    },
+    "/api/storage/upload": {
+      "post": {
+        "operationId": "StorageController_upload",
+        "summary": "Upload a file",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Request Body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "fileName": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The file has been successfully uploaded."
+          }
+        },
+        "tags": [
+          "Storage"
+        ]
+      }
     }
   },
   "info": {
