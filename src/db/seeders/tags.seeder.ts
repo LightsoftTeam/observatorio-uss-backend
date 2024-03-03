@@ -1,6 +1,5 @@
 // import * as posts from '../../scrap/db/posts/posts.json';
 import { readFile } from 'fs/promises';
-import { AppDataSource } from '.';
 import { Tag } from 'src/tags/entities/tag.entity';
 
 export async function tagsSeeder(){
@@ -13,5 +12,5 @@ export async function tagsSeeder(){
         newTag.name = tag.toLowerCase();
         return newTag;
     });
-    return await AppDataSource.manager.save(Tag, newTags);
+    return newTags;
 }

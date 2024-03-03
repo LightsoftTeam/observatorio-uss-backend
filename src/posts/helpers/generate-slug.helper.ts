@@ -8,9 +8,7 @@ export function generateSlug(title: string): string{
     return slug;
 }
 
-export async function generateUniquePostSlug(title: string, postRepository: any): Promise<string>{
-    const posts = await postRepository.find();
-    const slugs = posts.map(post => post.slug);
+export async function generateUniquePostSlug({title, slugs}: {title: string, slugs: string[]}): Promise<string>{
     let slug = generateSlug(title);
     let uniqueSlug = slug;
     let i = 1;

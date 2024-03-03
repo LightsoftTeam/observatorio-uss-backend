@@ -1,6 +1,4 @@
-import { Tag } from "src/tags/entities/tag.entity";
-import { User } from "src/users/entities/user.entity";
-import { Column, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { CosmosDateTime, CosmosPartitionKey } from "@nestjs/azure-database";
 
 export enum Category{
     NEWS = 'edu-news',
@@ -20,90 +18,24 @@ export enum SubCategory{
     RIE360 = 'rie360',
     VIDEOTRENDS = 'videotrends',
 }
-@Entity()
+@CosmosPartitionKey('category')
 export class Post {
-    @PrimaryGeneratedColumn()
-    id: number;
-    
-    @Column()
+    id?: string;
     title: string;
-    
-    @Column()
     slug: string;
-    
-    @Column()
     category: string;
-    
-    @Column({
-        nullable: true,
-    })
-    subCategory: string;
-    
-    @Column({
-        nullable: true,
-    })
-    readingTime: number;
-    
-    @Column({
-        type: 'text',
-        nullable: true,
-    })
-    description: string;
-    
-    @Column({
-        nullable: true,
-    })
-    videoUrl: string;
-
-    @Column({
-        nullable: true,
-    })
-    podcastUrl: string;
-    
-    @Column({
-        type: 'text',
-    })
-    content: string;
-
-    @Column({
-        nullable: true,
-    })
-    imageUrl: string;
-    
-    @Column({
-        nullable: true,
-    })
-    imageDescription: string;
-    
-    @Column({
-        default: 0,
-    })
+    subCategory?: string;
+    readingTime?: number;
+    description?: string;
+    videoUrl?: string;
+    podcastUrl?: string;
+    content?: string;
+    imageUrl?: string;
+    imageDescription?: string;
     likes: number;
-
-    @ManyToOne(() => User)
-    user: User;
-
-    @Column()
-    userId: number;
-
-    @Column({
-        type: 'simple-array',
-    })
+    userId: string;
     attachments: string[];
-
-    @ManyToMany(() => Tag)
-    @JoinTable()
-    tags: Tag[];
-
-    @Column({
-        type: 'timestamp',
-        default: () => 'CURRENT_TIMESTAMP',
-    })
-    createdAt: Date;
-
-    @Column({
-        type: 'timestamp',
-        default: () => 'CURRENT_TIMESTAMP',
-    })
-    updatedAt: Date;
+    tags: string[];
+    isActive: boolean;
+    @CosmosDateTime() createdAt: Date;
 }

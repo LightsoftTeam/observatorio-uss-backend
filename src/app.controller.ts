@@ -1,14 +1,21 @@
 import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
 import { ApiTags } from '@nestjs/swagger';
+import { readFile } from 'fs';
 
 @ApiTags('v1')
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor() {}
 
-  @Get('/hello')
-  getHello(): string {
-    return this.appService.getHello();
+  @Get('/swagger')
+  getSwagger() {
+    return new Promise((resolve, reject) => {
+      readFile('swagger-spec.json', 'utf8', (err, data) => {
+        if (err) {
+          reject(err);
+        }
+        resolve(JSON.parse(data));
+      });
+    });
   }
 }

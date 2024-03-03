@@ -1,21 +1,23 @@
-import { BadRequestException, Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Role } from './entities/user.entity';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly userService: UsersService) { }
 
+  @ApiOperation({ summary: 'Get users' })
   @ApiResponse({ status: 200, description: 'Return all users' })
   @Get()
-  async findAll(@Query('role') role: Role){
-    const users = await this.userService.findAll(role);
-    return users.map(user => user.toJson());
+  findAll(@Query('role') role: Role){
+    return this.userService.findAll(role);
   }
 
+  @ApiOperation({ summary: 'Create a user' })
   @ApiResponse({ status: 201, description: 'Create a new user' })
   @ApiResponse({ status: 400, description: 'User already exists' })
   @Post()
@@ -24,8 +26,20 @@ export class UsersController {
     if(userExists){
       throw new BadRequestException('User already exists');
     }
-    const user = await this.userService.create(createUserDto);
-    delete user.password;
-    return user;
+    return this.userService.create(createUserDto);
+  }
+
+  @ApiOperation({ summary: 'Update a user' })
+  @ApiResponse({ status: 200, description: 'User updated succesfully' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @Put('/:id')
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto){
+    return this.userService.update(id, updateUserDto);
+  }
+
+  @Post('/seed')
+  async seed(){
+    await this.userService.seed();
   }
 }

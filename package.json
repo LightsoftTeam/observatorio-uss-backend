@@ -29,6 +29,7 @@
   "dependencies": {
     "@azure/functions": "^1.0.3",
     "@faker-js/faker": "^8.4.0",
+    "@nestjs/azure-database": "^3.0.0",
     "@nestjs/azure-func-http": "^0.10.0",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.1.1",

@@ -1,0 +1,574 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/swagger": {
+      "get": {
+        "operationId": "AppController_getSwagger",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "v1"
+        ]
+      }
+    },
+    "/api/posts": {
+      "post": {
+        "operationId": "PostsController_create",
+        "summary": "Create a post",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePostDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The post has been successfully created."
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      },
+      "get": {
+        "operationId": "PostsController_findAll",
+        "summary": "Get all posts",
+        "parameters": [
+          {
+            "name": "category",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "edu-news",
+                "edu-bits",
+                "edu-reads",
+                "edu-tubes",
+                "edu-podcast"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The posts has been successfully retrieved."
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      }
+    },
+    "/api/posts/{id}": {
+      "put": {
+        "operationId": "PostsController_update",
+        "summary": "Update a post",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePostDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The post has been successfully updated."
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "404": {
+            "description": "Post not found."
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      },
+      "delete": {
+        "operationId": "PostsController_delete",
+        "summary": "Delete a post",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The post has been successfully deleted."
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      }
+    },
+    "/api/posts/find/home": {
+      "get": {
+        "operationId": "PostsController_find",
+        "summary": "Get all posts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The posts home has been successfully retrieved."
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      }
+    },
+    "/api/posts/{slug}": {
+      "get": {
+        "operationId": "PostsController_findOne",
+        "summary": "Get a post by slug",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The post has been successfully retrieved."
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      }
+    },
+    "/api/posts/{id}/likes": {
+      "post": {
+        "operationId": "PostsController_like",
+        "summary": "Like a post",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLikesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The post has been successfully liked."
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      }
+    },
+    "/api/posts/seed": {
+      "post": {
+        "operationId": "PostsController_seed",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      }
+    },
+    "/api/users": {
+      "get": {
+        "operationId": "UsersController_findAll",
+        "summary": "Get users",
+        "parameters": [
+          {
+            "name": "role",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return all users"
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      },
+      "post": {
+        "operationId": "UsersController_create",
+        "summary": "Create a user",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Create a new user"
+          },
+          "400": {
+            "description": "User already exists"
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/users/{id}": {
+      "put": {
+        "operationId": "UsersController_update",
+        "summary": "Update a user",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated succesfully"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/users/seed": {
+      "post": {
+        "operationId": "UsersController_seed",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "operationId": "AuthController_signIn",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignInDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/auth/authenticate": {
+      "get": {
+        "operationId": "AuthController_getAuthenticatedUser",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Retrieve authenticated user."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Observatorio USS",
+    "description": "",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "Api",
+      "description": ""
+    }
+  ],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "CreatePostDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "The title of the post",
+            "example": "How to create a NestJS application?"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the post",
+            "example": "This is a description of the post"
+          },
+          "category": {
+            "type": "string",
+            "description": "Category of the post",
+            "example": "edu-news"
+          },
+          "videoUrl": {
+            "type": "string",
+            "description": "",
+            "example": ""
+          },
+          "podcastUrl": {
+            "type": "string",
+            "description": "",
+            "example": ""
+          },
+          "content": {
+            "type": "string",
+            "description": "",
+            "example": ""
+          },
+          "imageUrl": {
+            "type": "string",
+            "description": "",
+            "example": ""
+          },
+          "imageDescription": {
+            "type": "string",
+            "description": "",
+            "example": ""
+          },
+          "userId": {
+            "type": "string",
+            "description": "",
+            "example": ""
+          },
+          "attachments": {
+            "description": "",
+            "example": "",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tags": {
+            "description": "",
+            "example": "",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "title",
+          "description",
+          "category",
+          "videoUrl",
+          "podcastUrl",
+          "content",
+          "imageUrl",
+          "imageDescription",
+          "userId",
+          "attachments",
+          "tags"
+        ]
+      },
+      "UpdatePostDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateLikesDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "The action to perform on the post likes",
+            "example": "decrement",
+            "default": "increment",
+            "enum": [
+              "increment",
+              "decrement"
+            ]
+          }
+        },
+        "required": [
+          "action"
+        ]
+      },
+      "CreateUserDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the user",
+            "example": "John Doe"
+          },
+          "image": {
+            "type": "string",
+            "description": "The image of the user",
+            "example": "https://example.com/image.jpg"
+          },
+          "email": {
+            "type": "string",
+            "description": "The email of the user",
+            "example": "jhondoe@test.com"
+          },
+          "password": {
+            "type": "string",
+            "description": "The password of the user",
+            "example": "password"
+          },
+          "role": {
+            "type": "string",
+            "description": "The role of the user",
+            "example": "author"
+          }
+        },
+        "required": [
+          "name",
+          "image",
+          "email",
+          "password",
+          "role"
+        ]
+      },
+      "UpdateUserDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the user",
+            "example": "John Doe"
+          },
+          "image": {
+            "type": "string",
+            "description": "The image of the user",
+            "example": "https://example.com/image.jpg"
+          },
+          "email": {
+            "type": "string",
+            "description": "The email of the user",
+            "example": "jhondoe@test.com"
+          },
+          "password": {
+            "type": "string",
+            "description": "The password of the user",
+            "example": "password"
+          },
+          "role": {
+            "type": "string",
+            "description": "The role of the user",
+            "example": "author"
+          }
+        }
+      },
+      "SignInDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "The email of the user",
+            "example": "test@test.com"
+          },
+          "password": {
+            "type": "string",
+            "description": "The password of the user",
+            "example": "password"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      }
+    }
+  }
+}

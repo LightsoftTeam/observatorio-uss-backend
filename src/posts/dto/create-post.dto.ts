@@ -1,7 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsArray, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
 import { Category } from "../entities/post.entity";
-import { Tag } from "src/tags/entities/tag.entity";
 
 export class CreatePostDto {
     @ApiProperty({
@@ -71,8 +70,9 @@ export class CreatePostDto {
         description: '',
         example: '',
     })
-    @IsNumber()
-    userId: number;
+    @IsString()
+    @IsUUID()
+    userId: string;
     
     @ApiProperty({
         description: '',
@@ -86,5 +86,5 @@ export class CreatePostDto {
         example: '',
     })
     @IsArray()
-    tags: Tag[];
+    tags: string[];
 }

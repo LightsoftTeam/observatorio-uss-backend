@@ -1,61 +1,73 @@
-import { faker } from '@faker-js/faker';
-import { User } from '../../users/entities/user.entity';
-// import * as posts from '../../scrap/db/posts/posts.json';
 import { Category, Post } from 'src/posts/entities/post.entity';
 import { calculateReadTime } from 'src/posts/helpers/calculate-read-time.helper';
 import { generateSlug } from 'src/posts/helpers/generate-slug.helper';
-import { AppDataSource } from '.';
-import { Tag } from 'src/tags/entities/tag.entity';
 import { readFile } from 'fs/promises';
 
 export async function postsSeeder({
-    users,
-    tags
+    authorIds,
 }: {
-    users: User[],
-    tags: Tag[]
+    authorIds: string[]
 }){
     const postsJson = await readFile('src/scrap/db/posts/posts.json', 'utf-8');
     const posts = JSON.parse(postsJson);
-    const newPosts = (posts as any[]).map(post => {
-        const user = users[Math.floor(Math.random() * users.length)];
-        const newPost = new Post();
-        newPost.title = post.title;
-        newPost.description = post.description;
-        newPost.content = post.content;
-        newPost.user = user;
-        newPost.imageUrl = post.image ?? null;
-        newPost.imageDescription = post.imageDescription ?? null;
-        newPost.videoUrl = post.video ?? null;
-        newPost.podcastUrl = post.podcast ?? null;
-        newPost.slug = generateSlug(post.title);
-        newPost.likes = Math.floor(Math.random() * 100);
-        newPost.readingTime = calculateReadTime(post.content);
-        newPost.attachments = post.resource ? [
+    const counter = {};
+    const postMocks = (posts as any[]).map(post => {
+        const categoryScrap = post.category;
+        if(!counter[categoryScrap]){
+            counter[categoryScrap] = 0;
+        }else{
+            counter[categoryScrap]++;
+        }
+        if(counter[categoryScrap] > 35){
+            return null;
+        }
+        const userId = authorIds[Math.floor(Math.random() * authorIds.length)];
+        const { title, description, content, image: imageUrl, imageDescription, video: videoUrl, podcast: podcastUrl } = post;
+        const slug = generateSlug(post.title);
+        const likes = Math.floor(Math.random() * 100);
+        const readingTime = calculateReadTime(post.content);
+        const attachments = post.resource ? [
             post.resource
         ] : [];
-        const tagsDB = post.tags.map(tag => {
-            return tags.find(t => t.name === (tag as string).toLowerCase());
-        });
-        newPost.tags = tagsDB;
+        const tags = post.tags.map(tag => (tag as string).trim().toLowerCase());
 
-        newPost.category = post.category === 'edu-tube'
-        
+        const category = post.category === 'edu-tube' 
         ? Category.TUBES 
         : (
             post.category === 'edutrendspodcast' 
             ? Category.PODCAST
             : post.category
         );
-        const subCategory = post.subcategory?.toLowerCase();
-        newPost.subCategory = subCategory === 'Diálogos'
+        const subCategoryScrap = post.subcategory?.toLowerCase();
+        const subCategory = subCategoryScrap === 'Diálogos'
             ? 'dialogues'
             : (
-                subCategory === 'Entrevistas'
+                subCategoryScrap === 'Entrevistas'
                 ? 'interviews'
-                : (subCategory ?? null)
+                : (subCategoryScrap ?? undefined)
             )
-        return newPost;
+        const postMock: Post = {
+            title,
+            description: description ?? undefined,
+            content: content ?? undefined,
+            imageUrl: imageUrl ?? undefined,
+            imageDescription: imageDescription ?? undefined,
+            videoUrl: videoUrl ?? undefined,
+            podcastUrl: podcastUrl ?? undefined,
+            slug,
+            likes,
+            readingTime: readingTime ?? undefined,
+            attachments,
+            tags,
+            category,
+            subCategory: subCategory ?? undefined,
+            userId,
+            isActive: true,
+            createdAt: new Date(),
+        };
+        return postMock;
     });
-    AppDataSource.manager.save(Post, newPosts);
+    const withoutNulls = postMocks.filter(post => post);
+    console.log(withoutNulls.length, 'posts')
+    return withoutNulls;
 }
