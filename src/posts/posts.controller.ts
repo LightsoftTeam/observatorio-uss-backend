@@ -4,6 +4,7 @@ import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { GetPostsDto } from './dto/get-posts.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { UpdateHomePostDto } fron './dto/update-home-post.dto';
 import { UpdateLikesDto } from './dto/update-likes.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 @ApiTags('Posts')
@@ -21,6 +22,11 @@ export class PostsController {
   @Post()
   create(@Body() createPostDto: CreatePostDto) {
     return this.postsService.create(createPostDto);
+  }
+
+  @Post("/update-home-post")
+  updateHomePosts(@Body() updateHomePosts: UpdateHomePostDto){
+    return this.postsService.updateHomePosts(updateHomePostDto);
   }
 
   @ApiResponse({
