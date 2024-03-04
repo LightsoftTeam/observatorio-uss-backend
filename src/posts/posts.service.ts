@@ -105,7 +105,16 @@ export class PostsService {
       ]
     }
     const { resources } = await this.postsContainer.items.query<Post>(querySpec).fetchAll();
-    return resources;
+    const userIds = resources.map(r => r.userId);
+    const users = await this.usersService.findByIds(userIds);
+    const postsWithUser = resources.map(post => {
+      const user = users.find(u => u.id === post.userId);
+      return {
+        ...post,
+        user
+      }
+    });
+    return postsWithUser;
   }
 
   async find() {
@@ -143,7 +152,12 @@ export class PostsService {
     if (resources.length === 0) {
       throw new NotFoundException('Post not found');
     }
-    return FormatCosmosItem.cleanDocument(resources[0]);
+    const users = await this.usersService.findByIds([resources[0].userId]);
+    const postWithUser = {
+      ...FormatCosmosItem.cleanDocument(resources[0]),
+      user: users[0]
+    }
+    return postWithUser;
   }
 
   async toggleActiveState(id: string) {

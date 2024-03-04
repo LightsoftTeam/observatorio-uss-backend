@@ -49,6 +49,20 @@ export class UsersService {
     return resources[0];
   }
 
+  async findByIds(ids: string[]) {
+    const querySpec = {
+      query: 'SELECT c.id, c.name, c.image FROM c WHERE ARRAY_CONTAINS(@ids, c.id)',
+      parameters: [
+        {
+          name: '@ids',
+          value: ids,
+        },
+      ],
+    };
+    const { resources } = await this.usersContainer.items.query<User>(querySpec).fetchAll();
+    return resources;
+  }
+
   async findByEmail(email: string): Promise<User | null> {
     const querySpec = {
       query: 'SELECT * FROM c WHERE c.email = @email',
