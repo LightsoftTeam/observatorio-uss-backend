@@ -7,6 +7,7 @@ export enum Category{
     TUBES = 'edu-tubes',
     // PODCAST = 'edutrendspodcast',
     PODCAST = 'edu-podcast',
+    EDITORIAL = 'editorial',
 }
 
 export enum SubCategory{

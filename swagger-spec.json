@@ -57,7 +57,8 @@
                 "edu-bits",
                 "edu-reads",
                 "edu-tubes",
-                "edu-podcast"
+                "edu-podcast",
+                "editorial"
               ],
               "type": "string"
             }
