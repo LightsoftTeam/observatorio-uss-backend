@@ -45,11 +45,11 @@ export class PostsController {
     return this.postsService.findAll(query);
   }
 
-  @ApiOperation({ summary: 'Get all posts' })
+  @ApiOperation({ summary: 'Get home posts' })
   @ApiResponse({ status: 200, description: 'The posts home has been successfully retrieved.'})
   @Get('/find/home')
   find() {
-    return this.postsService.find();
+    return this.postsService.getHomePosts();
   }
 
   @ApiOperation({ summary: 'Get a post by slug' })
@@ -57,6 +57,15 @@ export class PostsController {
   @Get(':slug')
   findOne(@Param('slug') slug: string) {
     return this.postsService.findBySlug(slug);
+  }
+
+  @ApiOperation({ summary: 'Toggle state of a post' })
+  @ApiResponse({ status: 200, description: 'The post has been successfully toggled.'})
+  @ApiResponse({ status: 401, description: 'Unauthorized.'})
+  @UseGuards(AuthGuard)
+  @Put(':id/toggle-active-state')
+  toggleActiveState(@Param('id') id: string) {
+    return this.postsService.toggleActiveState(id);
   }
 
   @ApiResponse({
@@ -69,7 +78,7 @@ export class PostsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
   async delete(@Param('id') id: string) {
-    await this.postsService.destroy(id);
+    await this.postsService.remove(id);
     return null;
   }
 
@@ -84,5 +93,10 @@ export class PostsController {
   @Post('/seed')
   seed(){
     return this.postsService.seed();
+  }
+
+  @Post('/seed/home')
+  seedHome(){
+    return this.postsService.homePostsSeed();
   }
 }

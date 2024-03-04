@@ -27,7 +27,8 @@ import { UsersService } from 'src/users/users.service';
   ],
   exports: [
     JwtModule,
-    JwtService
+    JwtService,
+    UsersService
   ]
 })
 export class AuthModule {}

@@ -5,13 +5,17 @@ import { UsersService } from 'src/users/users.service';
 import { AzureCosmosDbModule } from '@nestjs/azure-database';
 import { Post } from './entities/post.entity';
 import { UsersModule } from 'src/users/users.module';
+import { HomePost } from './entities/home-post.entity';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
     UsersModule,
     AzureCosmosDbModule.forFeature([
-      {dto: Post}
+      {dto: Post},
+      {dto: HomePost},
     ]),
+    CacheModule.register()
   ],
   controllers: [PostsController],
   providers: [PostsService, UsersService],

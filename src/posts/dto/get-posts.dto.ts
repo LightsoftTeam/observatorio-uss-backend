@@ -5,6 +5,7 @@ import { Category } from '../entities/post.entity';
 export class GetPostsDto {
     @ApiProperty({
         enum: Category,
+        nullable: true,
     })
     category: Category;
 }

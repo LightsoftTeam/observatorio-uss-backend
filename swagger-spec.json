@@ -51,6 +51,7 @@
             "required": true,
             "in": "query",
             "schema": {
+              "nullable": true,
               "enum": [
                 "edu-news",
                 "edu-bits",
@@ -143,7 +144,7 @@
     "/api/posts/find/home": {
       "get": {
         "operationId": "PostsController_find",
-        "summary": "Get all posts",
+        "summary": "Get home posts",
         "parameters": [],
         "responses": {
           "200": {
@@ -172,6 +173,33 @@
         "responses": {
           "200": {
             "description": "The post has been successfully retrieved."
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      }
+    },
+    "/api/posts/{id}/toggle-active-state": {
+      "put": {
+        "operationId": "PostsController_toggleActiveState",
+        "summary": "Toggle state of a post",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The post has been successfully toggled."
+          },
+          "401": {
+            "description": "Unauthorized."
           }
         },
         "tags": [
@@ -216,6 +244,20 @@
     "/api/posts/seed": {
       "post": {
         "operationId": "PostsController_seed",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      }
+    },
+    "/api/posts/seed/home": {
+      "post": {
+        "operationId": "PostsController_seedHome",
         "parameters": [],
         "responses": {
           "201": {
@@ -438,6 +480,9 @@
           },
           "400": {
             "description": "Bad request."
+          },
+          "401": {
+            "description": "Unauthorized."
           }
         },
         "tags": [
@@ -486,6 +531,9 @@
           "200": {
             "description": "The authority has been successfully updated."
           },
+          "401": {
+            "description": "Unauthorized."
+          },
           "404": {
             "description": "Authority not found"
           }
@@ -510,6 +558,9 @@
         "responses": {
           "204": {
             "description": "The authority has been successfully deleted."
+          },
+          "401": {
+            "description": "Unauthorized."
           }
         },
         "tags": [
