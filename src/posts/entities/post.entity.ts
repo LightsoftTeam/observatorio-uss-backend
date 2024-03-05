@@ -5,7 +5,6 @@ export enum Category{
     BITS = 'edu-bits',
     READS = 'edu-reads',
     TUBES = 'edu-tubes',
-    // PODCAST = 'edutrendspodcast',
     PODCAST = 'edu-podcast',
     EDITORIAL = 'editorial',
 }
