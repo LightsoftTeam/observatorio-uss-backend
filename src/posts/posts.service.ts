@@ -104,6 +104,7 @@ export class PostsService {
         }
       ]
     }
+    querySpec.query += ' ORDER BY c.createdAt DESC';
     const { resources } = await this.postsContainer.items.query<Post>(querySpec).fetchAll();
     const userIds = resources.map(r => r.userId);
     const users = await this.usersService.findByIds(userIds);

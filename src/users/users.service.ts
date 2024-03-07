@@ -8,7 +8,7 @@ import { usersSeeder } from 'src/db/seeders/users.seeder';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { UpdateUserDto } from './dto/update-user.dto';
 
-const PASSWORD_SALT_ROUNDS = 10;
+const PASSWORD_SALT_ROUNDS = 5;
 @Injectable()
 export class UsersService {
 

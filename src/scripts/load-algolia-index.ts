@@ -32,5 +32,4 @@ async function loadIndex(){
       console.log(err);
     });
 }
-
 loadIndex();
