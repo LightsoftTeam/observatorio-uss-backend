@@ -215,7 +215,7 @@
       }
     },
     "/api/posts/{id}/toggle-active-state": {
-      "put": {
+      "post": {
         "operationId": "PostsController_toggleActiveState",
         "summary": "Toggle state of a post",
         "parameters": [

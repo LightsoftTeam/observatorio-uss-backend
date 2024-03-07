@@ -14,6 +14,7 @@ import { HomePost } from './entities/home-post.entity';
 import { UpdateHomePostDto } from './dto/update-home-post.dto';
 import { homePostsSeeder } from 'src/db/seeders/home-post.seeder';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
+import { AlgoliaService, PostAlgoliaRecord } from 'src/common/services/algolia.service';
 
 const BASIC_KEYS_LIST = [
   'id',
@@ -33,6 +34,7 @@ const BASIC_KEYS_LIST = [
 
 const BASIC_KEYS = BASIC_KEYS_LIST.map(f => `c.${f}`).join(', ')
 const HOME_POSTS_KEY = 'homePosts';
+const LONG_CACHE_TIME = 1000 * 60 * 60 * 5;//5 hours
 
 @Injectable()
 export class PostsService {
@@ -42,7 +44,8 @@ export class PostsService {
     @InjectModel(HomePost)
     private readonly homePostsContainer: Container,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private readonly algoliaService: AlgoliaService
   ) { }
 
   async create(createPostDto: CreatePostDto) {
@@ -75,22 +78,33 @@ export class PostsService {
       likes: 0
     }
     const { resource } = await this.postsContainer.items.create<Post>(post);
+    this.algoliaService.saveObject(this.transformPostToAlgoliaRecord(post));
+    this.cacheManager.del(`postsList-${resource.category}`);
     return FormatCosmosItem.cleanDocument(resource, ['content']);
   }
 
   async update(id: string, updatePostDto: UpdatePostDto) {
     const post = await this.findOne(id);
-    const updatedPost = {
+    const updatedPost: Post = {
       ...post,
       ...updatePostDto
     }
     const { resource } = await this.postsContainer.item(post.id).replace(updatedPost);
+    this.algoliaService.updateObject(this.transformPostToAlgoliaRecord(updatedPost));
+    this.cacheManager.del(`postsList-${resource.category}`);
+    this.cacheManager.del(HOME_POSTS_KEY);
     return FormatCosmosItem.cleanDocument(resource, ['content']);
   }
 
   async findAll({
     category
   }: GetPostsDto) {
+    const cachedPosts = await this.cacheManager.get(`postsList-${category}`);
+    if (cachedPosts) {
+      console.log('retrieving posts from cache')
+      return cachedPosts;
+    }
+    console.log('retrieving posts from db')
     const querySpec = {
       query: `SELECT ${BASIC_KEYS} FROM c`,
       parameters: []
@@ -115,11 +129,8 @@ export class PostsService {
         user
       }
     });
+    this.cacheManager.set(`postsList-${category}`, postsWithUser, LONG_CACHE_TIME);//5 hours
     return postsWithUser;
-  }
-
-  async find() {
-    return [];
   }
 
   async findOne(id: string) {
@@ -136,7 +147,7 @@ export class PostsService {
     if (resources.length === 0) {
       throw new NotFoundException('Post not found');
     }
-    return FormatCosmosItem.cleanDocument(resources[0]);
+    return resources[0];
   }
 
   async findBySlug(slug: string) {
@@ -172,14 +183,28 @@ export class PostsService {
       isActive: newActiveState
     }
     const { resource } = await this.postsContainer.item(post.id).replace(updatedPost);
+    if (newActiveState) {
+      this.algoliaService.saveObject(this.transformPostToAlgoliaRecord(updatedPost));
+    } else {
+      this.algoliaService.deleteObject(id);
+    }
+    this.cacheManager.del(`postsList-${resource.category}`);
     return resource.isActive;
   }
 
   async remove(id: string) {
     await this.checkPostReferences(id);//throws error if post is being referenced
-    return this.postsContainer.item(id).delete();
+    this.algoliaService.deleteObject(id);
+    this.removePostFromCache(id);
+    console.log(id)
+    await this.postsContainer.item(id, 'category').delete<Post>();
+    return null;
   }
 
+  private async removePostFromCache(id: string) {
+    const post = await this.findOne(id);
+    this.cacheManager.del(`postsList-${post.category}`);
+  }
 
   async updateLikes(id: string, action: LikeAction = LikeAction.INCREMENT) {
     const post = await this.findOne(id);
@@ -231,7 +256,7 @@ export class PostsService {
       acc[homePost.section].push(homePost);
       return acc;
     }, {});
-    this.cacheManager.set(HOME_POSTS_KEY, groupedHomePosts, 1000 * 60 * 60 * 5);//5 hours
+    this.cacheManager.set(HOME_POSTS_KEY, groupedHomePosts, LONG_CACHE_TIME);//5 hours
     return groupedHomePosts;
   }
 
@@ -303,5 +328,16 @@ export class PostsService {
     const homePostsMocks = homePostsSeeder();
     Promise.all(homePostsMocks.map(mock => this.homePostsContainer.items.create<HomePost>(mock)));
     return homePostsMocks;
+  }
+
+  private transformPostToAlgoliaRecord(post: Post): PostAlgoliaRecord {
+    return {
+      objectID: post.id,
+      title: post.title,
+      slug: post.slug,
+      description: post.description,
+      imageUrl: post.imageUrl,
+      tags: post.tags
+    }
   }
 }

@@ -69,7 +69,7 @@ export class PostsController {
   @ApiResponse({ status: 200, description: 'The post has been successfully toggled.'})
   @ApiResponse({ status: 401, description: 'Unauthorized.'})
   @UseGuards(AuthGuard)
-  @Put(':id/toggle-active-state')
+  @Post(':id/toggle-active-state')
   toggleActiveState(@Param('id') id: string) {
     return this.postsService.toggleActiveState(id);
   }

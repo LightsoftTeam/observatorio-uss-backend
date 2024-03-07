@@ -7,6 +7,7 @@ import { Post } from './entities/post.entity';
 import { UsersModule } from 'src/users/users.module';
 import { HomePost } from './entities/home-post.entity';
 import { CacheModule } from '@nestjs/cache-manager';
+import { AlgoliaService } from 'src/common/services/algolia.service';
 
 @Module({
   imports: [
@@ -18,6 +19,6 @@ import { CacheModule } from '@nestjs/cache-manager';
     CacheModule.register()
   ],
   controllers: [PostsController],
-  providers: [PostsService, UsersService],
+  providers: [PostsService, UsersService, AlgoliaService],
 })
 export class PostsModule {}
