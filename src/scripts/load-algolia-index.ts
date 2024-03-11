@@ -12,7 +12,7 @@ const index = client.initIndex(process.env.ALGOLIA_ID);
 
 async function loadIndex(){
     const querySpec = {
-        query: "SELECT c.id, c.title, c.slug, c.description, c.imageUrl, c.tags from c"
+        query: "SELECT c.id, c.title, c.slug, c.description, c.category, c.imageUrl, c.tags from c"
     }
     const {resources} = await postsContainer.items.query(querySpec).fetchAll();
     const records = resources.map((post) => {

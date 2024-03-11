@@ -20,5 +20,6 @@ import { AlgoliaService } from 'src/common/services/algolia.service';
   ],
   controllers: [PostsController],
   providers: [PostsService, UsersService, AlgoliaService],
+  exports: [PostsService, AzureCosmosDbModule, CacheModule, AlgoliaService]
 })
 export class PostsModule {}

@@ -9,6 +9,7 @@ import { AzureCosmosDbModule } from '@nestjs/azure-database';
 import { CommonModule } from './common/common.module';
 import { StorageModule } from './storage/storage.module';
 import { AuthoritiesModule } from './authorities/authorities.module';
+import { TagsModule } from './tags/tags.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { AuthoritiesModule } from './authorities/authorities.module';
     CommonModule,
     StorageModule,
     AuthoritiesModule,
+    TagsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

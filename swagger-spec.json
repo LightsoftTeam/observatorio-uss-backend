@@ -601,6 +601,29 @@
           "Authorities"
         ]
       }
+    },
+    "/api/tags": {
+      "get": {
+        "operationId": "TagsController_findAll",
+        "parameters": [
+          {
+            "name": "search",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The tags has been successfully retrieved."
+          }
+        },
+        "tags": [
+          "tags"
+        ]
+      }
     }
   },
   "info": {

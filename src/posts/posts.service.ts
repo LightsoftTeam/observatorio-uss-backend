@@ -34,6 +34,7 @@ const BASIC_KEYS_LIST = [
 
 const BASIC_KEYS = BASIC_KEYS_LIST.map(f => `c.${f}`).join(', ')
 const HOME_POSTS_KEY = 'homePosts';
+const TAGS_KEY = 'tags';
 const LONG_CACHE_TIME = 1000 * 60 * 60 * 5;//5 hours
 
 @Injectable()
@@ -71,7 +72,7 @@ export class PostsService {
       attachments,
       imageDescription,
       readingTime,
-      tags,
+      tags: tags.map(t => t.trim().toLowerCase()),
       userId,
       createdAt: new Date(),
       isActive: true,
@@ -80,11 +81,15 @@ export class PostsService {
     const { resource } = await this.postsContainer.items.create<Post>(post);
     this.algoliaService.saveObject(this.transformPostToAlgoliaRecord(post));
     this.cacheManager.del(`postsList-${resource.category}`);
+    this.cacheManager.del(TAGS_KEY);
     return FormatCosmosItem.cleanDocument(resource, ['content']);
   }
 
   async update(id: string, updatePostDto: UpdatePostDto) {
     const post = await this.findOne(id);
+    if(updatePostDto.tags?.length > 0) {
+      updatePostDto.tags = updatePostDto.tags.map(t => t.trim().toLowerCase());
+    }
     const updatedPost: Post = {
       ...post,
       ...updatePostDto
@@ -93,6 +98,7 @@ export class PostsService {
     this.algoliaService.updateObject(this.transformPostToAlgoliaRecord(updatedPost));
     this.cacheManager.del(`postsList-${resource.category}`);
     this.cacheManager.del(HOME_POSTS_KEY);
+    this.cacheManager.del(TAGS_KEY);
     return FormatCosmosItem.cleanDocument(resource, ['content']);
   }
 
@@ -322,6 +328,21 @@ export class PostsService {
     // });
     // await Promise.all(promises);
     // return 1;
+  }
+
+  async getDistinctTags(search: string) {
+    const cachedTags = await this.cacheManager.get(TAGS_KEY);
+    if(cachedTags) {
+      console.log('retrieving tags from cache')
+      return (cachedTags as string[]).filter(t => t.includes(search));
+    }
+    console.log('retrieving tags from db')
+    const querySpec = {
+      query: 'SELECT DISTINCT VALUE tag FROM tag IN c.tags'
+    }
+    const { resources } = await this.postsContainer.items.query<string>(querySpec).fetchAll();
+    this.cacheManager.set(TAGS_KEY, resources, LONG_CACHE_TIME);//5 hours
+    return resources.filter(t => t.includes(search));
   }
 
   async homePostsSeed() {
