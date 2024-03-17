@@ -34,6 +34,7 @@ const BASIC_KEYS_LIST = [
 
 const BASIC_KEYS = BASIC_KEYS_LIST.map(f => `c.${f}`).join(', ')
 const HOME_POSTS_KEY = 'homePosts';
+const POSTS_LIST_KEY = 'postsList';
 const TAGS_KEY = 'tags';
 const LONG_CACHE_TIME = 1000 * 60 * 60 * 5;//5 hours
 
@@ -80,7 +81,7 @@ export class PostsService {
     }
     const { resource } = await this.postsContainer.items.create<Post>(post);
     this.algoliaService.saveObject(this.transformPostToAlgoliaRecord(post));
-    this.cacheManager.del(`postsList-${resource.category}`);
+    this.cacheManager.del(POSTS_LIST_KEY);
     this.cacheManager.del(TAGS_KEY);
     return FormatCosmosItem.cleanDocument(resource, ['content']);
   }
@@ -96,7 +97,7 @@ export class PostsService {
     }
     const { resource } = await this.postsContainer.item(post.id).replace(updatedPost);
     this.algoliaService.updateObject(this.transformPostToAlgoliaRecord(updatedPost));
-    this.cacheManager.del(`postsList-${resource.category}`);
+    this.cacheManager.del(POSTS_LIST_KEY);
     this.cacheManager.del(HOME_POSTS_KEY);
     this.cacheManager.del(TAGS_KEY);
     return FormatCosmosItem.cleanDocument(resource, ['content']);
@@ -105,9 +106,13 @@ export class PostsService {
   async findAll({
     category
   }: GetPostsDto) {
-    const cachedPosts = await this.cacheManager.get(`postsList-${category}`);
+    const cachedPosts = await this.cacheManager.get(POSTS_LIST_KEY);
     if (cachedPosts) {
-      console.log('retrieving posts from cache')
+      if(category){
+        console.log('retrieving posts from cache with category')
+        return (cachedPosts as Post[]).filter(p => p.category === category);
+      }
+      console.log('retrieving posts from cache without category')
       return cachedPosts;
     }
     console.log('retrieving posts from db')
@@ -115,19 +120,19 @@ export class PostsService {
       query: `SELECT ${BASIC_KEYS} FROM c`,
       parameters: []
     }
-    if (category) {
-      querySpec.query += ' WHERE c.category = @category';
-      querySpec.parameters = [
-        {
-          name: '@category',
-          value: category
-        }
-      ]
-    }
+    // if (category) {
+    //   querySpec.query += ' WHERE c.category = @category';
+    //   querySpec.parameters = [
+    //     {
+    //       name: '@category',
+    //       value: category
+    //     }
+    //   ]
+    // }
     querySpec.query += ' ORDER BY c.createdAt DESC';
     const { resources } = await this.postsContainer.items.query<Post>(querySpec).fetchAll();
-    const userIds = resources.map(r => r.userId);
-    const users = await this.usersService.findByIds(userIds);
+    // const userIds = resources.map(r => r.userId);
+    const users = await this.usersService.findAll();
     const postsWithUser = resources.map(post => {
       const user = users.find(u => u.id === post.userId);
       return {
@@ -135,8 +140,8 @@ export class PostsService {
         user
       }
     });
-    this.cacheManager.set(`postsList-${category}`, postsWithUser, LONG_CACHE_TIME);//5 hours
-    return postsWithUser;
+    this.cacheManager.set(POSTS_LIST_KEY, postsWithUser, LONG_CACHE_TIME);//5 hours
+    return category ? postsWithUser.filter(p => p.category === category) : postsWithUser;
   }
 
   async findOne(id: string) {

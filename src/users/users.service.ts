@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import type { Container } from '@azure/cosmos';
 import { Role, User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -7,28 +7,47 @@ import { InjectModel } from '@nestjs/azure-database';
 import { usersSeeder } from 'src/db/seeders/users.seeder';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 
 const PASSWORD_SALT_ROUNDS = 5;
+const USER_LIST_CACHE_KEY = 'users';
+const LONG_CACHE_TIME = 1000 * 60 * 60 * 5;//5 hours
 @Injectable()
 export class UsersService {
 
   constructor(
     @InjectModel(User)
     private readonly usersContainer: Container,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) { }
 
-  async findAll(role: Role = Role.AUTHOR) {
+  async findAll(role?: Role) {
+    const cachedUsers = await this.cacheManager.get<User[]>(USER_LIST_CACHE_KEY);
+    if(cachedUsers){
+      console.log('retrieving users from cache findAll');
+      return cachedUsers.filter(u => {
+        if(role){
+          return u.role === role;
+        }
+        return true;
+      });
+    }
+    console.log('retrieving users from db findAll')
     const querySpec = {
-      query: 'SELECT * FROM c WHERE c.role = @role order by c.createdAt DESC',
-      parameters: [
-        {
-          name: '@role',
-          value: role,
-        },
-      ],
+      query: 'SELECT * FROM c order by c.createdAt DESC',
+      parameters: [],
     };
+    const startAt = new Date();
     const {resources} = await this.usersContainer.items.query<User>(querySpec).fetchAll();
-    return resources.map(user => FormatCosmosItem.cleanDocument(user, ['password']));
+    console.log('query time findAll', new Date().getTime() - startAt.getTime());
+    const users = resources.map(user => FormatCosmosItem.cleanDocument(user, ['password']));
+    this.cacheManager.set(USER_LIST_CACHE_KEY, users, LONG_CACHE_TIME);
+    return users.filter(u => {
+      if(role){
+        return u.role === role;
+      }
+      return true;
+    });
   }
   
   async findOne(id: string) {
@@ -90,7 +109,9 @@ export class UsersService {
       createdAt: new Date(),
     };
     const {resource} = await this.usersContainer.items.create<User>(user);
-    return FormatCosmosItem.cleanDocument(resource, ['password']);
+    const newUser = FormatCosmosItem.cleanDocument(resource, ['password']);
+    this.cacheManager.del(USER_LIST_CACHE_KEY);
+    return newUser;
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
@@ -103,7 +124,9 @@ export class UsersService {
       updatedUser.password = bcrypt.hashSync(updateUserDto.password, PASSWORD_SALT_ROUNDS);
     }
     const {resource} = await this.usersContainer.item(user.id).replace(updatedUser);
-    return FormatCosmosItem.cleanDocument(resource, ['password']);
+    const newUser = FormatCosmosItem.cleanDocument(resource, ['password']);
+    this.cacheManager.del(USER_LIST_CACHE_KEY);
+    return newUser;
   }
 
   seed(){
