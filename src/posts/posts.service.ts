@@ -199,24 +199,24 @@ export class PostsService {
     } else {
       this.algoliaService.deleteObject(id);
     }
-    this.cacheManager.del(`postsList-${resource.category}`);
+    this.cacheManager.del(POSTS_LIST_KEY);
     return resource.isActive;
   }
 
   async remove(id: string) {
     await this.checkPostReferences(id);//throws error if post is being referenced
     this.algoliaService.deleteObject(id);
-    this.removePostFromCache(id);
+    this.cacheManager.del(POSTS_LIST_KEY);
     console.log(id)
     const post = await this.findOne(id);
     await this.postsContainer.item(id, post.category).delete();
     return null;
   }
 
-  private async removePostFromCache(id: string) {
-    const post = await this.findOne(id);
-    this.cacheManager.del(`postsList-${post.category}`);
-  }
+  // private async removePostFromCache(id: string) {
+  //   const post = await this.findOne(id);
+  //   this.cacheManager.del(`postsList-${post.category}`);
+  // }
 
   async updateLikes(id: string, action: LikeAction = LikeAction.INCREMENT) {
     const post = await this.findOne(id);
