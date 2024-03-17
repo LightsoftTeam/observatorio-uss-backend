@@ -53,6 +53,6 @@ export class AuthoritiesService {
   }
 
   remove(id: string) {
-    return this.authorityContainer.item(id).delete();
+    return this.authorityContainer.item(id, id).delete();
   }
 }

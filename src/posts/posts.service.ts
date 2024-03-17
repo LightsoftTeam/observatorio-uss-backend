@@ -203,7 +203,8 @@ export class PostsService {
     this.algoliaService.deleteObject(id);
     this.removePostFromCache(id);
     console.log(id)
-    await this.postsContainer.item(id, 'category').delete<Post>();
+    const post = await this.findOne(id);
+    await this.postsContainer.item(id, post.category).delete();
     return null;
   }
 

@@ -1,6 +1,6 @@
 import { CosmosDateTime, CosmosPartitionKey } from "@nestjs/azure-database";
 
-@CosmosPartitionKey('category')
+@CosmosPartitionKey('id')
 export class Authority {
     id?: string;
     name: string;

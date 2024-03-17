@@ -84,8 +84,7 @@ export class PostsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
   async delete(@Param('id') id: string) {
-    await this.postsService.remove(id);
-    return null;
+    return this.postsService.remove(id);
   }
 
   @ApiOperation({ summary: 'Like a post' })
