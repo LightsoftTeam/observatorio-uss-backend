@@ -1,9 +1,13 @@
 export function generateSlug(title: string): string{
-    let slug = title.toLowerCase();
-    
-    slug = slug.replace(/[^\w\s]/g, '');
-
-    slug = slug.replace(/\s+/g, '-');
+    const slug = title
+        .toString()                     // Convertimos el título a cadena
+        .normalize('NFD')               // Descomponemos los caracteres acentuados en sus formas normales
+        .replace(/[\u0300-\u036f]/g, '') // Eliminamos los signos diacríticos
+        .toLowerCase()                  // Convertimos el texto a minúsculas
+        .trim()                          // Eliminamos los espacios al inicio y al final
+        .replace(/\s+/g, '-')           // Reemplazamos los espacios con guiones
+        .replace(/[^\w\-]+/g, '')       // Eliminamos todos los caracteres que no sean palabras, dígitos o guiones
+        .replace(/\-\-+/g, '-');        // Reemplazamos múltiples guiones con uno solo
 
     return slug;
 }
