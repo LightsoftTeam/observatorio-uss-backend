@@ -94,14 +94,4 @@ export class PostsController {
   like(@Param('id') id: string, @Body() updateLikesDto: UpdateLikesDto) {
     return this.postsService.updateLikes(id, updateLikesDto.action);
   }
-
-  @Post('/seed')
-  seed(){
-    return this.postsService.seed();
-  }
-
-  @Post('/seed/home')
-  seedHome(){
-    return this.postsService.homePostsSeed();
-  }
 }

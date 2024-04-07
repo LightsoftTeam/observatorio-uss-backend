@@ -12,7 +12,6 @@ import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { LikeAction } from './types/like-action.type';
 import { HomePost } from './entities/home-post.entity';
 import { UpdateHomePostDto } from './dto/update-home-post.dto';
-import { homePostsSeeder } from 'src/db/seeders/home-post.seeder';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { AlgoliaService, PostAlgoliaRecord } from 'src/common/services/algolia.service';
 
@@ -349,12 +348,6 @@ export class PostsService {
     const { resources } = await this.postsContainer.items.query<string>(querySpec).fetchAll();
     this.cacheManager.set(TAGS_KEY, resources, LONG_CACHE_TIME);//5 hours
     return resources.filter(t => t.includes(search));
-  }
-
-  async homePostsSeed() {
-    const homePostsMocks = homePostsSeeder();
-    Promise.all(homePostsMocks.map(mock => this.homePostsContainer.items.create<HomePost>(mock)));
-    return homePostsMocks;
   }
 
   private transformPostToAlgoliaRecord(post: Post): PostAlgoliaRecord {

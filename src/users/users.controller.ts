@@ -48,9 +48,4 @@ export class UsersController {
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto){
     return this.userService.update(id, updateUserDto);
   }
-
-  @Post('/seed')
-  async seed(){
-    await this.userService.seed();
-  }
 }

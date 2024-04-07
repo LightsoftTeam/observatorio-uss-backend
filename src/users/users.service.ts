@@ -4,7 +4,6 @@ import { Role, User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { InjectModel } from '@nestjs/azure-database';
-import { usersSeeder } from 'src/db/seeders/users.seeder';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
@@ -127,10 +126,5 @@ export class UsersService {
     const newUser = FormatCosmosItem.cleanDocument(resource, ['password']);
     this.cacheManager.del(USER_LIST_CACHE_KEY);
     return newUser;
-  }
-
-  seed(){
-    const users = usersSeeder();
-    return Promise.all(users.map(user => this.usersContainer.items.create<User>(user)));
   }
 }
