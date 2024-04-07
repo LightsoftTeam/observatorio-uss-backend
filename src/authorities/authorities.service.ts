@@ -17,7 +17,7 @@ export class AuthoritiesService {
   async create(createAuthorityDto: CreateAuthorityDto) {
     const authority = {
       ...createAuthorityDto,
-      hierachy: createAuthorityDto.hierarchy ?? 0,
+      hierarchy: createAuthorityDto.hierarchy ?? 0,
       createdAt: new Date(),
     }
     const { resource } = await this.authorityContainer.items.create<Authority>(authority);
