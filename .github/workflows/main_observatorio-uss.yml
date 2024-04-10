@@ -29,7 +29,7 @@ jobs:
         shell: bash
         run: |
           pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
-          npm install --legacy-peer-deps
+          npm install
           npm run build --if-present
           npm run test --if-present
           popd
@@ -64,9 +64,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v1
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_A81F48144D08492FA29D3724D43A05BB }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_2EEE077A457D42C1904CF3AA36842155 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_C5B5313E7F134835AB6A1D313D02D5A9 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_B41167B389BD4BDDA55587FB9D6B83A5 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_55C508DEA00D4765A4AFFCF1F7E75162 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_05C998FDE3344EFAAE5329D6E7AC4041 }}
 
       - name: 'Run Azure Functions Action'
         uses: Azure/functions-action@v1
