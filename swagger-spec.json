@@ -275,34 +275,6 @@
         ]
       }
     },
-    "/api/posts/seed": {
-      "post": {
-        "operationId": "PostsController_seed",
-        "parameters": [],
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "tags": [
-          "Posts"
-        ]
-      }
-    },
-    "/api/posts/seed/home": {
-      "post": {
-        "operationId": "PostsController_seedHome",
-        "parameters": [],
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "tags": [
-          "Posts"
-        ]
-      }
-    },
     "/api/users": {
       "get": {
         "operationId": "UsersController_findAll",
@@ -399,20 +371,6 @@
         ]
       }
     },
-    "/api/users/seed": {
-      "post": {
-        "operationId": "UsersController_seed",
-        "parameters": [],
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "tags": [
-          "Users"
-        ]
-      }
-    },
     "/api/auth/login": {
       "post": {
         "operationId": "AuthController_signIn",
@@ -454,6 +412,20 @@
         },
         "tags": [
           "Auth"
+        ]
+      }
+    },
+    "/api/common/sync-algolia": {
+      "post": {
+        "operationId": "CommonController_syncAlgolia",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Common"
         ]
       }
     },

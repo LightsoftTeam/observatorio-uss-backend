@@ -10,7 +10,7 @@ const client = algoliasearch(process.env.ALGOLIA_ID, process.env.ALGOLIA_ADMIN_K
 // Create a new index. An index stores the data that you want to make searchable in Algolia.
 const index = client.initIndex(process.env.ALGOLIA_ID);
 
-async function loadIndex(){
+export async function loadIndex(){
     const querySpec = {
         query: "SELECT c.id, c.title, c.slug, c.description, c.category, c.imageUrl, c.tags from c"
     }
@@ -28,8 +28,4 @@ async function loadIndex(){
       autoGenerateObjectIDIfNotExist: false
     })
     .then(_ => console.log('Records imported to Algolia'))
-    .catch((err) => {
-      console.log(err);
-    });
 }
-loadIndex();
