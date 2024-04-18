@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import algoliasearch from 'algoliasearch';
+import { loadIndex } from 'src/scripts/load-algolia-index';
 
 export interface PostAlgoliaRecord {
     objectID: string;
@@ -33,5 +34,10 @@ export class AlgoliaService {
 
     updateObject(record: any){
         return this.index.partialUpdateObject(record);
+    }
+
+    async syncAlgolia(){
+        await loadIndex();
+        return 'Algolia index synced';
     }
 }
