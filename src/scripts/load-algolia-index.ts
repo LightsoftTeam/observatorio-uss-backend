@@ -8,7 +8,7 @@ require('dotenv').config();
 const client = algoliasearch(process.env.ALGOLIA_ID, process.env.ALGOLIA_ADMIN_KEY);
 
 // Create a new index. An index stores the data that you want to make searchable in Algolia.
-const index = client.initIndex(process.env.ALGOLIA_ID);
+const index = client.initIndex(process.env.ALGOLIA_INDEX_NAME);
 
 export async function loadIndex(){
     const querySpec = {

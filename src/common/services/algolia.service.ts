@@ -14,7 +14,7 @@ export interface PostAlgoliaRecord {
 @Injectable()
 export class AlgoliaService {
     client = algoliasearch(process.env.ALGOLIA_ID, process.env.ALGOLIA_ADMIN_KEY);
-    index = this.client.initIndex(process.env.ALGOLIA_ID);
+    index = this.client.initIndex(process.env.ALGOLIA_INDEX_NAME);
 
     saveObject(record: any){
         return this.index.saveObject(record);
