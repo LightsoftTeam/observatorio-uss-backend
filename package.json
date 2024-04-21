@@ -44,6 +44,7 @@
     "@nestjs/typeorm": "^10.0.1",
     "@schematics/angular": "^17.1.2",
     "algoliasearch": "^4.22.1",
+    "applicationinsights": "^2.9.4",
     "axios": "^1.6.2",
     "bcrypt": "^5.1.1",
     "cache-manager": "^5.4.0",

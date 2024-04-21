@@ -275,6 +275,20 @@
         ]
       }
     },
+    "/api/posts/update-slugs": {
+      "post": {
+        "operationId": "PostsController_updateSlugs",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      }
+    },
     "/api/users": {
       "get": {
         "operationId": "UsersController_findAll",
@@ -371,6 +385,20 @@
         ]
       }
     },
+    "/api/common/sync-algolia": {
+      "post": {
+        "operationId": "CommonController_syncAlgolia",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Common"
+        ]
+      }
+    },
     "/api/auth/login": {
       "post": {
         "operationId": "AuthController_signIn",
@@ -412,20 +440,6 @@
         },
         "tags": [
           "Auth"
-        ]
-      }
-    },
-    "/api/common/sync-algolia": {
-      "post": {
-        "operationId": "CommonController_syncAlgolia",
-        "parameters": [],
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "tags": [
-          "Common"
         ]
       }
     },

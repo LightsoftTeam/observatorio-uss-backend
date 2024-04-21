@@ -7,6 +7,7 @@ import { InjectModel } from '@nestjs/azure-database';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
+import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
 
 const PASSWORD_SALT_ROUNDS = 5;
 const USER_LIST_CACHE_KEY = 'users';
@@ -18,12 +19,13 @@ export class UsersService {
     @InjectModel(User)
     private readonly usersContainer: Container,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly logger: ApplicationLoggerService,
   ) { }
 
   async findAll(role?: Role) {
     const cachedUsers = await this.cacheManager.get<User[]>(USER_LIST_CACHE_KEY);
     if(cachedUsers){
-      console.log('retrieving users from cache findAll');
+      this.logger.log('retrieving users from cache findAll');
       return cachedUsers.filter(u => {
         if(role){
           return u.role === role;
@@ -31,14 +33,14 @@ export class UsersService {
         return true;
       });
     }
-    console.log('retrieving users from db findAll')
+    this.logger.log('retrieving users from db findAll')
     const querySpec = {
       query: 'SELECT * FROM c order by c.createdAt DESC',
       parameters: [],
     };
     const startAt = new Date();
     const {resources} = await this.usersContainer.items.query<User>(querySpec).fetchAll();
-    console.log('query time findAll', new Date().getTime() - startAt.getTime());
+    this.logger.log(`query time findAll users ${(new Date().getTime() - startAt.getTime())}`);
     const users = resources.map(user => FormatCosmosItem.cleanDocument(user, ['password']));
     this.cacheManager.set(USER_LIST_CACHE_KEY, users, LONG_CACHE_TIME);
     return users.filter(u => {
@@ -50,7 +52,6 @@ export class UsersService {
   }
   
   async findOne(id: string) {
-    console.log('findOne', id)
     const querySpec = {
       query: 'SELECT * FROM c WHERE c.id = @id',
       parameters: [

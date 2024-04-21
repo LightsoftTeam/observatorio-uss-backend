@@ -94,4 +94,9 @@ export class PostsController {
   like(@Param('id') id: string, @Body() updateLikesDto: UpdateLikesDto) {
     return this.postsService.updateLikes(id, updateLikesDto.action);
   }
+
+  @Post('update-slugs')
+  updateSlugs() {
+    return this.postsService.updateSlugs();
+  }
 }

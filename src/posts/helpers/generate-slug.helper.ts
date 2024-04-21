@@ -12,12 +12,12 @@ export function generateSlug(title: string): string{
     return slug;
 }
 
-export async function generateUniquePostSlug({title, slugs}: {title: string, slugs: string[]}): Promise<string>{
+export function generateUniquePostSlug({title, slugs}: {title: string, slugs: string[]}): string{
     let slug = generateSlug(title);
     let uniqueSlug = slug;
     let i = 1;
     while(slugs.includes(uniqueSlug)){
-        uniqueSlug = `${slug}-${i}`;
+        uniqueSlug = `${slug}-${i+1}`;
         i++;
     }
     return uniqueSlug;
