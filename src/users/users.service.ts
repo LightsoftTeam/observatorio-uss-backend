@@ -26,7 +26,6 @@ export class UsersService {
   ) { }
 
   async findAll(role?: Role) {
-    this.revokeWhenIsNotAdmin();
     const cachedUsers = await this.cacheManager.get<User[]>(USER_LIST_CACHE_KEY);
     if(cachedUsers){
       this.logger.log('retrieving users from cache findAll');
@@ -104,7 +103,6 @@ export class UsersService {
   }
 
   async create(createUserDto: CreateUserDto) {
-    this.revokeWhenIsNotAdmin();
     const hashedPassword = bcrypt.hashSync(createUserDto.password, PASSWORD_SALT_ROUNDS);
     const user = {
       ...createUserDto,
@@ -152,7 +150,7 @@ export class UsersService {
     return loggedUser.role === Role.ADMIN;
   }
 
-  private revokeWhenIsNotAdmin() {
+  revokeWhenIsNotAdmin() {
     if(!this.isAdmin()){
       throw new NotFoundException('Unauthorized');
     }
