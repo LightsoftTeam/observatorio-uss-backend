@@ -16,6 +16,7 @@ import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { AlgoliaService, PostAlgoliaRecord } from 'src/common/services/algolia.service';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
 import { Role } from 'src/users/entities/user.entity';
+import { scrapedPosts } from 'src/scrap/outputs/posts';
 
 const BASIC_KEYS_LIST = [
   'id',
@@ -54,7 +55,7 @@ export class PostsService {
 
   async create(createPostDto: CreatePostDto) {
     this.logger.log(`Creating post - ${JSON.stringify(createPostDto)}`);
-    const { title, category, content, imageUrl, videoUrl, podcastUrl, description, attachments, imageDescription, tags, userId } = createPostDto;
+    const { title, category, content, imageUrl, videoUrl, podcastUrl, description, attachments, imageDescription, tags, reference, userId } = createPostDto;
     const slugsQuerySpec = {
       query: 'SELECT c.slug FROM c'
     }
@@ -62,7 +63,9 @@ export class PostsService {
     const slugs = resources.map(r => r.slug);
     const slug = generateUniquePostSlug({ title, slugs });
     const readingTime = content ? calculateReadTime(content) : null;
-    await this.usersService.findOne(userId);//throws error if user not found
+    if(userId){
+      await this.usersService.findOne(userId);//throws error if user not found
+    }
 
     const post = {
       title,
@@ -80,7 +83,8 @@ export class PostsService {
       userId,
       createdAt: new Date(),
       isActive: true,
-      likes: 0
+      likes: 0,
+      reference
     }
     const { resource } = await this.postsContainer.items.create<Post>(post);
     this.algoliaService.saveObject(this.transformPostToAlgoliaRecord(post));
@@ -182,10 +186,14 @@ export class PostsService {
     if (resources.length === 0) {
       throw new NotFoundException('Post not found');
     }
-    const users = await this.usersService.findByIds([resources[0].userId]);
+    let user = null;
+    const userId = resources[0].userId;
+    if(userId){
+      user = (await this.usersService.findByIds([userId])).at(0);
+    }
     const postWithUser = {
       ...FormatCosmosItem.cleanDocument(resources[0]),
-      user: users[0]
+      user
     }
     return postWithUser;
   }
@@ -326,24 +334,10 @@ export class PostsService {
   async seed() {
     // const authors = await this.usersService.findAll();
     // const authorIds = authors.map(a => a.id);
-    // const mocks = await postsSeeder({
-    //   authorIds
-    // });
-    // await Promise.all(mocks.map(mock => this.postsContainer.items.create<Post>(mock)));
-    // return mocks;
-    // const querySpec = {
-    //   query: 'SELECT * FROM c'
-    // }
-    // const { resources } = await this.postsContainer.items.query<Post>(querySpec).fetchAll();
-    // const promises = resources.map(async post => {
-    //   const updatedPost = {
-    //     ...post,
-    //     isActive: true
-    //   }
-    //   this.postsContainer.item(post.id).replace(updatedPost);
-    // });
-    // await Promise.all(promises);
-    // return 1;
+    const mocks = scrapedPosts;
+    const promises = mocks.map(async (mock) => this.create(mock as CreatePostDto));
+    const response = await Promise.all(promises);
+    return response;
   }
 
   async getDistinctTags(search: string) {

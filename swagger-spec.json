@@ -298,6 +298,20 @@
         ]
       }
     },
+    "/api/posts/seed": {
+      "post": {
+        "operationId": "PostsController_seed",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      }
+    },
     "/api/users": {
       "get": {
         "operationId": "UsersController_findAll",
@@ -705,6 +719,11 @@
             "items": {
               "type": "string"
             }
+          },
+          "reference": {
+            "type": "object",
+            "description": "Reference of the post",
+            "example": "\n            {\n                author: 'Observatorio Tec Monterrey',\n                url: 'https://observatorio.tec.mx/edu-news/this-is-a-post'\n            }\n        "
           }
         },
         "required": [
@@ -718,7 +737,8 @@
           "imageDescription",
           "userId",
           "attachments",
-          "tags"
+          "tags",
+          "reference"
         ]
       },
       "UpdateHomePostDto": {

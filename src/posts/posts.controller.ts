@@ -101,4 +101,9 @@ export class PostsController {
   updateSlugs() {
     return this.postsService.updateSlugs();
   }
+
+  @Post('seed')
+  seed() {
+    return this.postsService.seed();
+  }
 }
