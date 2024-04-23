@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, HttpCode, HttpStatus, UseGuards, Request }
 import { AuthService } from './auth.service';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SignInDto } from './dto/sign-in.dto';
-import { AuthGuard } from './guards/auth.guard';
+import { AuthGuard, LoggedUser } from './guards/auth.guard';
 import { UsersService } from 'src/users/users.service';
 
 @ApiTags('Auth')
@@ -37,9 +37,8 @@ export class AuthController {
   })
   @UseGuards(AuthGuard)
   @Get('authenticate')
-  async getAuthenticatedUser(@Request() req) {
-    const user = await this.userService.findOne(req.userId);
-    delete user.password;
+  async getAuthenticatedUser(@Request() req: LoggedUser) {
+    const user = req['loggedUser'];
     return user;
   }
 }

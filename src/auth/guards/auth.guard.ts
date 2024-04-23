@@ -2,6 +2,10 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from 'src/users/users.service';
+import { User } from 'src/users/entities/user.entity';
+import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
+
+export type LoggedUser = Partial<User>;
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -22,9 +26,6 @@ export class AuthGuard implements CanActivate {
       const { sub } = await this.jwtService.verifyAsync(token, {
         secret: this.configService.get<string>('JWT_SECRET'),
       });
-      // 💡 We're assigning the payload to the request object here
-      // so that we can access it in our route handlers
-      request['userId'] = sub;
       const startDate = new Date().getTime();
       const user = await this.usersService.findOne(sub);
       const endDate = new Date().getTime();
@@ -32,6 +33,7 @@ export class AuthGuard implements CanActivate {
       if (!user.isActive) {
         throw new UnauthorizedException();
       }
+      request['loggedUser'] = FormatCosmosItem.cleanDocument(user, ['password']) as LoggedUser;
     } catch {
       throw new UnauthorizedException();
     }

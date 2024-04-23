@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, Scope } from '@nestjs/common';
 import type { Container } from '@azure/cosmos';
 import { Role, User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -8,11 +8,13 @@ import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
+import { REQUEST } from '@nestjs/core';
 
 const PASSWORD_SALT_ROUNDS = 5;
 const USER_LIST_CACHE_KEY = 'users';
 const LONG_CACHE_TIME = 1000 * 60 * 60 * 5;//5 hours
-@Injectable()
+
+@Injectable({ scope: Scope.REQUEST })
 export class UsersService {
 
   constructor(
@@ -20,9 +22,11 @@ export class UsersService {
     private readonly usersContainer: Container,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly logger: ApplicationLoggerService,
+    @Inject(REQUEST) private request: Request
   ) { }
 
   async findAll(role?: Role) {
+    this.revokeWhenIsNotAdmin();
     const cachedUsers = await this.cacheManager.get<User[]>(USER_LIST_CACHE_KEY);
     if(cachedUsers){
       this.logger.log('retrieving users from cache findAll');
@@ -100,6 +104,7 @@ export class UsersService {
   }
 
   async create(createUserDto: CreateUserDto) {
+    this.revokeWhenIsNotAdmin();
     const hashedPassword = bcrypt.hashSync(createUserDto.password, PASSWORD_SALT_ROUNDS);
     const user = {
       ...createUserDto,
@@ -115,6 +120,11 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
+    const isAdmin = this.isAdmin();
+    const loggedUser = this.getLoggedUser();
+    if(!isAdmin && loggedUser.id !== id){
+      throw new NotFoundException('Unauthorized');
+    }
     const user = await this.findOne(id);//throw not found exception if not found
     const updatedUser = {
       ...user,
@@ -127,5 +137,24 @@ export class UsersService {
     const newUser = FormatCosmosItem.cleanDocument(resource, ['password']);
     this.cacheManager.del(USER_LIST_CACHE_KEY);
     return newUser;
+  }
+
+  getLoggedUser() {
+    const loggedUser = this.request['loggedUser'];
+    if(!loggedUser){
+      throw new NotFoundException('Not logged in.');
+    }
+    return loggedUser;
+  }
+
+  isAdmin() {
+    const loggedUser = this.getLoggedUser();
+    return loggedUser.role === Role.ADMIN;
+  }
+
+  private revokeWhenIsNotAdmin() {
+    if(!this.isAdmin()){
+      throw new NotFoundException('Unauthorized');
+    }
   }
 }

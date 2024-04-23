@@ -15,6 +15,7 @@ import { UpdateHomePostDto } from './dto/update-home-post.dto';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { AlgoliaService, PostAlgoliaRecord } from 'src/common/services/algolia.service';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
+import { Role } from 'src/users/entities/user.entity';
 
 const BASIC_KEYS_LIST = [
   'id',
@@ -91,6 +92,7 @@ export class PostsService {
   async update(id: string, updatePostDto: UpdatePostDto) {
     this.logger.log(`Updating post - ${JSON.stringify(updatePostDto)}`);
     const post = await this.findOne(id);
+    await this.throwErrorIfUserIsNotOwner(post);
     if(updatePostDto.tags?.length > 0) {
       updatePostDto.tags = updatePostDto.tags.map(t => t.trim().toLowerCase());
     }
@@ -107,16 +109,21 @@ export class PostsService {
   }
 
   async findAll({
-    category
+    category,
+    userId
   }: GetPostsDto) {
     const cachedPosts = await this.cacheManager.get(POSTS_LIST_KEY);
     if (cachedPosts) {
+      let cachedResponse = cachedPosts as Post[];
       if(category){
         this.logger.log('retrieving posts from cache with category')
-        return (cachedPosts as Post[]).filter(p => p.category === category);
+        cachedResponse = cachedResponse.filter(p => p.category === category);
       }
-      this.logger.log('retrieving posts from cache without category')
-      return cachedPosts;
+      if(userId){
+        this.logger.log('retrieving posts from cache with userId')
+        cachedResponse = cachedResponse.filter(p => p.userId === userId);
+      }
+      return cachedResponse;
     }
     this.logger.log('retrieving posts from db')
     const querySpec = {
@@ -126,7 +133,7 @@ export class PostsService {
     querySpec.query += ' ORDER BY c.createdAt DESC';
     const { resources } = await this.postsContainer.items.query<Post>(querySpec).fetchAll();
     const users = await this.usersService.findAll();
-    const postsWithUser = resources.map(post => {
+    let postsWithUser = resources.map(post => {
       const user = users.find(u => u.id === post.userId);
       return {
         ...post,
@@ -134,7 +141,13 @@ export class PostsService {
       }
     });
     this.cacheManager.set(POSTS_LIST_KEY, postsWithUser, LONG_CACHE_TIME);
-    return category ? postsWithUser.filter(p => p.category === category) : postsWithUser;
+    if (category) {
+      postsWithUser = postsWithUser.filter(p => p.category === category);
+    }
+    if (userId) {
+      postsWithUser = postsWithUser.filter(p => p.userId === userId);
+    }
+    return postsWithUser;
   }
 
   async findOne(id: string) {
@@ -179,6 +192,7 @@ export class PostsService {
 
   async toggleActiveState(id: string) {
     const post = await this.findOne(id);
+    await this.throwErrorIfUserIsNotOwner(post);
     const newActiveState = !post.isActive;
     if (!newActiveState) {
       await this.checkPostReferences(id);//throws error if post is being referenced
@@ -198,10 +212,11 @@ export class PostsService {
   }
 
   async remove(id: string) {
+    const post = await this.findOne(id);
+    await this.throwErrorIfUserIsNotOwner(post);
     await this.checkPostReferences(id);//throws error if post is being referenced
     this.algoliaService.deleteObject(id);
     this.cacheManager.del(POSTS_LIST_KEY);
-    const post = await this.findOne(id);
     await this.postsContainer.item(id, post.category).delete();
     return null;
   }
@@ -266,6 +281,9 @@ export class PostsService {
   }
 
   async updateHomePosts(id: string, updateHomePostDto: UpdateHomePostDto) {
+    if(!this.usersService.isAdmin()){
+      throw new BadRequestException('You cannot perform this action.');
+    }
     const { postId } = updateHomePostDto;
     const querySpec = {
       query: 'SELECT * FROM c WHERE c.id = @id',
@@ -380,5 +398,14 @@ export class PostsService {
       imageUrl: post.imageUrl,
       tags: post.tags
     }
+  }
+
+  private async throwErrorIfUserIsNotOwner(post: Post) {
+    const user = this.usersService.getLoggedUser();
+    const role = user.role;
+    if(post.userId !== user.id && role !== Role.ADMIN) {
+      throw new BadRequestException('You cannot perform this action.');
+    }
+    return true;
   }
 }
