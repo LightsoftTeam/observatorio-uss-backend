@@ -15,7 +15,7 @@ async function main(){
         'edutrendspodcast': 0,
     }
     let postsBody = JSON.parse(posts).map(p => {
-        if(count[p.category] >= 5){
+        if(count[p.category] >= 30){
             return null;
         }
         count[p.category]++;
