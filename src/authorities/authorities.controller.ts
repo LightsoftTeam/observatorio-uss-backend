@@ -4,11 +4,15 @@ import { CreateAuthorityDto } from './dto/create-authority.dto';
 import { UpdateAuthorityDto } from './dto/update-authority.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { UsersService } from 'src/users/users.service';
 
 @ApiTags('Authorities')
 @Controller('authorities')
 export class AuthoritiesController {
-  constructor(private readonly authoritiesService: AuthoritiesService) {}
+  constructor(
+    private readonly authoritiesService: AuthoritiesService,
+    private readonly usersService: UsersService
+  ) {}
 
   @ApiOperation({ summary: 'Create an authority' })
   @UseGuards(AuthGuard)
@@ -20,6 +24,7 @@ export class AuthoritiesController {
   @ApiResponse({ status: 400, description: 'Bad request.' })
   @Post()
   create(@Body() createAuthorityDto: CreateAuthorityDto) {
+    this.usersService.revokeWhenIsNotAdmin();
     return this.authoritiesService.create(createAuthorityDto);
   }
 
@@ -40,6 +45,7 @@ export class AuthoritiesController {
   @ApiResponse({ status: 404, description: 'Authority not found' })
   @Put(':id')
   update(@Param('id') id: string, @Body() updateAuthorityDto: UpdateAuthorityDto) {
+    this.usersService.revokeWhenIsNotAdmin();
     return this.authoritiesService.update(id, updateAuthorityDto);
   }
 
@@ -53,6 +59,7 @@ export class AuthoritiesController {
   @HttpCode(204)
   @Delete(':id')
   async remove(@Param('id') id: string) {
+    this.usersService.revokeWhenIsNotAdmin();
     await this.authoritiesService.remove(id);
     return null;
   }

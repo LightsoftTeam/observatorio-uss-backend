@@ -11,6 +11,7 @@ import { AuthGuard } from 'src/auth/guards/auth.guard';
 export class UsersController {
   constructor(private readonly userService: UsersService) { }
 
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Get users' })
   @ApiResponse({ status: 200, description: 'Return all users' })
   @Get()
@@ -18,16 +19,17 @@ export class UsersController {
     return this.userService.findAll(role);
   }
 
+  @UseGuards(AuthGuard)
   @ApiResponse({
     status: 401,
     description: 'Unauthorized.',
   })
-  @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Create a user' })
   @ApiResponse({ status: 201, description: 'Create a new user' })
   @ApiResponse({ status: 400, description: 'User already exists' })
   @Post()
   async create(@Body() createUserDto: CreateUserDto){
+    this.userService.revokeWhenIsNotAdmin();
     const userExists = await this.userService.findByEmail(createUserDto.email);
     if(userExists){
       throw new BadRequestException('User already exists');
@@ -35,17 +37,18 @@ export class UsersController {
     return this.userService.create(createUserDto);
   }
 
+  @UseGuards(AuthGuard)
   @ApiResponse({
     status: 401,
     description: 'Unauthorized.',
   })
-  @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Update a user' })
   @ApiResponse({ status: 200, description: 'User updated succesfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 400, description: 'Bad Request' })
   @Put('/:id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto){
+    this.userService.revokeWhenIsNotAdmin();
     return this.userService.update(id, updateUserDto);
   }
 }

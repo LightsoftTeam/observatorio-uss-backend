@@ -8,4 +8,8 @@ export class GetPostsDto {
         nullable: true,
     })
     category: Category;
+    @ApiProperty({
+        nullable: true,
+    })
+    userId: string;
 }

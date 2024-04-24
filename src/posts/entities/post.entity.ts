@@ -18,6 +18,11 @@ export enum SubCategory{
     RIE360 = 'rie360',
     VIDEOTRENDS = 'videotrends',
 }
+
+export interface Reference{
+    author: string;
+    url: string;
+}
 @CosmosPartitionKey('category')
 export class Post {
     id?: string;
@@ -33,9 +38,10 @@ export class Post {
     imageUrl?: string;
     imageDescription?: string;
     likes: number;
-    userId: string;
+    userId?: string;
     attachments: string[];
     tags: string[];
     isActive: boolean;
+    reference?: Reference;
     @CosmosDateTime() createdAt: Date;
 }

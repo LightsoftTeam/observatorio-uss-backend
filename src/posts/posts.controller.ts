@@ -24,16 +24,17 @@ export class PostsController {
     return this.postsService.create(createPostDto);
   }
 
+  @UseGuards(AuthGuard)
   @Post("/update-home-post/:id")
   updateHomePosts(@Param('id') id: string, @Body() updateHomePostsDto: UpdateHomePostDto){
     return this.postsService.updateHomePosts(id, updateHomePostsDto);
   }
 
+  @UseGuards(AuthGuard)
   @ApiResponse({
     status: 401,
     description: 'Unauthorized.',
   })
-  @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Update a post' })
   @ApiResponse({ status: 200, description: 'The post has been successfully updated.'})
   @ApiResponse({ status: 404, description: 'Post not found.'})
@@ -65,20 +66,20 @@ export class PostsController {
     return this.postsService.findBySlug(slug);
   }
 
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Toggle state of a post' })
   @ApiResponse({ status: 200, description: 'The post has been successfully toggled.'})
   @ApiResponse({ status: 401, description: 'Unauthorized.'})
-  @UseGuards(AuthGuard)
   @Post(':id/toggle-active-state')
   toggleActiveState(@Param('id') id: string) {
     return this.postsService.toggleActiveState(id);
   }
 
+  @UseGuards(AuthGuard)
   @ApiResponse({
     status: 401,
     description: 'Unauthorized.',
   })
-  @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Delete a post' })
   @ApiResponse({ status: 204, description: 'The post has been successfully deleted.'})
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -95,8 +96,14 @@ export class PostsController {
     return this.postsService.updateLikes(id, updateLikesDto.action);
   }
 
+  @UseGuards(AuthGuard)
   @Post('update-slugs')
   updateSlugs() {
     return this.postsService.updateSlugs();
+  }
+
+  @Post('seed')
+  seed() {
+    return this.postsService.seed();
   }
 }

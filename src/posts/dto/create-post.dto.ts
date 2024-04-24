@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
-import { Category } from "../entities/post.entity";
+import { IsArray, IsEnum, IsNotEmpty, IsObject, IsOptional, IsString, IsUUID } from "class-validator";
+import { Category, Reference } from "../entities/post.entity";
 
 export class CreatePostDto {
     @ApiProperty({
@@ -77,8 +77,9 @@ export class CreatePostDto {
         example: '',
     })
     @IsString()
+    @IsOptional()
     @IsUUID()
-    userId: string;
+    userId?: string;
     
     @ApiProperty({
         description: '',
@@ -93,4 +94,16 @@ export class CreatePostDto {
     })
     @IsArray()
     tags: string[];
+
+    @ApiProperty({
+        description: 'Reference of the post',
+        example: `
+            {
+                author: 'Observatorio Tec Monterrey',
+                url: 'https://observatorio.tec.mx/edu-news/this-is-a-post'
+            }
+        `
+    })
+    @IsObject()
+    reference: Reference;
 }
