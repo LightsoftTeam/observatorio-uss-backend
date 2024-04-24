@@ -30,6 +30,7 @@ const BASIC_KEYS_LIST = [
   'imageUrl',
   'likes',
   'userId',
+  'reference',
   'tags',
   'createdAt'
 ]
@@ -100,9 +101,22 @@ export class PostsService {
     if(updatePostDto.tags?.length > 0) {
       updatePostDto.tags = updatePostDto.tags.map(t => t.trim().toLowerCase());
     }
+    const {title} = updatePostDto;
+    let newSlug = null;
+    if(title){
+      const slugsQuerySpec = {
+        query: 'SELECT c.slug FROM c'
+      }
+      const { resources } = await this.postsContainer.items.query<{ slug: string }>(slugsQuerySpec).fetchAll();
+      const slugs = resources.map(r => r.slug);
+      newSlug = generateUniquePostSlug({ title, slugs });
+    }
     const updatedPost: Post = {
       ...post,
       ...updatePostDto
+    }
+    if(newSlug){
+      updatedPost.slug = newSlug;
     }
     const { resource } = await this.postsContainer.item(post.id).replace(updatedPost);
     this.algoliaService.updateObject(this.transformPostToAlgoliaRecord(updatedPost));
