@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException, forwardRef } from '@nestjs/common';
 import type { Container } from '@azure/cosmos';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
@@ -49,6 +49,7 @@ export class PostsService {
     @InjectModel(HomePost)
     private readonly homePostsContainer: Container,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
     private readonly algoliaService: AlgoliaService,
     private readonly logger: ApplicationLoggerService
@@ -166,6 +167,20 @@ export class PostsService {
       postsWithUser = postsWithUser.filter(p => p.userId === userId);
     }
     return postsWithUser;
+  }
+
+  async findByAuthor(userId: string) {
+    const querySpec = {
+      query: 'SELECT * FROM c WHERE c.userId = @userId',
+      parameters: [
+        {
+          name: '@userId',
+          value: userId,
+        },
+      ],
+    };
+    const { resources: posts } = await this.postsContainer.items.query<Post>(querySpec).fetchAll();
+    return posts;
   }
 
   async findOne(id: string) {

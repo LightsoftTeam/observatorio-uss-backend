@@ -105,5 +105,6 @@ export class CreatePostDto {
         `
     })
     @IsObject()
+    @IsOptional()
     reference: Reference;
 }

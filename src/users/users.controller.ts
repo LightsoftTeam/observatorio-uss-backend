@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -51,4 +51,23 @@ export class UsersController {
     this.userService.revokeWhenIsNotAdmin();
     return this.userService.update(id, updateUserDto);
   }
+
+  // @UseGuards(AuthGuard)
+  // @HttpCode(204)
+  // @ApiOperation({ summary: 'Delete a user' })
+  // @ApiResponse({ status: 204, description: 'User deleted succesfully' })
+  // @ApiResponse({ status: 404, description: 'User not found' })
+  // @Delete('/:id')
+  // remove(@Param('id') id: string){
+  //   this.userService.revokeWhenIsNotAdmin();
+  //   return this.userService.remove(id);
+  // }
+
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Toggle active state of a user' })
+  @Post('/:id/toggle-active-state')
+  toggleActiveState(@Param('id') id: string){
+    return this.userService.toggleActiveState(id);
+  }
+    
 }

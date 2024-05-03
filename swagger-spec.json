@@ -312,6 +312,20 @@
         ]
       }
     },
+    "/api/common/sync-algolia": {
+      "post": {
+        "operationId": "CommonController_syncAlgolia",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Common"
+        ]
+      }
+    },
     "/api/users": {
       "get": {
         "operationId": "UsersController_findAll",
@@ -408,17 +422,27 @@
         ]
       }
     },
-    "/api/common/sync-algolia": {
+    "/api/users/{id}/toggle-active-state": {
       "post": {
-        "operationId": "CommonController_syncAlgolia",
-        "parameters": [],
+        "operationId": "UsersController_toggleActiveState",
+        "summary": "Toggle active state of a user",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
-          "201": {
+          "200": {
             "description": ""
           }
         },
         "tags": [
-          "Common"
+          "Users"
         ]
       }
     },
