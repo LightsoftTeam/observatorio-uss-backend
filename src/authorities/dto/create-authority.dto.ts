@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsOptional, IsString } from "class-validator";
+import { IsArray, IsOptional, IsString } from "class-validator";
 
 export class CreateAuthorityDto {
     @ApiProperty({
@@ -44,4 +44,12 @@ export class CreateAuthorityDto {
     })
     @IsOptional()
     hierarchy: number;
+
+    @ApiProperty({
+        description: 'The social media of the authority',
+        example: ['https://example.com/social-media']
+    })
+    @IsArray()
+    @IsString({ each: true })
+    socialMedia: string[];
 }

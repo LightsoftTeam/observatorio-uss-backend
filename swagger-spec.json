@@ -919,6 +919,16 @@
             "description": "The hierarchy of the authority",
             "example": 0,
             "nullable": true
+          },
+          "socialMedia": {
+            "description": "The social media of the authority",
+            "example": [
+              "https://example.com/social-media"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -926,7 +936,8 @@
           "description",
           "imageUrl",
           "position",
-          "hierarchy"
+          "hierarchy",
+          "socialMedia"
         ]
       },
       "UpdateAuthorityDto": {
@@ -960,6 +971,16 @@
             "description": "The hierarchy of the authority",
             "example": 0,
             "nullable": true
+          },
+          "socialMedia": {
+            "description": "The social media of the authority",
+            "example": [
+              "https://example.com/social-media"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       }

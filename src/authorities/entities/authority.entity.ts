@@ -8,5 +8,6 @@ export class Authority {
     imageUrl?: string;
     position?: string;
     hierarchy: number;
+    socialMedia: string[];
     @CosmosDateTime() createdAt: Date;
 }
