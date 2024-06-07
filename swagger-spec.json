@@ -657,6 +657,370 @@
           "tags"
         ]
       }
+    },
+    "/api/training": {
+      "post": {
+        "operationId": "TrainingController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTrainingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      },
+      "get": {
+        "operationId": "TrainingController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
+    "/api/training/{id}": {
+      "get": {
+        "operationId": "TrainingController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      },
+      "put": {
+        "operationId": "TrainingController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTrainingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      },
+      "delete": {
+        "operationId": "TrainingController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
+    "/api/professors": {
+      "post": {
+        "operationId": "ProfessorsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProfessorDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Professors"
+        ]
+      },
+      "get": {
+        "operationId": "ProfessorsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Professors"
+        ]
+      }
+    },
+    "/api/professors/{id}": {
+      "get": {
+        "operationId": "ProfessorsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Professors"
+        ]
+      },
+      "put": {
+        "operationId": "ProfessorsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfessorDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Professors"
+        ]
+      },
+      "delete": {
+        "operationId": "ProfessorsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Professors"
+        ]
+      }
+    },
+    "/api/professors/{documentType}/{documentNumber}": {
+      "get": {
+        "operationId": "ProfessorsController_findByDocument",
+        "parameters": [
+          {
+            "name": "documentType",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "documentNumber",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Professors"
+        ]
+      }
+    },
+    "/api/schools": {
+      "post": {
+        "operationId": "SchoolsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSchoolDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Schools"
+        ]
+      },
+      "get": {
+        "operationId": "SchoolsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Schools"
+        ]
+      }
+    },
+    "/api/schools/{id}": {
+      "get": {
+        "operationId": "SchoolsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Schools"
+        ]
+      },
+      "put": {
+        "operationId": "SchoolsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSchoolDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Schools"
+        ]
+      },
+      "delete": {
+        "operationId": "SchoolsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Schools"
+        ]
+      }
     }
   },
   "info": {
@@ -981,6 +1345,272 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "CreateTrainingDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "The code of the training",
+            "example": "0001-2020-II"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the training",
+            "example": "Training 1"
+          },
+          "month": {
+            "type": "number",
+            "description": "The month of the training",
+            "example": 7
+          },
+          "executions": {
+            "description": "The executions of the training",
+            "example": [
+              {
+                "date": "2022-07-01"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "place": {
+            "type": "string",
+            "description": "The place of the training",
+            "example": "Av. Los Pinos 123"
+          },
+          "floor": {
+            "type": "number",
+            "description": "The floor of the training",
+            "example": 1
+          },
+          "building": {
+            "type": "string",
+            "description": "The building of the training",
+            "example": "Building A"
+          },
+          "organizer": {
+            "type": "string",
+            "description": "The organizer of the training",
+            "example": "DDA"
+          },
+          "status": {
+            "type": "string",
+            "description": "The status of the training",
+            "example": "active",
+            "enum": [
+              "active",
+              "inactive"
+            ]
+          },
+          "modality": {
+            "type": "string",
+            "description": "The modality of the training",
+            "example": "presential",
+            "enum": [
+              "presential",
+              "virtual",
+              "semipresential"
+            ]
+          },
+          "endDate": {
+            "type": "string",
+            "description": "The end date of the training",
+            "example": "2022-07-01T00:00:00.000Z"
+          },
+          "capacity": {
+            "type": "number",
+            "description": "The capacity of the training",
+            "example": 100
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "month",
+          "executions",
+          "place",
+          "floor",
+          "building",
+          "organizer",
+          "status",
+          "modality",
+          "endDate",
+          "capacity"
+        ]
+      },
+      "UpdateTrainingDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "The code of the training",
+            "example": "0001-2020-II"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the training",
+            "example": "Training 1"
+          },
+          "month": {
+            "type": "number",
+            "description": "The month of the training",
+            "example": 7
+          },
+          "executions": {
+            "description": "The executions of the training",
+            "example": [
+              {
+                "date": "2022-07-01"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "place": {
+            "type": "string",
+            "description": "The place of the training",
+            "example": "Av. Los Pinos 123"
+          },
+          "floor": {
+            "type": "number",
+            "description": "The floor of the training",
+            "example": 1
+          },
+          "building": {
+            "type": "string",
+            "description": "The building of the training",
+            "example": "Building A"
+          },
+          "organizer": {
+            "type": "string",
+            "description": "The organizer of the training",
+            "example": "DDA"
+          },
+          "status": {
+            "type": "string",
+            "description": "The status of the training",
+            "example": "active",
+            "enum": [
+              "active",
+              "inactive"
+            ]
+          },
+          "modality": {
+            "type": "string",
+            "description": "The modality of the training",
+            "example": "presential",
+            "enum": [
+              "presential",
+              "virtual",
+              "semipresential"
+            ]
+          },
+          "endDate": {
+            "type": "string",
+            "description": "The end date of the training",
+            "example": "2022-07-01T00:00:00.000Z"
+          },
+          "capacity": {
+            "type": "number",
+            "description": "The capacity of the training",
+            "example": 100
+          }
+        }
+      },
+      "CreateProfessorDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the professor",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "description": "The email of the professor",
+            "example": "jhon.doe@uss.com"
+          },
+          "documentType": {
+            "type": "string",
+            "description": "The document type of the professor",
+            "example": "dni"
+          },
+          "documentNumber": {
+            "type": "string",
+            "description": "The document number of the professor",
+            "example": "12345678"
+          },
+          "schoolId": {
+            "type": "string",
+            "description": "The school id of the professor",
+            "example": "60f4b3b3-1b7b-4b6b-8b7b-1b7b4b6b8b7b"
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "documentType",
+          "documentNumber",
+          "schoolId"
+        ]
+      },
+      "UpdateProfessorDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the professor",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "description": "The email of the professor",
+            "example": "jhon.doe@uss.com"
+          },
+          "documentType": {
+            "type": "string",
+            "description": "The document type of the professor",
+            "example": "dni"
+          },
+          "documentNumber": {
+            "type": "string",
+            "description": "The document number of the professor",
+            "example": "12345678"
+          },
+          "schoolId": {
+            "type": "string",
+            "description": "The school id of the professor",
+            "example": "60f4b3b3-1b7b-4b6b-8b7b-1b7b4b6b8b7b"
+          }
+        }
+      },
+      "CreateSchoolDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the school",
+            "example": "Ingeniería de Sistemas"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateSchoolDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the school",
+            "example": "Ingeniería de Sistemas"
           }
         }
       }
