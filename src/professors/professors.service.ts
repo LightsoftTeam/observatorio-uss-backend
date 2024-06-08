@@ -6,6 +6,7 @@ import { Professor } from './entities/professor.entity';
 import { InjectModel } from '@nestjs/azure-database';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { SchoolsService } from 'src/schools/schools.service';
+import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
 
 @Injectable()
 export class ProfessorsService {
@@ -14,9 +15,11 @@ export class ProfessorsService {
     @InjectModel(Professor)
     private readonly professorsContainer: Container,
     private readonly schoolService: SchoolsService,
+    private readonly logger: ApplicationLoggerService,
   ) { }
 
   async create(createProfessorDto: CreateProfessorDto) {
+    this.logger.log(`Creating professor: ${JSON.stringify(createProfessorDto)}`);
     await this.schoolService.findOne(createProfessorDto.schoolId);// Check if the school exists
     const professor: Professor = {
       ...createProfessorDto,
@@ -27,11 +30,13 @@ export class ProfessorsService {
   }
 
   async findAll() {
+    this.logger.log('Getting all professors');
     const { resources } = await this.professorsContainer.items.readAll<Professor>().fetchAll();
     return resources.map((professor) => FormatCosmosItem.cleanDocument<Professor>(professor));
   }
 
   async findOne(id: string) {
+    this.logger.log(`Getting professor with id ${id}`);
     try {
       const { resource } = await this.professorsContainer.item(id, id).read<Professor>();
       return FormatCosmosItem.cleanDocument<Professor>(resource);
@@ -41,6 +46,7 @@ export class ProfessorsService {
   }
 
   async update(id: string, updateProfessorDto: UpdateProfessorDto) {
+    this.logger.log(`Updating professor with id ${id}: ${JSON.stringify(updateProfessorDto)}`);
     const { schoolId } = updateProfessorDto
     if (schoolId) {
       await this.schoolService.findOne(schoolId);// Check if the school exists
@@ -54,21 +60,24 @@ export class ProfessorsService {
       const { resource } = await this.professorsContainer.item(id).replace(newProfessor);
       return FormatCosmosItem.cleanDocument<Professor>(resource);
     } catch (error) {
-      console.log(error.message)
+      this.logger.error(error.message)
       throw new NotFoundException(`Professor with id ${id} not found`);
     }
   }
 
   async remove(id: string) {
+    this.logger.log(`Deleting professor with id ${id}`);
     try {
       await this.professorsContainer.item(id, id).delete();
       return null;
     } catch (error) {
+      this.logger.error(error.message)
       throw new NotFoundException(`Professor with id ${id} not found`);
     }
   }
 
   async findByDocument({ documentType, documentNumber }: { documentType: string, documentNumber: string }) {
+    this.logger.log(`Getting professor with document ${documentType} ${documentNumber}`);
     const querySpec = {
       query: 'SELECT * FROM c WHERE c.documentType = @documentType AND c.documentNumber = @documentNumber',
       parameters: [
@@ -78,6 +87,7 @@ export class ProfessorsService {
     };
     const { resources } = await this.professorsContainer.items.query<Professor>(querySpec).fetchAll();
     if (resources.length === 0) {
+      this.logger.log(`Professor with document ${documentType} ${documentNumber} not found`);
       throw new NotFoundException(`Professor with document ${documentType} ${documentNumber} not found`);
     }
     const professor = resources[0];

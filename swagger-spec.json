@@ -674,7 +674,10 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "The training has been successfully created."
+          },
+          "400": {
+            "description": "Bad Request."
           }
         },
         "tags": [
@@ -709,7 +712,10 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "A training was found"
+          },
+          "404": {
+            "description": "Training not found"
           }
         },
         "tags": [
@@ -740,7 +746,10 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "The training has been successfully updated."
+          },
+          "404": {
+            "description": "Training not found"
           }
         },
         "tags": [
@@ -761,7 +770,10 @@
         ],
         "responses": {
           "204": {
-            "description": ""
+            "description": "The training has been successfully removed."
+          },
+          "404": {
+            "description": "Training not found"
           }
         },
         "tags": [
@@ -785,7 +797,20 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "The professor has been successfully created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Professor"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request."
+          },
+          "404": {
+            "description": "School not found."
           }
         },
         "tags": [
@@ -797,7 +822,17 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "All professors were found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Professor"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -820,7 +855,17 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "A professor was found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Professor"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Professor not found"
           }
         },
         "tags": [
@@ -851,7 +896,13 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "The professor has been successfully updated."
+          },
+          "400": {
+            "description": "Bad Request."
+          },
+          "404": {
+            "description": "Professor not found."
           }
         },
         "tags": [
@@ -872,7 +923,10 @@
         ],
         "responses": {
           "204": {
-            "description": ""
+            "description": "The professor has been successfully deleted."
+          },
+          "404": {
+            "description": "Professor not found."
           }
         },
         "tags": [
@@ -903,7 +957,17 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "A professor was found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Professor"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Professor not found"
           }
         },
         "tags": [
@@ -927,7 +991,13 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "The school has been successfully created."
+          },
+          "400": {
+            "description": "Bad Request."
+          },
+          "404": {
+            "description": "School not found."
           }
         },
         "tags": [
@@ -939,7 +1009,7 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "All schools were found"
           }
         },
         "tags": [
@@ -962,7 +1032,10 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "A school was found"
+          },
+          "404": {
+            "description": "School not found"
           }
         },
         "tags": [
@@ -993,7 +1066,10 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "The school has been successfully updated."
+          },
+          "404": {
+            "description": "School not found"
           }
         },
         "tags": [
@@ -1014,7 +1090,10 @@
         ],
         "responses": {
           "204": {
-            "description": ""
+            "description": "The school has been successfully deleted."
+          },
+          "404": {
+            "description": "School not found"
           }
         },
         "tags": [
@@ -1381,17 +1460,20 @@
           "place": {
             "type": "string",
             "description": "The place of the training",
-            "example": "Av. Los Pinos 123"
+            "example": "Av. Los Pinos 123",
+            "nullable": true
           },
           "floor": {
             "type": "number",
             "description": "The floor of the training",
-            "example": 1
+            "example": 1,
+            "nullable": true
           },
           "building": {
             "type": "string",
             "description": "The building of the training",
-            "example": "Building A"
+            "example": "Building A",
+            "nullable": true
           },
           "organizer": {
             "type": "string",
@@ -1476,17 +1558,20 @@
           "place": {
             "type": "string",
             "description": "The place of the training",
-            "example": "Av. Los Pinos 123"
+            "example": "Av. Los Pinos 123",
+            "nullable": true
           },
           "floor": {
             "type": "number",
             "description": "The floor of the training",
-            "example": 1
+            "example": 1,
+            "nullable": true
           },
           "building": {
             "type": "string",
             "description": "The building of the training",
-            "example": "Building A"
+            "example": "Building A",
+            "nullable": true
           },
           "organizer": {
             "type": "string",
@@ -1540,7 +1625,12 @@
           "documentType": {
             "type": "string",
             "description": "The document type of the professor",
-            "example": "dni"
+            "example": "dni",
+            "enum": [
+              "dni",
+              "pasaporte",
+              "carnet_extranjeria"
+            ]
           },
           "documentNumber": {
             "type": "string",
@@ -1561,6 +1651,10 @@
           "schoolId"
         ]
       },
+      "Professor": {
+        "type": "object",
+        "properties": {}
+      },
       "UpdateProfessorDto": {
         "type": "object",
         "properties": {
@@ -1577,7 +1671,12 @@
           "documentType": {
             "type": "string",
             "description": "The document type of the professor",
-            "example": "dni"
+            "example": "dni",
+            "enum": [
+              "dni",
+              "pasaporte",
+              "carnet_extranjeria"
+            ]
           },
           "documentNumber": {
             "type": "string",

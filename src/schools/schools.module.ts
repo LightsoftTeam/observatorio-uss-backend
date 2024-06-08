@@ -3,6 +3,7 @@ import { SchoolsService } from './schools.service';
 import { SchoolsController } from './schools.controller';
 import { School } from './entities/school.entity';
 import { AzureCosmosDbModule } from '@nestjs/azure-database';
+import { CommonModule } from 'src/common/common.module';
 
 @Module({
   controllers: [SchoolsController],
@@ -11,6 +12,7 @@ import { AzureCosmosDbModule } from '@nestjs/azure-database';
     AzureCosmosDbModule.forFeature([
       {dto: School},
     ]),
+    CommonModule
   ],
   exports: [
     AzureCosmosDbModule,

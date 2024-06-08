@@ -5,6 +5,7 @@ import { AzureCosmosDbModule } from '@nestjs/azure-database';
 import { Professor } from './entities/professor.entity';
 import { SchoolsService } from 'src/schools/schools.service';
 import { SchoolsModule } from 'src/schools/schools.module';
+import { CommonModule } from 'src/common/common.module';
 
 @Module({
   controllers: [ProfessorsController],
@@ -13,7 +14,8 @@ import { SchoolsModule } from 'src/schools/schools.module';
     AzureCosmosDbModule.forFeature([
       {dto: Professor},
     ]),
-    SchoolsModule
+    SchoolsModule,
+    CommonModule
   ]
 })
 export class ProfessorsModule {}

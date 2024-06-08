@@ -2,7 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Put, HttpCode } from
 import { ProfessorsService } from './professors.service';
 import { CreateProfessorDto } from './dto/create-professor.dto';
 import { UpdateProfessorDto } from './dto/update-professor.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Professor } from './entities/professor.entity';
 
 @ApiTags('Professors')
 @Controller('professors')
@@ -10,32 +11,88 @@ export class ProfessorsController {
   constructor(private readonly professorsService: ProfessorsService) {}
 
   @Post()
+  @ApiResponse({
+    status: 201,
+    description: 'The professor has been successfully created.',
+    type: Professor
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request.'
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'School not found.'
+  })
   create(@Body() createProfessorDto: CreateProfessorDto) {
     return this.professorsService.create(createProfessorDto);
   }
 
   @Get()
+  @ApiResponse({
+    status: 200,
+    description: 'All professors were found',
+    type: [Professor]
+  })
   findAll() {
     return this.professorsService.findAll();
   }
 
   @Get(':id')
+  @ApiResponse({
+    status: 200,
+    description: 'A professor was found',
+    type: Professor
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Professor not found',
+  })
   findOne(@Param('id') id: string) {
     return this.professorsService.findOne(id);
   }
 
   @Put(':id')
+  @ApiResponse({
+    status: 200,
+    description: 'The professor has been successfully updated.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request.'
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Professor not found.'
+  })
   update(@Param('id') id: string, @Body() updateProfessorDto: UpdateProfessorDto) {
     return this.professorsService.update(id, updateProfessorDto);
   }
 
   @HttpCode(204)
   @Delete(':id')
+  @ApiResponse({
+    status: 204,
+    description: 'The professor has been successfully deleted.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Professor not found.'
+  })
   remove(@Param('id') id: string) {
     return this.professorsService.remove(id);
   }
 
   @Get(':documentType/:documentNumber')
+  @ApiResponse({
+    status: 200,
+    description: 'A professor was found',
+    type: Professor
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Professor not found',
+  })
   findByDocument(@Param('documentType') documentType: string, @Param('documentNumber') documentNumber: string) {
     return this.professorsService.findByDocument({documentType, documentNumber});
   }

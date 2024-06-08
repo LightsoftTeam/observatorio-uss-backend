@@ -22,6 +22,7 @@ export class CreateProfessorDto {
     @ApiProperty({
         description: 'The document type of the professor',
         example: 'dni',
+        enum: DocumentType,
     })
     @IsEnum(DocumentType)
     documentType: DocumentType;

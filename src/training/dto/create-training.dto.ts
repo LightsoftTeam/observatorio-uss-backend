@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString, ValidateNested } from "class-validator";
+import { IsArray, IsDateString, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
 import { TrainingModality, TrainingStatus } from "../entities/training.entity";
 
@@ -40,6 +40,8 @@ export class CreateTrainingDto {
         description: 'The month of the training',
         example: 7,
     })
+    @IsNumber()
+    @IsNotEmpty()
     month: number;
 
     @ApiProperty({
@@ -54,6 +56,7 @@ export class CreateTrainingDto {
     @ApiProperty({
         description: 'The place of the training',
         example: 'Av. Los Pinos 123',
+        nullable: true,
     })
     @IsOptional()
     place?: string;
@@ -61,6 +64,7 @@ export class CreateTrainingDto {
     @ApiProperty({
         description: 'The floor of the training',
         example: 1,
+        nullable: true,
     })
     @IsOptional()
     floor?: number;
@@ -68,6 +72,7 @@ export class CreateTrainingDto {
     @ApiProperty({
         description: 'The building of the training',
         example: 'Building A',
+        nullable: true,
     })
     @IsOptional()
     building?: string;
@@ -100,11 +105,15 @@ export class CreateTrainingDto {
         description: 'The end date of the training',
         example: '2022-07-01T00:00:00.000Z',
     })
+    @IsDateString()
+    @IsNotEmpty()
     endDate: string;
 
     @ApiProperty({
         description: 'The capacity of the training',
         example: 100,
     })
+    @IsNumber()
+    @IsNotEmpty()
     capacity: number;
 }
