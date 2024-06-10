@@ -781,6 +781,127 @@
         ]
       }
     },
+    "/api/training/{id}/participants": {
+      "post": {
+        "operationId": "TrainingController_addParticipant",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddParticipantDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The participant has been successfully added."
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Training not found"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
+    "/api/training/{id}/participants/{participantId}": {
+      "put": {
+        "operationId": "TrainingController_updateParticipant",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "participantId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateParticipantDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The participant has been successfully updated."
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Training not found"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      },
+      "delete": {
+        "operationId": "TrainingController_removeParticipant",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "participantId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The participant has been successfully removed."
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Training not found"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
     "/api/professors": {
       "post": {
         "operationId": "ProfessorsController_create",
@@ -1608,6 +1729,68 @@
             "example": 100
           }
         }
+      },
+      "AddParticipantDto": {
+        "type": "object",
+        "properties": {
+          "professorId": {
+            "type": "string",
+            "description": "A valid professor id",
+            "example": "a3b4c5d6-1234-5678-90ab-cdef12345678"
+          },
+          "role": {
+            "type": "string",
+            "description": "The role of the professor",
+            "example": "assistant",
+            "enum": [
+              "assistant",
+              "organizer",
+              "speaker"
+            ],
+            "nullable": true,
+            "default": "assistant"
+          }
+        },
+        "required": [
+          "professorId",
+          "role"
+        ]
+      },
+      "UpdateParticipantDto": {
+        "type": "object",
+        "properties": {
+          "professorId": {
+            "type": "string",
+            "description": "A valid professor id",
+            "example": "a3b4c5d6-1234-5678-90ab-cdef12345678"
+          },
+          "role": {
+            "type": "string",
+            "description": "The role of the professor",
+            "example": "assistant",
+            "enum": [
+              "assistant",
+              "organizer",
+              "speaker"
+            ],
+            "nullable": true,
+            "default": "assistant"
+          },
+          "attendanceStatus": {
+            "type": "string",
+            "description": "The attendance status of the participant",
+            "example": "present",
+            "enum": [
+              "pending",
+              "present",
+              "late"
+            ],
+            "nullable": true
+          }
+        },
+        "required": [
+          "attendanceStatus"
+        ]
       },
       "CreateProfessorDto": {
         "type": "object",

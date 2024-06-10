@@ -16,6 +16,7 @@ import { CommonModule } from 'src/common/common.module';
     ]),
     SchoolsModule,
     CommonModule
-  ]
+  ],
+  exports: [AzureCosmosDbModule, SchoolsService]
 })
 export class ProfessorsModule {}

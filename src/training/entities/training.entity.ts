@@ -10,6 +10,13 @@ export interface TrainingParticipant {
     id: string;
     foreignId: string;
     role: TrainingRole;
+    attendanceStatus: AttendanceStatus;
+}
+
+export enum AttendanceStatus {
+    PENDING = 'pending',
+    PRESENT = 'present',
+    LATE = 'late',
 }
 
 export enum TrainingRole {
