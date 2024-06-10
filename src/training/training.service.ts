@@ -1,7 +1,7 @@
 import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
 import type { Container } from '@azure/cosmos';
 import { v4 as uuidv4 } from 'uuid';
-import { CreateTrainingDto } from './dto/create-training.dto';
+import { CreateTrainingDto, ExecutionRequest } from './dto/create-training.dto';
 import { UpdateTrainingDto } from './dto/update-training.dto';
 import { InjectModel } from '@nestjs/azure-database';
 import { Execution, Training } from './entities/training.entity';
@@ -26,6 +26,7 @@ export class TrainingService {
   async create(createTrainingDto: CreateTrainingDto) {
     this.logger.log('Creating training', createTrainingDto);
     const { executions, organizer, code } = createTrainingDto;
+    this.validateExecutionsDateRange(executions);
     const existingTraining = await this.findByCode(code);
     if (existingTraining) {
       this.logger.log(`Training code already exists: ${code}`);
@@ -96,6 +97,7 @@ export class TrainingService {
     try {
       const { resource } = await this.trainingContainer.item(id, id).read<Training>();
       const { executions } = updateTrainingDto;
+      this.validateExecutionsDateRange(executions);
       let mappedExecutions: Execution[] = resource.executions;
       if (executions) {
         mappedExecutions = executions.map((execution) => {
@@ -129,6 +131,19 @@ export class TrainingService {
     } catch (error) {
       this.logger.log(`remove ${error.message}`);
       throw new BadRequestException("Training not found");
+    }
+  }
+
+  private validateExecutionsDateRange(executions: ExecutionRequest[]) {
+    this.logger.log('Validating executions date range');
+    for (let i = 0; i < executions.length; i++) {
+      const execution = executions[i];
+      const from = new Date(execution.from);
+      const to = new Date(execution.to);
+      if (from > to) {
+        this.logger.error(`Execution ${i} has an invalid date range`);
+        throw new BadRequestException('The execution date range is invalid.');
+      }
     }
   }
 }

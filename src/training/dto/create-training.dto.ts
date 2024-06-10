@@ -3,7 +3,7 @@ import { IsArray, IsDateString, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsStri
 import { Type } from "class-transformer";
 import { TrainingModality, TrainingStatus } from "../entities/training.entity";
 
-class ExecutionRequest {
+export class ExecutionRequest {
     @ApiProperty({
         description: 'The id of the execution',
         example: 'a1b2c3d4-1234-5678-90ab-cdef12345678',
@@ -16,7 +16,13 @@ class ExecutionRequest {
         example: '2022-07-01',
     })
     @IsDateString()
-    date: string;
+    from: string;
+    @ApiProperty({
+        description: 'The end date of the execution',
+        example: '2022-07-01',
+    })
+    @IsDateString()
+    to: string;
 }
 
 export class CreateTrainingDto {

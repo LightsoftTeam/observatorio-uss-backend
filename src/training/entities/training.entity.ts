@@ -2,7 +2,8 @@ import { CosmosDateTime, CosmosPartitionKey } from "@nestjs/azure-database";
 
 export interface Execution {
     id: string;
-    date: string;
+    from: string;
+    to: string;
 }
 
 export interface TrainingParticipant {
