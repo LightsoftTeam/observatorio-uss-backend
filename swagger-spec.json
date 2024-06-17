@@ -1561,6 +1561,11 @@
             "description": "The name of the training",
             "example": "Training 1"
           },
+          "description": {
+            "type": "string",
+            "description": "The description of the training",
+            "example": "This is the training number 1"
+          },
           "month": {
             "type": "number",
             "description": "The month of the training",
@@ -1634,6 +1639,7 @@
         "required": [
           "code",
           "name",
+          "description",
           "month",
           "executions",
           "place",
@@ -1658,6 +1664,11 @@
             "type": "string",
             "description": "The name of the training",
             "example": "Training 1"
+          },
+          "description": {
+            "type": "string",
+            "description": "The description of the training",
+            "example": "This is the training number 1"
           },
           "month": {
             "type": "number",

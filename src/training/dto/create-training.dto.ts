@@ -43,6 +43,14 @@ export class CreateTrainingDto {
     name: string;
 
     @ApiProperty({
+        description: 'The description of the training',
+        example: 'This is the training number 1',
+    })
+    @IsString()
+    @IsOptional()
+    description: string;
+
+    @ApiProperty({
         description: 'The month of the training',
         example: 7,
     })

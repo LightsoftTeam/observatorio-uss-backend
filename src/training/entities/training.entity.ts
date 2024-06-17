@@ -41,6 +41,7 @@ export class Training {
     id?: string;
     code: string;
     name: string;
+    description?: string;
     month: number;
     executions: Execution[];
     place?: string;

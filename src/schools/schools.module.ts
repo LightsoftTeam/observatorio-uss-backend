@@ -15,7 +15,7 @@ import { CommonModule } from 'src/common/common.module';
     CommonModule
   ],
   exports: [
-    AzureCosmosDbModule,
+    AzureCosmosDbModule
   ]
 })
 export class SchoolsModule {}

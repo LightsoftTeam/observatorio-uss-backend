@@ -11,6 +11,8 @@ import { ApplicationLoggerService } from 'src/common/services/application-logger
 import { AddParticipantDto } from './dto/add-participant.dto';
 import { ProfessorsService } from 'src/professors/professors.service';
 import { UpdateParticipantDto } from './dto/update-participant.dto';
+import { SchoolsService } from 'src/schools/schools.service';
+import { School } from 'src/schools/entities/school.entity';
 
 const DDA_ORGANIZER_ID = 'DDA';
 
@@ -25,6 +27,7 @@ export class TrainingService {
     private readonly trainingContainer: Container,
     private readonly logger: ApplicationLoggerService,
     private readonly professorService: ProfessorsService,
+    private readonly schoolService: SchoolsService,
   ) { }
 
   async create(createTrainingDto: CreateTrainingDto) {
@@ -40,9 +43,16 @@ export class TrainingService {
         message: 'The training code already exists.',
       });
     }
-    if (organizer !== DDA_ORGANIZER_ID && !isUUID(organizer)) {
-      this.logger.log('The organizer must be a valid schoolId or DDA.');
-      throw new BadRequestException('The organizer must be a valid schoolId or DDA.');
+    if (organizer !== DDA_ORGANIZER_ID) {
+      if (!isUUID(organizer)) {
+        this.logger.log('The organizer must be a valid schoolId or DDA.');
+        throw new BadRequestException('The organizer must be a valid schoolId or DDA.');
+      }
+      const school = await this.schoolService.getById(organizer);
+      if (!school) {
+        this.logger.log(`The school with id ${organizer} does not exist.`);
+        throw new NotFoundException('The school does not exist.');
+      }
     }
     const training: Training = {
       ...createTrainingDto,
@@ -54,7 +64,7 @@ export class TrainingService {
       createdAt: new Date(),
     };
     const { resource } = await this.trainingContainer.items.create(training);
-    return FormatCosmosItem.cleanDocument(resource);
+    return this.toJson(resource);
   }
 
   async findByCode(code: string): Promise<Training | null> {
@@ -78,7 +88,7 @@ export class TrainingService {
     try {
       this.logger.log('Finding all trainings');
       const { resources } = await this.trainingContainer.items.readAll<Training>().fetchAll();
-      return resources.map(training => FormatCosmosItem.cleanDocument<Training>(training));
+      return Promise.all(resources.map(training => this.toJson(training)));
     } catch (error) {
       this.logger.log(`findAll ${error.message}`);
       throw error;
@@ -92,7 +102,7 @@ export class TrainingService {
       if (!training) {
         throw new NotFoundException('Training not found');
       }
-      return FormatCosmosItem.cleanDocument(training);
+      return this.toJson(training);
     } catch (error) {
       this.logger.log(`findOne ${error.message}`);
       throw error;
@@ -126,7 +136,7 @@ export class TrainingService {
         executions: mappedExecutions,
       };
       const { resource: trainingUpdated } = await this.trainingContainer.item(id, id).replace(newTraining);
-      return FormatCosmosItem.cleanDocument(trainingUpdated);
+      return this.toJson(trainingUpdated);
     } catch (error) {
       this.logger.log(`update ${error.message}`);
       throw error;
@@ -248,6 +258,18 @@ export class TrainingService {
         this.logger.error(`Execution ${i} has an invalid date range`);
         throw new BadRequestException('The execution date range is invalid.');
       }
+    }
+  }
+
+  private async toJson(training: Training) {
+    const trainingWithoutCosmosProps = FormatCosmosItem.cleanDocument(training);
+    let formattedOrganizer: string | Partial<School> = trainingWithoutCosmosProps.organizer;
+    if (formattedOrganizer !== DDA_ORGANIZER_ID) {
+      formattedOrganizer = FormatCosmosItem.cleanDocument(await this.schoolService.getById(formattedOrganizer));
+    }
+    return {
+      ...trainingWithoutCosmosProps,
+      organizer: formattedOrganizer
     }
   }
 }

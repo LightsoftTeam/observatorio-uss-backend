@@ -6,16 +6,19 @@ import { Training } from './entities/training.entity';
 import { CommonModule } from 'src/common/common.module';
 import { ProfessorsService } from 'src/professors/professors.service';
 import { ProfessorsModule } from 'src/professors/professors.module';
+import { SchoolsService } from 'src/schools/schools.service';
+import { SchoolsModule } from 'src/schools/schools.module';
 
 @Module({
   controllers: [TrainingController],
-  providers: [TrainingService, ProfessorsService],
+  providers: [TrainingService, ProfessorsService, SchoolsService],
   imports: [
     AzureCosmosDbModule.forFeature([
       {dto: Training},
     ]),
     CommonModule,
-    ProfessorsModule
+    ProfessorsModule,
+    SchoolsModule,
   ],
 })
 export class TrainingModule {}

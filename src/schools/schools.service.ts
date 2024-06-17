@@ -45,6 +45,17 @@ export class SchoolsService {
     }
   }
 
+  async getById(id: string) {
+    try {
+      this.logger.log(`Getting school with id ${id}`);
+      const { resource } = await this.schoolsContainer.item(id, id).read<School>();
+      return resource;
+    } catch (error) {
+      //verify if the error is a 404
+      return null;
+    }
+  }
+
   async update(id: string, updateSchoolDto: UpdateSchoolDto) {
     this.logger.log(`Updating school with id ${id}: ${JSON.stringify(updateSchoolDto)}`);
     const { resource } = await this.schoolsContainer.item(id, id).read<School>();
