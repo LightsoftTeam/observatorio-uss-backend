@@ -51,14 +51,6 @@ export class CreateTrainingDto {
     description: string;
 
     @ApiProperty({
-        description: 'The month of the training',
-        example: 7,
-    })
-    @IsNumber()
-    @IsNotEmpty()
-    month: number;
-
-    @ApiProperty({
         description: 'The executions of the training',
         example: [{ date: '2022-07-01' }],
     })
@@ -114,14 +106,6 @@ export class CreateTrainingDto {
     })
     @IsEnum(TrainingModality)
     modality: TrainingModality;
-
-    @ApiProperty({
-        description: 'The end date of the training',
-        example: '2022-07-01T00:00:00.000Z',
-    })
-    @IsDateString()
-    @IsNotEmpty()
-    endDate: string;
 
     @ApiProperty({
         description: 'The capacity of the training',

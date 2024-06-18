@@ -5,6 +5,7 @@ import { UpdateTrainingDto } from './dto/update-training.dto';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AddParticipantDto } from './dto/add-participant.dto';
 import { UpdateParticipantDto } from './dto/update-participant.dto';
+import { AddAttendanceToExecutionDto } from './dto/add-attendance-to-execution.dto';
 
 @ApiTags('Training')
 @Controller('training')
@@ -121,5 +122,23 @@ export class TrainingController {
   })
   removeParticipant(@Param('id') id: string, @Param('participantId') participantId: string) {
     return this.trainingService.removeParticipant(id, participantId);
+  }
+
+  @HttpCode(200)
+  @Post(':id/executions/:executionId/attendances')
+  @ApiResponse({
+    status: 200,
+    description: 'The assistance has been successfully added.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Training not found',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request',
+  })
+  addAttendanceToExecution(@Param('id') id: string, @Param('executionId') executionId: string, @Body() addAttendanceToExecutionDto: AddAttendanceToExecutionDto) {
+    return this.trainingService.addAttendanceToExecution(id, executionId, addAttendanceToExecutionDto);
   }
 }

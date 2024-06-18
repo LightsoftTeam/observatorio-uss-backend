@@ -1,41 +1,52 @@
-import { Inject, Injectable, LogLevel, LoggerService } from '@nestjs/common';
+import { ConsoleLogger, Inject, Injectable, LogLevel, Scope } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
 import { TelemetryClient } from 'applicationinsights';
 import { SeverityLevel } from 'applicationinsights/out/Declarations/Contracts';
 
-@Injectable()
-export class ApplicationLoggerService implements LoggerService {
+@Injectable({
+    scope: Scope.TRANSIENT
+})
+export class ApplicationLoggerService extends ConsoleLogger {
 
     constructor(
-        @Inject('ApplicationInsight') private readonly appInsights: TelemetryClient
-    ) {}
+        @Inject('ApplicationInsight') private readonly appInsights: TelemetryClient,
+        @Inject(REQUEST) private request: any
+    ) {
+        super();
+    }
 
-    log(message: any, optionalParams: {[key: string]: any} = {}) {
+    log(message: any) {
+        console.log('Request', this.request);
         const formattedMessage = typeof message === 'string' ? message : JSON.stringify(message);
-        this.appInsights.trackTrace({message: formattedMessage, properties: optionalParams, severity: SeverityLevel.Information});
-        console.log(message);
+        this.appInsights.trackTrace({
+            message: formattedMessage, properties: {
+                ...this.request.context.executionContext,
+            }, severity: SeverityLevel.Information
+        });
+        super.log(message);
     }
-    error(message: any, optionalParams: {[key: string]: any} = {}) {
+    error(message: any) {
         const formattedMessage = typeof message === 'string' ? message : JSON.stringify(message);
-        this.appInsights.trackException({exception: new Error(formattedMessage), properties: optionalParams});
-        console.error(message);
+        this.appInsights.trackException({ exception: new Error(formattedMessage), properties: {} });
+        super.error(message);
     }
-    warn(message: any, optionalParams: {[key: string]: any} = {}) {
+    warn(message: any) {
         const formattedMessage = typeof message === 'string' ? message : JSON.stringify(message);
-        this.appInsights.trackTrace({message: formattedMessage, properties: optionalParams, severity: SeverityLevel.Warning});
-        console.warn(message);
+        this.appInsights.trackTrace({ message: formattedMessage, properties: {}, severity: SeverityLevel.Warning });
+        super.warn(message);
     }
-    debug?(message: any, optionalParams: {[key: string]: any} = {}) {
+    debug(message: any) {
         const formattedMessage = typeof message === 'string' ? message : JSON.stringify(message);
-        this.appInsights.trackTrace({message: formattedMessage, properties: optionalParams, severity: SeverityLevel.Verbose});
-        console.debug(message);
+        this.appInsights.trackTrace({ message: formattedMessage, properties: {}, severity: SeverityLevel.Verbose });
+        super.debug(message);
     }
-    verbose?(message: any, optionalParams: {[key: string]: any} = {}) {
+    verbose(message: any) {
         throw new Error('Method not implemented.');
     }
-    fatal?(message: any, optionalParams: {[key: string]: any} = {}) {
+    fatal(message: any) {
         throw new Error('Method not implemented.');
     }
-    setLogLevels?(levels: LogLevel[]) {
+    setLogLevels(levels: LogLevel[]) {
         throw new Error('Method not implemented.');
     }
 }

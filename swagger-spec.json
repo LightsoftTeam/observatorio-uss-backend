@@ -902,6 +902,53 @@
         ]
       }
     },
+    "/api/training/{id}/executions/{executionId}/attendances": {
+      "post": {
+        "operationId": "TrainingController_addAttendanceToExecution",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "executionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddAttendanceToExecutionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The assistance has been successfully added."
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Training not found"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
     "/api/professors": {
       "post": {
         "operationId": "ProfessorsController_create",
@@ -1566,11 +1613,6 @@
             "description": "The description of the training",
             "example": "This is the training number 1"
           },
-          "month": {
-            "type": "number",
-            "description": "The month of the training",
-            "example": 7
-          },
           "executions": {
             "description": "The executions of the training",
             "example": [
@@ -1625,11 +1667,6 @@
               "semipresential"
             ]
           },
-          "endDate": {
-            "type": "string",
-            "description": "The end date of the training",
-            "example": "2022-07-01T00:00:00.000Z"
-          },
           "capacity": {
             "type": "number",
             "description": "The capacity of the training",
@@ -1640,7 +1677,6 @@
           "code",
           "name",
           "description",
-          "month",
           "executions",
           "place",
           "floor",
@@ -1648,7 +1684,6 @@
           "organizer",
           "status",
           "modality",
-          "endDate",
           "capacity"
         ]
       },
@@ -1670,11 +1705,6 @@
             "description": "The description of the training",
             "example": "This is the training number 1"
           },
-          "month": {
-            "type": "number",
-            "description": "The month of the training",
-            "example": 7
-          },
           "executions": {
             "description": "The executions of the training",
             "example": [
@@ -1728,11 +1758,6 @@
               "virtual",
               "semipresential"
             ]
-          },
-          "endDate": {
-            "type": "string",
-            "description": "The end date of the training",
-            "example": "2022-07-01T00:00:00.000Z"
           },
           "capacity": {
             "type": "number",
@@ -1801,6 +1826,32 @@
         },
         "required": [
           "attendanceStatus"
+        ]
+      },
+      "AddAttendanceToExecutionDto": {
+        "type": "object",
+        "properties": {
+          "participantId": {
+            "type": "string",
+            "description": "A valid participant id",
+            "example": "a3b4c5d6-1234-5678-90ab-cdef12345678"
+          },
+          "status": {
+            "type": "string",
+            "description": "The status of the participant in the execution.",
+            "example": "present",
+            "enum": [
+              "pending",
+              "present",
+              "late"
+            ],
+            "nullable": true,
+            "default": "present"
+          }
+        },
+        "required": [
+          "participantId",
+          "status"
         ]
       },
       "CreateProfessorDto": {

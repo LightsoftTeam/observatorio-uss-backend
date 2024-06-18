@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { CreateTrainingDto, ExecutionRequest } from './dto/create-training.dto';
 import { UpdateTrainingDto } from './dto/update-training.dto';
 import { InjectModel } from '@nestjs/azure-database';
-import { AttendanceStatus, Execution, Training, TrainingParticipant, TrainingRole } from './entities/training.entity';
+import { AttendanceStatus, Execution, ExecutionAttendance, Training, TrainingParticipant, TrainingRole } from './entities/training.entity';
 import { isUUID } from 'class-validator';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
@@ -13,6 +13,7 @@ import { ProfessorsService } from 'src/professors/professors.service';
 import { UpdateParticipantDto } from './dto/update-participant.dto';
 import { SchoolsService } from 'src/schools/schools.service';
 import { School } from 'src/schools/entities/school.entity';
+import { AddAttendanceToExecutionDto } from './dto/add-attendance-to-execution.dto';
 
 const DDA_ORGANIZER_ID = 'DDA';
 
@@ -28,10 +29,12 @@ export class TrainingService {
     private readonly logger: ApplicationLoggerService,
     private readonly professorService: ProfessorsService,
     private readonly schoolService: SchoolsService,
-  ) { }
+  ) { 
+    this.logger.setContext(TrainingService.name);
+  }
 
   async create(createTrainingDto: CreateTrainingDto) {
-    this.logger.log('Creating training', createTrainingDto);
+    this.logger.log('Creating training');
     const { executions, organizer, code } = createTrainingDto;
     this.validateExecutionsDateRange(executions);
     const existingTraining = await this.findByCode(code);
@@ -59,6 +62,7 @@ export class TrainingService {
       executions: executions.map((execution) => ({
         ...execution,
         id: uuidv4(),
+        attendance: []
       })),
       participants: [],
       createdAt: new Date(),
@@ -270,6 +274,41 @@ export class TrainingService {
     return {
       ...trainingWithoutCosmosProps,
       organizer: formattedOrganizer
+    }
+  }
+
+  async addAttendanceToExecution(trainingId: string, executionId: string, addAttendanceToExecutionDto: AddAttendanceToExecutionDto) {
+    this.logger.log(`Adding attendance to execution ${executionId} from training ${trainingId}`);
+    const training = await this.getTrainingById(trainingId);
+    if (!training) {
+      throw new NotFoundException('Training not found');
+    }
+    const execution = training.executions.find((execution) => execution.id === executionId);
+    if (!execution) {
+      throw new NotFoundException('Execution not found');
+    }
+    const { participantId, status } = addAttendanceToExecutionDto;
+    const participant = training.participants.find((participant) => participant.id === participantId);
+    if (!participant) {
+      throw new NotFoundException('Participant not found');
+    }
+    const assistance = execution.attendance.find((assistance) => assistance.participantId === participantId);
+    if (assistance) {
+      throw new BadRequestException('The participant is already added to the execution.');
+    }
+    try {
+      const attendance: ExecutionAttendance = {
+        id: uuidv4(),
+        participantId,
+        status: status ?? AttendanceStatus.PRESENT,
+        createdAt: new Date().toISOString(),
+      }
+      execution.attendance.push(attendance);
+      await this.trainingContainer.item(trainingId, trainingId).replace(training);
+      return attendance;
+    } catch (error) {
+      this.logger.error(`addAttendanceToExecution ${error.message}`);
+      throw new BadRequestException('Error adding attendance to execution');
     }
   }
 }

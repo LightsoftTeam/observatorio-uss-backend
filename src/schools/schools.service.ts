@@ -14,7 +14,9 @@ export class SchoolsService {
     @InjectModel(School)
     private readonly schoolsContainer: Container,
     private readonly logger: ApplicationLoggerService,
-  ) { }
+  ) {
+    this.logger.setContext(SchoolsService.name);
+  }
 
   async create(createSchoolDto: CreateSchoolDto) {
     this.logger.log(`Creating school: ${JSON.stringify(createSchoolDto)}`);

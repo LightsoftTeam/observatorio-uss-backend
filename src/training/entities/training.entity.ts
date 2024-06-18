@@ -1,9 +1,17 @@
 import { CosmosDateTime, CosmosPartitionKey } from "@nestjs/azure-database";
 
+export interface ExecutionAttendance {
+    id: string;
+    participantId: string;
+    status: AttendanceStatus;
+    createdAt: string;
+}
+
 export interface Execution {
     id: string;
     from: string;
     to: string;
+    attendance: ExecutionAttendance[];
 }
 
 export interface TrainingParticipant {
@@ -42,7 +50,6 @@ export class Training {
     code: string;
     name: string;
     description?: string;
-    month: number;
     executions: Execution[];
     place?: string;
     floor?: number;
@@ -50,7 +57,6 @@ export class Training {
     organizer: 'DDA' | string;
     status: TrainingStatus;
     modality: TrainingModality;
-    endDate: string;
     capacity: number;
     participants: TrainingParticipant[];
     @CosmosDateTime() createdAt: Date;
