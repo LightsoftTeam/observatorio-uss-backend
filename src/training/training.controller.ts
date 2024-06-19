@@ -6,11 +6,15 @@ import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AddParticipantDto } from './dto/add-participant.dto';
 import { UpdateParticipantDto } from './dto/update-participant.dto';
 import { AddAttendanceToExecutionDto } from './dto/add-attendance-to-execution.dto';
+import { ParticipantsService } from './services/participants.service';
 
 @ApiTags('Training')
 @Controller('training')
 export class TrainingController {
-  constructor(private readonly trainingService: TrainingService) {}
+  constructor(
+    private readonly trainingService: TrainingService,
+    private readonly participantsService: ParticipantsService,
+  ) {}
 
   @Post()
   @ApiResponse({
@@ -85,7 +89,7 @@ export class TrainingController {
     description: 'Bad Request',
   })
   addParticipant(@Param('id') id: string, @Body() addParticipantDto: AddParticipantDto) {
-    return this.trainingService.addParticipant(id, addParticipantDto);
+    return this.participantsService.addParticipant(id, addParticipantDto);
   }
 
   @HttpCode(200)
@@ -103,7 +107,7 @@ export class TrainingController {
     description: 'Bad Request',
   })
   updateParticipant(@Param('id') id: string, @Param('participantId') participantId: string, @Body() updateParticipantDto: UpdateParticipantDto) {
-    return this.trainingService.updateParticipant(id, participantId, updateParticipantDto);
+    return this.participantsService.updateParticipant(id, participantId, updateParticipantDto);
   }
 
   @HttpCode(204)
@@ -121,7 +125,12 @@ export class TrainingController {
     description: 'Bad Request',
   })
   removeParticipant(@Param('id') id: string, @Param('participantId') participantId: string) {
-    return this.trainingService.removeParticipant(id, participantId);
+    return this.participantsService.removeParticipant(id, participantId);
+  }
+
+  @Get('participants/:participantId/verify')
+  verifyParticipant(@Param('participantId') participantId: string) {
+    return this.participantsService.verifyParticipant(participantId);
   }
 
   @HttpCode(200)
@@ -139,6 +148,6 @@ export class TrainingController {
     description: 'Bad Request',
   })
   addAttendanceToExecution(@Param('id') id: string, @Param('executionId') executionId: string, @Body() addAttendanceToExecutionDto: AddAttendanceToExecutionDto) {
-    return this.trainingService.addAttendanceToExecution(id, executionId, addAttendanceToExecutionDto);
+    return this.participantsService.addAttendanceToExecution(id, executionId, addAttendanceToExecutionDto);
   }
 }

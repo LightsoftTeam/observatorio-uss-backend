@@ -16,11 +16,10 @@ export class ApplicationLoggerService extends ConsoleLogger {
     }
 
     log(message: any) {
-        console.log('Request', this.request);
         const formattedMessage = typeof message === 'string' ? message : JSON.stringify(message);
         this.appInsights.trackTrace({
             message: formattedMessage, properties: {
-                ...this.request.context.executionContext,
+                ...this.request.context?.executionContext,
             }, severity: SeverityLevel.Information
         });
         super.log(message);

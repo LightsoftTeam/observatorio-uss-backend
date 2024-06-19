@@ -8,10 +8,11 @@ import { ProfessorsService } from 'src/professors/professors.service';
 import { ProfessorsModule } from 'src/professors/professors.module';
 import { SchoolsService } from 'src/schools/schools.service';
 import { SchoolsModule } from 'src/schools/schools.module';
+import { ParticipantsService } from './services/participants.service';
 
 @Module({
   controllers: [TrainingController],
-  providers: [TrainingService, ProfessorsService, SchoolsService],
+  providers: [TrainingService, ProfessorsService, SchoolsService, ParticipantsService],
   imports: [
     AzureCosmosDbModule.forFeature([
       {dto: Training},

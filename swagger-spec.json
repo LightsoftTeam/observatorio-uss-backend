@@ -902,6 +902,29 @@
         ]
       }
     },
+    "/api/training/participants/{participantId}/verify": {
+      "get": {
+        "operationId": "TrainingController_verifyParticipant",
+        "parameters": [
+          {
+            "name": "participantId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
     "/api/training/{id}/executions/{executionId}/attendances": {
       "post": {
         "operationId": "TrainingController_addAttendanceToExecution",
