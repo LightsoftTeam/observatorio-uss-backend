@@ -917,7 +917,24 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "The qr code has been successfully verified",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyParticipantSuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyParticipantErrorResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1849,6 +1866,232 @@
         },
         "required": [
           "attendanceStatus"
+        ]
+      },
+      "TrainingDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "A valid training id",
+            "example": "a3b4c5d6-1234-5678-90ab-cdef12345678"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the training",
+            "example": "NestJS for beginners"
+          },
+          "code": {
+            "type": "string",
+            "description": "The code of the training",
+            "example": "004-2024-II"
+          },
+          "modality": {
+            "type": "string",
+            "description": "The modality of the training",
+            "example": "presential",
+            "enum": [
+              "presential",
+              "virtual",
+              "semipresential"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "code",
+          "modality"
+        ]
+      },
+      "ExecutionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "A valid execution id",
+            "example": "a3b4c5d6-1234-5678-90ab-cdef12345678"
+          },
+          "from": {
+            "type": "string",
+            "description": "The date and time when the training will start",
+            "example": "2024-02-01T08:00:00Z"
+          },
+          "to": {
+            "type": "string",
+            "description": "The date and time when the training will end",
+            "example": "2024-02-01T17:00:00Z"
+          },
+          "participantAttend": {
+            "type": "boolean",
+            "description": "If the participant attended the training",
+            "example": true
+          }
+        },
+        "required": [
+          "id",
+          "from",
+          "to",
+          "participantAttend"
+        ]
+      },
+      "ProfessorDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The id of the professor",
+            "example": "a3b4c5d6-1234-5678-90ab-cdef12345678"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the professor",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "description": "The email of the professor",
+            "example": "jhon@uss.edu.pe"
+          },
+          "documentType": {
+            "type": "string",
+            "description": "The document type of the professor",
+            "example": "dni",
+            "enum": [
+              "dni",
+              "pasaporte",
+              "carnet_extranjeria"
+            ]
+          },
+          "documentNumber": {
+            "type": "string",
+            "description": "The document number of the professor",
+            "example": "12345678"
+          },
+          "schoolId": {
+            "type": "string",
+            "description": "The school id of the professor",
+            "example": "a3b4c5d6-1234-5678-90ab-cdef12345678"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "The creation date of the professor",
+            "example": "2024-02-01T08:00:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "documentType",
+          "documentNumber",
+          "schoolId",
+          "createdAt"
+        ]
+      },
+      "ParticipantDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "A valid participant id",
+            "example": "a3b4c5d6-1234-5678-90ab-cdef12345678"
+          },
+          "foreignId": {
+            "type": "string",
+            "description": "Id of the professor",
+            "example": "a3b4c5d6-1234-5678-90ab-cdef12345678"
+          },
+          "role": {
+            "type": "string",
+            "description": "The role of the participant",
+            "example": "assistant",
+            "enum": [
+              "assistant",
+              "organizer",
+              "speaker"
+            ]
+          },
+          "attendanceStatus": {
+            "type": "string",
+            "description": "The status of the participant",
+            "example": "present",
+            "enum": [
+              "pending",
+              "present",
+              "late"
+            ]
+          },
+          "professor": {
+            "description": "The professor of the participant",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProfessorDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "foreignId",
+          "role",
+          "attendanceStatus",
+          "professor"
+        ]
+      },
+      "VerifyParticipantSuccessResponseDto": {
+        "type": "object",
+        "properties": {
+          "training": {
+            "description": "The training to which the participant is associated.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TrainingDto"
+              }
+            ]
+          },
+          "executions": {
+            "description": "The executions of the training.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExecutionDto"
+            }
+          },
+          "participant": {
+            "description": "The participant of the training.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ParticipantDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "training",
+          "executions",
+          "participant"
+        ]
+      },
+      "VerifyParticipantErrorResponseDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "The error code.",
+            "example": "QR_CODE_NOT_FOUND",
+            "enum": [
+              "QR_CODE_NOT_FOUND"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "description": "The error message.",
+            "example": "The QR code is not valid."
+          }
+        },
+        "required": [
+          "code",
+          "message"
         ]
       },
       "AddAttendanceToExecutionDto": {

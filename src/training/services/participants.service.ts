@@ -11,7 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { UpdateParticipantDto } from '../dto/update-participant.dto';
 import { AddAttendanceToExecutionDto } from '../dto/add-attendance-to-execution.dto';
 
-enum ERROR_CODES {
+export enum ERROR_CODES {
     QR_CODE_NOT_FOUND = 'QR_CODE_NOT_FOUND',
 }
 

@@ -7,6 +7,7 @@ import { AddParticipantDto } from './dto/add-participant.dto';
 import { UpdateParticipantDto } from './dto/update-participant.dto';
 import { AddAttendanceToExecutionDto } from './dto/add-attendance-to-execution.dto';
 import { ParticipantsService } from './services/participants.service';
+import { VerifyParticipantErrorResponseDto, VerifyParticipantSuccessResponseDto } from './dto/verify-participant-response.dto';
 
 @ApiTags('Training')
 @Controller('training')
@@ -129,6 +130,16 @@ export class TrainingController {
   }
 
   @Get('participants/:participantId/verify')
+  @ApiResponse({
+    status: 200,
+    description: 'The qr code has been successfully verified',
+    type: VerifyParticipantSuccessResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request',
+    type: VerifyParticipantErrorResponseDto,
+  })
   verifyParticipant(@Param('participantId') participantId: string) {
     return this.participantsService.verifyParticipant(participantId);
   }
