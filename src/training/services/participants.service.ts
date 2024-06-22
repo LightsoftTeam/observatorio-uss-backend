@@ -31,9 +31,9 @@ export class ParticipantsService {
         private readonly logger: ApplicationLoggerService,
         private readonly professorService: ProfessorsService,
         private readonly trainingService: TrainingService,
-      ) { 
+    ) {
         this.logger.setContext(ParticipantsService.name);
-      }
+    }
 
     async addParticipant(trainingId: string, addParticipantDto: AddParticipantDto) {
         const training = await this.trainingService.getTrainingById(trainingId);

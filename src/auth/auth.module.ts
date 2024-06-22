@@ -7,11 +7,12 @@ import { ConfigService, ConfigModule } from '@nestjs/config';
 import { UsersService } from 'src/users/users.service';
 import { CommonModule } from 'src/common/common.module';
 import { PostsModule } from 'src/posts/posts.module';
+import { AuthGuard } from './guards/auth.guard';
 
 @Global()
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, JwtService, ConfigService, UsersService],
+  providers: [AuthService, JwtService, ConfigService, UsersService, AuthGuard],
   imports: [
     UsersModule,
     ConfigModule,
@@ -32,7 +33,8 @@ import { PostsModule } from 'src/posts/posts.module';
   exports: [
     JwtModule,
     JwtService,
-    UsersService
+    UsersService,
+    AuthGuard
   ]
 })
 export class AuthModule {}

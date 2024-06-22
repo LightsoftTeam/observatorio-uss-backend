@@ -13,6 +13,7 @@ import { TagsModule } from './tags/tags.module';
 import { TrainingModule } from './training/training.module';
 import { ProfessorsModule } from './professors/professors.module';
 import { SchoolsModule } from './schools/schools.module';
+import { MailService } from './common/services/mail.service';
 
 @Module({
   imports: [
@@ -41,6 +42,6 @@ import { SchoolsModule } from './schools/schools.module';
     SchoolsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, MailService],
 })
 export class AppModule { }

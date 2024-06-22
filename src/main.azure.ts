@@ -16,7 +16,7 @@ export async function createApp(): Promise<INestApplication> {
     .addTag('Api')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('swagger', app, document);
   
   await app.init();
   return app;

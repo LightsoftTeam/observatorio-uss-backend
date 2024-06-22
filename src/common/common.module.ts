@@ -3,6 +3,7 @@ import * as appInsights from 'applicationinsights';
 import { AlgoliaService } from './services/algolia.service';
 import { CommonController } from './common.controller';
 import { ApplicationLoggerService } from './services/application-logger.service';
+import { MailService } from './services/mail.service';
 
 @Module({
   providers: [
@@ -15,9 +16,10 @@ import { ApplicationLoggerService } from './services/application-logger.service'
           return appInsights.defaultClient;
       }
   },
-  ApplicationLoggerService
+  ApplicationLoggerService,
+  MailService,
   ],
   controllers: [CommonController],
-  exports: [AlgoliaService, ApplicationLoggerService]
+  exports: [AlgoliaService, ApplicationLoggerService, MailService]
 })
 export class CommonModule {}

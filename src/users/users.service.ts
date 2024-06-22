@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, NotFoundException, Scope, forwardRef } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, Scope, forwardRef } from '@nestjs/common';
 import type { Container } from '@azure/cosmos';
 import { Role, User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -9,9 +9,6 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
 import { REQUEST } from '@nestjs/core';
-import { Post } from 'src/posts/entities/post.entity';
-import { PostsService } from 'src/posts/posts.service';
-import { UpdatePostDto } from 'src/posts/dto/update-post.dto';
 
 const PASSWORD_SALT_ROUNDS = 5;
 const USER_LIST_CACHE_KEY = 'users';
@@ -21,8 +18,6 @@ const LONG_CACHE_TIME = 1000 * 60 * 60 * 5;//5 hours
 export class UsersService {
 
   constructor(
-    @Inject(forwardRef(() => PostsService))
-    private readonly postsService: PostsService,
     @InjectModel(User)
     private readonly usersContainer: Container,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -130,7 +125,7 @@ export class UsersService {
   async update(id: string, updateUserDto: UpdateUserDto) {
     const isAdmin = this.isAdmin();
     const loggedUser = this.getLoggedUser();
-    if (!isAdmin && loggedUser.id !== id) {
+    if (!isAdmin && loggedUser?.id !== id) {
       throw new NotFoundException('Unauthorized');
     }
     const user = await this.findOne(id);//throw not found exception if not found
@@ -170,17 +165,14 @@ export class UsersService {
     return newUser;
   }
 
-  getLoggedUser() {
+  getLoggedUser(): User | null {
     const loggedUser = this.request['loggedUser'];
-    if (!loggedUser) {
-      throw new NotFoundException('Not logged in.');
-    }
-    return loggedUser;
+    return loggedUser ?? null;
   }
 
   isAdmin() {
     const loggedUser = this.getLoggedUser();
-    return loggedUser.role === Role.ADMIN;
+    return loggedUser && loggedUser.role === Role.ADMIN;
   }
 
   revokeWhenIsNotAdmin() {

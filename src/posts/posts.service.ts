@@ -425,6 +425,9 @@ export class PostsService {
 
   private async throwErrorIfUserIsNotOwner(post: Post) {
     const user = this.usersService.getLoggedUser();
+    if(!user){
+      throw new BadRequestException('You cannot perform this action.');
+    }
     const role = user.role;
     if(post.userId !== user.id && role !== Role.ADMIN) {
       throw new BadRequestException('You cannot perform this action.');
