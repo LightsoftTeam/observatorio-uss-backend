@@ -4,11 +4,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { CreateTrainingDto, ExecutionRequest } from './dto/create-training.dto';
 import { UpdateTrainingDto } from './dto/update-training.dto';
 import { InjectModel } from '@nestjs/azure-database';
-import { Execution, Training} from './entities/training.entity';
+import { Execution, Training } from './entities/training.entity';
 import { isUUID } from 'class-validator';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
-import { ProfessorsService } from 'src/professors/professors.service';
 import { SchoolsService } from 'src/schools/schools.service';
 import { School } from 'src/schools/entities/school.entity';
 
@@ -24,48 +23,52 @@ export class TrainingService {
     @InjectModel(Training)
     private readonly trainingContainer: Container,
     private readonly logger: ApplicationLoggerService,
-    private readonly professorService: ProfessorsService,
     private readonly schoolService: SchoolsService,
-  ) { 
+  ) {
     this.logger.setContext(TrainingService.name);
   }
 
   async create(createTrainingDto: CreateTrainingDto) {
-    this.logger.log('Creating training');
-    const { executions, organizer, code } = createTrainingDto;
-    this.validateExecutionsDateRange(executions);
-    const existingTraining = await this.findByCode(code);
-    if (existingTraining) {
-      this.logger.log(`Training code already exists: ${code}`);
-      throw new BadRequestException({
-        statusCode: HttpStatus.BAD_REQUEST,
-        code: ERROR_CODES.TRAINING_CODE_ALREADY_EXISTS,
-        message: 'The training code already exists.',
-      });
-    }
-    if (organizer !== DDA_ORGANIZER_ID) {
-      if (!isUUID(organizer)) {
-        this.logger.log('The organizer must be a valid schoolId or DDA.');
-        throw new BadRequestException('The organizer must be a valid schoolId or DDA.');
+    try {
+      this.logger.log('Creating training');
+      const { executions, organizer, code } = createTrainingDto;
+      this.validateExecutionsDateRange(executions);
+      const existingTraining = await this.findByCode(code);
+      if (existingTraining) {
+        this.logger.log(`Training code already exists: ${code}`);
+        throw new BadRequestException({
+          statusCode: HttpStatus.BAD_REQUEST,
+          code: ERROR_CODES.TRAINING_CODE_ALREADY_EXISTS,
+          message: 'The training code already exists.',
+        });
       }
-      const school = await this.schoolService.getById(organizer);
-      if (!school) {
-        this.logger.log(`The school with id ${organizer} does not exist.`);
-        throw new NotFoundException('The school does not exist.');
+      if (organizer !== DDA_ORGANIZER_ID) {
+        if (!isUUID(organizer)) {
+          this.logger.log('The organizer must be a valid schoolId or DDA.');
+          throw new BadRequestException('The organizer must be a valid schoolId or DDA.');
+        }
+        const school = await this.schoolService.getById(organizer);
+        if (!school) {
+          this.logger.log(`The school with id ${organizer} does not exist.`);
+          throw new NotFoundException('The school does not exist.');
+        }
       }
+      const training: Training = {
+        ...createTrainingDto,
+        executions: executions.map((execution) => ({
+          ...execution,
+          id: uuidv4(),
+          attendance: []
+        })),
+        participants: [],
+        createdAt: new Date(),
+      };
+      const { resource } = await this.trainingContainer.items.create(training);
+      return this.toJson(resource);
+    } catch (error) {
+      this.logger.log(`create error ${error.message}`);
+      throw error;
     }
-    const training: Training = {
-      ...createTrainingDto,
-      executions: executions.map((execution) => ({
-        ...execution,
-        id: uuidv4(),
-        attendance: []
-      })),
-      participants: [],
-      createdAt: new Date(),
-    };
-    const { resource } = await this.trainingContainer.items.create(training);
-    return this.toJson(resource);
   }
 
   async findByCode(code: string): Promise<Training | null> {

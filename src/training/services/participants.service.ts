@@ -36,80 +36,99 @@ export class ParticipantsService {
     }
 
     async addParticipant(trainingId: string, addParticipantDto: AddParticipantDto) {
-        const training = await this.trainingService.getTrainingById(trainingId);
-        if (!training) {
-            throw new NotFoundException('Training not found');
+        try {
+            this.logger.log(`Adding professor ${addParticipantDto.professorId} to training ${trainingId}`);
+            const training = await this.trainingService.getTrainingById(trainingId);
+            if (!training) {
+                this.logger.error(`Training ${trainingId} not found`);
+                throw new NotFoundException('Training not found');
+            }
+            const { professorId, role } = addParticipantDto;
+            if (!isUUID(professorId)) {
+                throw new BadRequestException('The professorId must be a valid UUID.');
+            }
+            //TODO: validate that professorId exists in the database
+            const participant = training.participants.find((participant) => participant.foreignId === professorId);
+            if (participant) {
+                throw new BadRequestException('The participant is already added to the training.');
+            }
+            training.participants.push({
+                id: uuidv4(),
+                foreignId: professorId,
+                role: role ?? TrainingRole.ASSISTANT,
+                attendanceStatus: AttendanceStatus.PENDING,
+            });
+            const { resource: trainingUpdated } = await this.trainingContainer.item(trainingId, trainingId).replace(training);
+            const newParticipant = trainingUpdated.participants.find((participant) => participant.foreignId === professorId);
+            return this.fillParticipant(newParticipant);
+        } catch (error) {
+            this.logger.error(`addParticipant ${error.message}`);
+            throw error;
         }
-        const { professorId, role } = addParticipantDto;
-        if (!isUUID(professorId)) {
-            throw new BadRequestException('The professorId must be a valid UUID.');
-        }
-        //TODO: validate that professorId exists in the database
-        const participant = training.participants.find((participant) => participant.foreignId === professorId);
-        if (participant) {
-            throw new BadRequestException('The participant is already added to the training.');
-        }
-        training.participants.push({
-            id: uuidv4(),
-            foreignId: professorId,
-            role: role ?? TrainingRole.ASSISTANT,
-            attendanceStatus: AttendanceStatus.PENDING,
-        });
-        const { resource: trainingUpdated } = await this.trainingContainer.item(trainingId, trainingId).replace(training);
-        const newParticipant = trainingUpdated.participants.find((participant) => participant.foreignId === professorId);
-        return this.fillParticipant(newParticipant);
     }
 
     async updateParticipant(trainingId: string, participantId: string, updateParticipantDto: UpdateParticipantDto) {
-        const querySpec = {
-            query: `SELECT value c from c join p in c.participants where p.id = @participantId`,
-            parameters: [
-                { name: '@participantId', value: participantId },
-            ],
+        try {
+            this.logger.log(`Updating participant ${participantId} from training ${trainingId}, dto: ${JSON.stringify(updateParticipantDto)}`);
+            const querySpec = {
+                query: `SELECT value c from c join p in c.participants where p.id = @participantId`,
+                parameters: [
+                    { name: '@participantId', value: participantId },
+                ],
+            }
+            const { resources } = await this.trainingContainer.items.query<Training>(querySpec).fetchAll();
+            if (resources.length === 0) {
+                throw new NotFoundException('Participant not found');
+            }
+            const training = resources[0];
+            const participant = training.participants.find((participant) => participant.id === participantId);
+            if (!participant) {
+                throw new NotFoundException('Participant not found');
+            }
+            const { role, attendanceStatus } = updateParticipantDto;
+            if (role) {
+                participant.role = role;
+            }
+            if (attendanceStatus) {
+                participant.attendanceStatus = attendanceStatus;
+            }
+            const { resource: trainingUpdated } = await this.trainingContainer.item(training.id, training.id).replace(training);
+            const participantUpdated = trainingUpdated.participants.find((participant) => participant.id === participantId);
+            return this.fillParticipant(participantUpdated);
+        } catch (error) {
+            this.logger.error(`updateParticipant ${error.message}`);
+            throw error;
         }
-        const { resources } = await this.trainingContainer.items.query<Training>(querySpec).fetchAll();
-        if (resources.length === 0) {
-            throw new NotFoundException('Participant not found');
-        }
-        const training = resources[0];
-        const participant = training.participants.find((participant) => participant.id === participantId);
-        if (!participant) {
-            throw new NotFoundException('Participant not found');
-        }
-        const { role, attendanceStatus } = updateParticipantDto;
-        if (role) {
-            participant.role = role;
-        }
-        if (attendanceStatus) {
-            participant.attendanceStatus = attendanceStatus;
-        }
-        const { resource: trainingUpdated } = await this.trainingContainer.item(training.id, training.id).replace(training);
-        const participantUpdated = trainingUpdated.participants.find((participant) => participant.id === participantId);
-        return this.fillParticipant(participantUpdated);
     }
 
     async removeParticipant(trainingId: string, participantId: string) {
-        this.logger.log(`Deleting participant ${participantId} from training ${trainingId}`);
-        const training = await this.trainingService.getTrainingById(trainingId);
-        if (!training) {
-            throw new NotFoundException('Training not found');
-        }
-        const participant = training.participants.find((participant) => participant.id === participantId);
-        if (!participant) {
-            throw new NotFoundException('Participant not found');
-        }
-        const filteredParticipants = training.participants.filter((participant) => participant.id !== participantId);
-        training.participants = filteredParticipants;
         try {
-            await this.trainingContainer.item(trainingId, trainingId).replace(training);
-            return null;
+            this.logger.log(`Deleting participant ${participantId} from training ${trainingId}`);
+            const training = await this.trainingService.getTrainingById(trainingId);
+            if (!training) {
+                throw new NotFoundException('Training not found');
+            }
+            const participant = training.participants.find((participant) => participant.id === participantId);
+            if (!participant) {
+                throw new NotFoundException('Participant not found');
+            }
+            const filteredParticipants = training.participants.filter((participant) => participant.id !== participantId);
+            training.participants = filteredParticipants;
+            try {
+                await this.trainingContainer.item(trainingId, trainingId).replace(training);
+                return null;
+            } catch (error) {
+                this.logger.error(`deleteParticipant ${error.message}`);
+                throw new BadRequestException('Participant not found');
+            }
         } catch (error) {
-            this.logger.error(`deleteParticipant ${error.message}`);
-            throw new BadRequestException('Participant not found');
+            this.logger.error(`removeParticipant ${error.message}`);
+            throw error;
         }
     }
 
     private async fillParticipant(participant: TrainingParticipant) {
+        this.logger.log(`Filling participant ${participant.id}`);
         const { foreignId } = participant;
         const professor = await this.professorService.findOne(foreignId);
         return {
@@ -119,60 +138,69 @@ export class ParticipantsService {
     }
 
     async verifyParticipant(participantId: string) {
-        const querySpec = {
-            query: `SELECT value c from c join p in c.participants where p.id = @participantId`,
-            parameters: [
-                { name: '@participantId', value: participantId },
-            ],
-        }
-        const { resources } = await this.trainingContainer.items.query<Training>(querySpec).fetchAll();
-        if (resources.length === 0) {
-            throw new BadRequestException(ERRORS[ERROR_CODES.QR_CODE_NOT_FOUND]);
-        }
-        const training = resources[0];
-        const participant = training.participants.find((participant) => participant.id === participantId);
-        if (!participant) {
-            throw new BadRequestException(ERRORS[ERROR_CODES.QR_CODE_NOT_FOUND]);
-        }
-        const { id, name, code, modality, executions } = training;
-        const filledParticipant = await this.fillParticipant(participant);
-        return {
-            training: {
-                id,
-                name,
-                code,
-                modality,
-            },
-            executions: executions.map((execution) => ({
-                id: execution.id,
-                from: execution.from,
-                to: execution.to,
-                participantAttend: !!execution.attendance.find((attendance) => attendance.participantId === participantId),
-            })),
-            participant: filledParticipant,
+        try {
+            this.logger.log(`Verifying participant ${participantId}`);
+            const querySpec = {
+                query: `SELECT value c from c join p in c.participants where p.id = @participantId`,
+                parameters: [
+                    { name: '@participantId', value: participantId },
+                ],
+            }
+            const { resources } = await this.trainingContainer.items.query<Training>(querySpec).fetchAll();
+            if (resources.length === 0) {
+                this.logger.log(`Participant ${participantId} not found`);
+                throw new BadRequestException(ERRORS[ERROR_CODES.QR_CODE_NOT_FOUND]);
+            }
+            this.logger.log(`Participant ${participantId} found`);
+            const training = resources[0];
+            this.logger.log(`Training ${training.id} found`);
+            const participant = training.participants.find((participant) => participant.id === participantId);
+            if (!participant) {
+                throw new BadRequestException(ERRORS[ERROR_CODES.QR_CODE_NOT_FOUND]);
+            }
+            const { id, name, code, modality, executions } = training;
+            const filledParticipant = await this.fillParticipant(participant);
+            return {
+                training: {
+                    id,
+                    name,
+                    code,
+                    modality,
+                },
+                executions: executions.map((execution) => ({
+                    id: execution.id,
+                    from: execution.from,
+                    to: execution.to,
+                    participantAttend: !!execution.attendance.find((attendance) => attendance.participantId === participantId),
+                })),
+                participant: filledParticipant,
+            }
+        } catch (error) {
+            this.logger.error(`verifyParticipant ${error.message}`);
+            throw error;
         }
     }
 
     async addAttendanceToExecution(trainingId: string, executionId: string, addAttendanceToExecutionDto: AddAttendanceToExecutionDto) {
-        this.logger.log(`Adding attendance to execution ${executionId} from training ${trainingId}`);
-        const training = await this.trainingService.getTrainingById(trainingId);
-        if (!training) {
-            throw new NotFoundException('Training not found');
-        }
-        const execution = training.executions.find((execution) => execution.id === executionId);
-        if (!execution) {
-            throw new NotFoundException('Execution not found');
-        }
-        const { participantId, status } = addAttendanceToExecutionDto;
-        const participant = training.participants.find((participant) => participant.id === participantId);
-        if (!participant) {
-            throw new NotFoundException('Participant not found');
-        }
-        const assistance = execution.attendance.find((assistance) => assistance.participantId === participantId);
-        if (assistance) {
-            throw new BadRequestException('The participant is already added to the execution.');
-        }
         try {
+            this.logger.log(`Adding attendance to execution ${executionId} from training ${trainingId}`);
+            const training = await this.trainingService.getTrainingById(trainingId);
+            if (!training) {
+                throw new NotFoundException('Training not found');
+            }
+            const execution = training.executions.find((execution) => execution.id === executionId);
+            if (!execution) {
+                throw new NotFoundException('Execution not found');
+            }
+            const { participantId, status } = addAttendanceToExecutionDto;
+            const participant = training.participants.find((participant) => participant.id === participantId);
+            if (!participant) {
+                throw new NotFoundException('Participant not found');
+            }
+            const assistance = execution.attendance.find((assistance) => assistance.participantId === participantId);
+            if (assistance) {
+                throw new BadRequestException('The participant is already added to the execution.');
+            }
             const attendance: ExecutionAttendance = {
                 id: uuidv4(),
                 participantId,
@@ -184,7 +212,7 @@ export class ParticipantsService {
             return attendance;
         } catch (error) {
             this.logger.error(`addAttendanceToExecution ${error.message}`);
-            throw new BadRequestException('Error adding attendance to execution');
+            throw error;
         }
     }
 }
