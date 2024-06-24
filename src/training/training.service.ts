@@ -1,4 +1,4 @@
-import { BadRequestException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import type { Container } from '@azure/cosmos';
 import { v4 as uuidv4 } from 'uuid';
 import { CreateTrainingDto, ExecutionRequest } from './dto/create-training.dto';
@@ -12,12 +12,23 @@ import { SchoolsService } from 'src/schools/schools.service';
 import { School } from 'src/schools/entities/school.entity';
 import { ProfessorsService } from 'src/professors/professors.service';
 import { DocumentType } from 'src/professors/entities/professor.entity';
-import { query } from 'express';
 
 const DDA_ORGANIZER_ID = 'DDA';
 
-enum ERROR_CODES {
+export enum ERROR_CODES {
   TRAINING_CODE_ALREADY_EXISTS = 'TRAINING_CODE_ALREADY_EXISTS',
+  DATE_RANGE_INVALID = 'DATE_RANGE_INVALID',
+}
+
+export const ERRORS = {
+  [ERROR_CODES.TRAINING_CODE_ALREADY_EXISTS]: {
+    code: ERROR_CODES.TRAINING_CODE_ALREADY_EXISTS,
+    message: 'The training code already exists.',
+  },
+  [ERROR_CODES.DATE_RANGE_INVALID]: {
+    code: ERROR_CODES.DATE_RANGE_INVALID,
+    message: 'The date range is invalid.',
+  },
 }
 
 @Injectable()
@@ -40,11 +51,7 @@ export class TrainingService {
       const existingTraining = await this.findByCode(code);
       if (existingTraining) {
         this.logger.log(`Training code already exists: ${code}`);
-        throw new BadRequestException({
-          statusCode: HttpStatus.BAD_REQUEST,
-          code: ERROR_CODES.TRAINING_CODE_ALREADY_EXISTS,
-          message: 'The training code already exists.',
-        });
+        throw new BadRequestException(ERRORS[ERROR_CODES.TRAINING_CODE_ALREADY_EXISTS]);
       }
       if (organizer !== DDA_ORGANIZER_ID) {
         if (!isUUID(organizer)) {
@@ -191,7 +198,7 @@ export class TrainingService {
       return null;
     } catch (error) {
       this.logger.log(`remove ${error.message}`);
-      throw new BadRequestException("Training not found");
+      throw new NotFoundException("Training not found");
     }
   }
 
@@ -214,7 +221,7 @@ export class TrainingService {
       const to = new Date(execution.to);
       if (from > to) {
         this.logger.error(`Execution ${i} has an invalid date range`);
-        throw new BadRequestException('The execution date range is invalid.');
+        throw new BadRequestException(ERRORS[ERROR_CODES.DATE_RANGE_INVALID]);
       }
     }
   }

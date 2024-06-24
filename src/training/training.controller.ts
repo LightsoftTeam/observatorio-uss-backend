@@ -12,6 +12,7 @@ import { Response } from 'express';
 import { Readable } from 'stream';
 import { CompleteTrainingBadRequestDto } from './dto/complete-training-response.dto';
 import { DocumentType } from 'src/professors/entities/professor.entity';
+import { CreateTrainingBadRequestDto } from './dto/create-training-response.dto';
 
 @ApiTags('Training')
 @Controller('training')
@@ -28,7 +29,8 @@ export class TrainingController {
   })
   @ApiResponse({
     status: 400,
-    description: 'Bad Request.'
+    description: 'Bad Request.',
+    type: CreateTrainingBadRequestDto,
   })
   create(@Body() createTrainingDto: CreateTrainingDto) {
     return this.trainingService.create(createTrainingDto);
@@ -73,6 +75,7 @@ export class TrainingController {
   @ApiResponse({
     status: 404,
     description: 'Training not found',
+    type: CreateTrainingBadRequestDto,
   })
   update(@Param('id') id: string, @Body() updateTrainingDto: UpdateTrainingDto) {
     return this.trainingService.update(id, updateTrainingDto);

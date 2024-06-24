@@ -677,7 +677,14 @@
             "description": "The training has been successfully created."
           },
           "400": {
-            "description": "Bad Request."
+            "description": "Bad Request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateTrainingBadRequestDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -780,7 +787,14 @@
             "description": "The training has been successfully updated."
           },
           "404": {
-            "description": "Training not found"
+            "description": "Training not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateTrainingBadRequestDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1853,6 +1867,29 @@
           "capacity"
         ]
       },
+      "CreateTrainingBadRequestDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "The error code.",
+            "example": "TRAINING_CODE_ALREADY_EXISTS",
+            "enum": [
+              "TRAINING_CODE_ALREADY_EXISTS",
+              "DATE_RANGE_INVALID"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "description": "The error message.",
+            "example": "The training code already exists."
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
       "UpdateTrainingDto": {
         "type": "object",
         "properties": {
@@ -2263,10 +2300,7 @@
           "message": {
             "type": "string",
             "description": "The error message.",
-            "example": {
-              "code": "TRAINING_NOT_HAVE_EXECUTIONS",
-              "message": "The training does not have any executions."
-            }
+            "example": "The training does not have any executions."
           }
         },
         "required": [

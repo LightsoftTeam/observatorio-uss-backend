@@ -68,7 +68,7 @@ export class ParticipantsService {
             //TODO: validate that professorId exists in the database
             const participant = training.participants.find((participant) => participant.foreignId === professorId);
             if (participant) {
-                throw new BadRequestException('The participant is already added to the training.');
+                return this.fillParticipant(participant);
             }
             training.participants.push({
                 id: uuidv4(),
