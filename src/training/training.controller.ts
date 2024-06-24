@@ -11,6 +11,7 @@ import { VerifyParticipantErrorResponseDto, VerifyParticipantSuccessResponseDto 
 import { Response } from 'express';
 import { Readable } from 'stream';
 import { CompleteTrainingBadRequestDto } from './dto/complete-training-response.dto';
+import { DocumentType } from 'src/professors/entities/professor.entity';
 
 @ApiTags('Training')
 @Controller('training')
@@ -34,9 +35,22 @@ export class TrainingController {
   }
 
   @Get()
+  @ApiResponse({
+    status: 200,
+    description: 'All trainings were found',
+  })
   findAll() {
     return this.trainingService.findAll();
   }
+
+  @Get('/by-document/:documentType/:documentNumber')
+  @ApiResponse({
+    status: 200,
+    description: 'All trainings of a professor were found',
+  })
+  findAllByDocument(@Param('documentType') documentType: DocumentType, @Param('documentNumber') documentNumber: string) {
+    return this.trainingService.findByDocument(documentType, documentNumber);
+  };
 
   @Get(':id')
   @ApiResponse({

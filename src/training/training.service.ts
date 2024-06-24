@@ -10,6 +10,9 @@ import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
 import { SchoolsService } from 'src/schools/schools.service';
 import { School } from 'src/schools/entities/school.entity';
+import { ProfessorsService } from 'src/professors/professors.service';
+import { DocumentType } from 'src/professors/entities/professor.entity';
+import { query } from 'express';
 
 const DDA_ORGANIZER_ID = 'DDA';
 
@@ -24,6 +27,7 @@ export class TrainingService {
     private readonly trainingContainer: Container,
     private readonly logger: ApplicationLoggerService,
     private readonly schoolService: SchoolsService,
+    private readonly professorsService: ProfessorsService,
   ) {
     this.logger.setContext(TrainingService.name);
   }
@@ -85,6 +89,39 @@ export class TrainingService {
     } catch (error) {
       this.logger.log(`findByCode ${error.message}`);
       throw error;
+    }
+  }
+
+  async findByDocument(documentType: DocumentType, documentNumber: string){
+    const professor = await this.professorsService.getByDocument({documentType, documentNumber});
+    if(!professor){
+      throw new NotFoundException(`Professor with document ${documentType} ${documentNumber} not found`);
+    }
+    const querySpec = {
+      query: 'SELECT value c FROM c join p in c.participants where p.foreignId = @professorId',
+      parameters: [
+        {
+          name: '@professorId',
+          value: professor.id
+        }
+      ]
+    }
+    const { resources } = await this.trainingContainer.items.query(querySpec).fetchAll();
+    const mappedTrainingsPromise = resources
+      .map(async training => {
+        const formattedTraining = await this.toJson(training);
+        const participant = formattedTraining.participants.find(participant => participant.foreignId === professor.id);
+        delete formattedTraining.participants;
+        delete formattedTraining.executions;
+        return {
+          ...formattedTraining,
+          participant
+        };
+      });
+    const mappedTrainings = await Promise.all(mappedTrainingsPromise);
+    return {
+      professor: FormatCosmosItem.cleanDocument(professor),
+      trainings: mappedTrainings
     }
   }
 

@@ -3,7 +3,7 @@ import { ProfessorsService } from './professors.service';
 import { CreateProfessorDto } from './dto/create-professor.dto';
 import { UpdateProfessorDto } from './dto/update-professor.dto';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Professor } from './entities/professor.entity';
+import { DocumentType, Professor } from './entities/professor.entity';
 import { GuestGuard } from 'src/auth/guards/guest.guard';
 import { InvalidVerificationCodeErrorResponseDto } from './dto/invalid-verification-code.dto';
 
@@ -96,7 +96,7 @@ export class ProfessorsController {
     status: 404,
     description: 'Professor not found',
   })
-  findByDocument(@Param('documentType') documentType: string, @Param('documentNumber') documentNumber: string) {
+  findByDocument(@Param('documentType') documentType: DocumentType, @Param('documentNumber') documentNumber: string) {
     return this.professorsService.findByDocument({documentType, documentNumber});
   }
 

@@ -689,7 +689,38 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "All trainings were found"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
+    "/api/training/by-document/{documentType}/{documentNumber}": {
+      "get": {
+        "operationId": "TrainingController_findAllByDocument",
+        "parameters": [
+          {
+            "name": "documentType",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "documentNumber",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All trainings of a professor were found"
           }
         },
         "tags": [

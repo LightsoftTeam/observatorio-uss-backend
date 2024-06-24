@@ -11,7 +11,7 @@ export class Professor {
     id?: string;
     name: string;
     email: string;
-    documentType: string;
+    documentType: DocumentType;
     documentNumber: string;
     schoolId: string;
     @CosmosDateTime() createdAt: Date;

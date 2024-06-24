@@ -2,7 +2,7 @@ import { BadRequestException, Inject, Injectable, NotFoundException } from '@nes
 import type { Container } from '@azure/cosmos';
 import { CreateProfessorDto } from './dto/create-professor.dto';
 import { UpdateProfessorDto } from './dto/update-professor.dto';
-import { Professor } from './entities/professor.entity';
+import { DocumentType, Professor } from './entities/professor.entity';
 import { InjectModel } from '@nestjs/azure-database';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { SchoolsService } from 'src/schools/schools.service';
@@ -149,7 +149,7 @@ export class ProfessorsService {
     }
   }
 
-  async findByDocument({ documentType, documentNumber }: { documentType: string, documentNumber: string }) {
+  async findByDocument({ documentType, documentNumber }: { documentType: DocumentType, documentNumber: string }) {
     const resource = await this.getByDocument({ documentType, documentNumber });
     if (!resource) {
       throw new NotFoundException(`Professor with document ${documentType} ${documentNumber} not found`);
@@ -157,7 +157,7 @@ export class ProfessorsService {
     return FormatCosmosItem.cleanDocument<Professor>(resource);
   }
 
-  async getByDocument({ documentType, documentNumber }: { documentType: string, documentNumber: string }): Promise<Professor | null> {
+  async getByDocument({ documentType, documentNumber }: { documentType: DocumentType, documentNumber: string }): Promise<Professor | null> {
     this.logger.log(`Getting professor with document ${documentType} ${documentNumber}`);
     const querySpec = {
       query: 'SELECT * FROM c WHERE c.documentType = @documentType AND c.documentNumber = @documentNumber',
