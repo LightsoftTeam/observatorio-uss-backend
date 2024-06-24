@@ -12,6 +12,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { UpdateParticipantDto } from '../dto/update-participant.dto';
 import { AddAttendanceToExecutionDto } from '../dto/add-attendance-to-execution.dto';
 import { TrainingCertificateTemplateData, getTrainingCertificateTemplate } from '../templates/training-certificate';
+import { TrainingParticipantQrTemplateData, getParticipantQrTemplate } from '../templates/participant-qr';
+import nodeHtmlToImage from 'node-html-to-image';
 const pdf = require('html-pdf');
 
 export enum ERROR_CODES {
@@ -251,7 +253,7 @@ export class ParticipantsService {
             participant.attendanceStatus = AttendanceStatus.ATTENDED;
             await this.trainingContainer.item(training.id, training.id).replace(training);
             const executions = training.executions;
-            if(executions.length === 0) {
+            if (executions.length === 0) {
                 throw new BadRequestException(ERRORS[ERROR_CODES.TRAINING_NOT_HAVE_EXECUTIONS]);
             }
             const trainingFromDate = executions[0].from;
@@ -282,13 +284,13 @@ export class ParticipantsService {
 
     async getCertificate(participantId: string) {
         const training = await this.getTrainingByParticipantId(participantId);
-        if(!training) {
+        if (!training) {
             throw new BadRequestException(ERRORS[ERROR_CODES.PARTICIPANT_NOT_FOUND]);
         }
         const participant = training.participants.find((participant) => participant.id === participantId);
         //TODO: validate that the training is completed and set certificate status
         const filledParticipant = await this.fillParticipant(participant);
-        if(participant.attendanceStatus !== AttendanceStatus.ATTENDED || !participant.certificate) {
+        if (participant.attendanceStatus !== AttendanceStatus.ATTENDED || !participant.certificate) {
             throw new BadRequestException(ERRORS[ERROR_CODES.TRAINING_NOT_COMPLETED]);
         }
         const { name: trainingName } = training;
@@ -309,7 +311,38 @@ export class ParticipantsService {
         return buffer;
     }
 
-    async getPdfBuffer(html: string){
+    async getParticipantQr(participantId: string) {
+        try {
+            this.logger.log(`Generating QR code for participant ${participantId}`);
+            const training = await this.getTrainingByParticipantId(participantId);
+            if (!training) {
+                throw new BadRequestException(ERRORS[ERROR_CODES.PARTICIPANT_NOT_FOUND]);
+            }
+            const participant = training.participants.find((participant) => participant.id === participantId);
+            const filledParticipant = await this.fillParticipant(participant);
+            const { id, role, professor } = filledParticipant;
+            const { documentNumber, documentType, email, name } = professor;
+            const data: TrainingParticipantQrTemplateData = {
+                documentNumber,
+                documentType,
+                email,
+                name,
+                participantId: id,
+                role: role,
+            }
+            const html = getParticipantQrTemplate(data);
+            const buffer = await nodeHtmlToImage({
+                html,
+                selector: '#content',
+            });
+            return buffer;
+        } catch (error) {
+            this.logger.error(`getParticipantQr ${error.message}`);
+            throw error;
+        }
+    }
+
+    async getPdfBuffer(html: string) {
         return new Promise((resolve, reject) => {
             pdf.create(html).toBuffer(function (err: any, buffer: Buffer) {
                 resolve(buffer);

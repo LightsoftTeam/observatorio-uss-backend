@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Param, Delete, Put, HttpCode, Res } from '
 import { TrainingService } from './training.service';
 import { CreateTrainingDto } from './dto/create-training.dto';
 import { UpdateTrainingDto } from './dto/update-training.dto';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AddParticipantDto } from './dto/add-participant.dto';
 import { UpdateParticipantDto } from './dto/update-participant.dto';
 import { AddAttendanceToExecutionDto } from './dto/add-attendance-to-execution.dto';
@@ -13,6 +13,7 @@ import { Readable } from 'stream';
 import { CompleteTrainingBadRequestDto } from './dto/complete-training-response.dto';
 import { DocumentType } from 'src/professors/entities/professor.entity';
 import { CreateTrainingBadRequestDto } from './dto/create-training-response.dto';
+import { DownloadQrBadRequestDto } from './dto/download-qr-response.dto';
 
 @ApiTags('Training')
 @Controller('training')
@@ -20,9 +21,10 @@ export class TrainingController {
   constructor(
     private readonly trainingService: TrainingService,
     private readonly participantsService: ParticipantsService,
-  ) {}
+  ) { }
 
   @Post()
+  @ApiOperation({ summary: 'Create a training' })
   @ApiResponse({
     status: 201,
     description: 'The training has been successfully created.',
@@ -37,6 +39,7 @@ export class TrainingController {
   }
 
   @Get()
+  @ApiOperation({ summary: 'Get all trainings' })
   @ApiResponse({
     status: 200,
     description: 'All trainings were found',
@@ -46,6 +49,7 @@ export class TrainingController {
   }
 
   @Get('/by-document/:documentType/:documentNumber')
+  @ApiOperation({ summary: 'Get all trainings of a professor' })
   @ApiResponse({
     status: 200,
     description: 'All trainings of a professor were found',
@@ -55,6 +59,7 @@ export class TrainingController {
   };
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get a training' })
   @ApiResponse({
     status: 200,
     description: 'A training was found',
@@ -68,6 +73,7 @@ export class TrainingController {
   }
 
   @Put(':id')
+  @ApiOperation({ summary: 'Update a training' })
   @ApiResponse({
     status: 200,
     description: 'The training has been successfully updated.',
@@ -81,8 +87,9 @@ export class TrainingController {
     return this.trainingService.update(id, updateTrainingDto);
   }
 
-  @HttpCode(204)
   @Delete(':id')
+  @ApiOperation({ summary: 'Remove a training' })
+  @HttpCode(204)
   @ApiResponse({
     status: 204,
     description: 'The training has been successfully removed.',
@@ -95,8 +102,9 @@ export class TrainingController {
     return this.trainingService.remove(id);
   }
 
-  @HttpCode(200)
   @Post(':id/participants')
+  @ApiOperation({ summary: 'Add a participant' })
+  @HttpCode(200)
   @ApiResponse({
     status: 200,
     description: 'The participant has been successfully added.',
@@ -113,8 +121,9 @@ export class TrainingController {
     return this.participantsService.addParticipant(id, addParticipantDto);
   }
 
-  @HttpCode(200)
   @Put(':id/participants/:participantId')
+  @ApiOperation({ summary: 'Update a participant' })
+  @HttpCode(200)
   @ApiResponse({
     status: 200,
     description: 'The participant has been successfully updated.',
@@ -131,8 +140,9 @@ export class TrainingController {
     return this.participantsService.updateParticipant(id, participantId, updateParticipantDto);
   }
 
-  @HttpCode(204)
   @Delete(':id/participants/:participantId')
+  @ApiOperation({ summary: 'Remove a participant' })
+  @HttpCode(204)
   @ApiResponse({
     status: 204,
     description: 'The participant has been successfully removed.',
@@ -150,6 +160,7 @@ export class TrainingController {
   }
 
   @Get('participants/:participantId/verify')
+  @ApiOperation({ summary: 'Verify a participant' })
   @ApiResponse({
     status: 200,
     description: 'The qr code has been successfully verified',
@@ -164,8 +175,9 @@ export class TrainingController {
     return this.participantsService.verifyParticipant(participantId);
   }
 
-  @HttpCode(200)
   @Post(':id/executions/:executionId/attendances')
+  @ApiOperation({ summary: 'Add attendance to an execution' })
+  @HttpCode(200)
   @ApiResponse({
     status: 200,
     description: 'The assistance has been successfully added.',
@@ -183,6 +195,7 @@ export class TrainingController {
   }
 
   @Post('participants/:participantId/complete')
+  @ApiOperation({ summary: 'Complete a training' })
   @ApiResponse({
     status: 200,
     description: 'The training has been successfully completed',
@@ -201,6 +214,7 @@ export class TrainingController {
   }
 
   @Get('participants/:participantId/certificate')
+  @ApiOperation({ summary: 'Generate a certificate for a participant' })
   @ApiResponse({
     status: 200,
     description: 'The certificate has been successfully generated',
@@ -209,11 +223,31 @@ export class TrainingController {
     status: 400,
     description: 'Bad Request',
   })
-  async generateCertificate(@Param('participantId') participantId: string, @Res() res: Response){
+  async generateCertificate(@Param('participantId') participantId: string, @Res() res: Response) {
     const buffer = await this.participantsService.getCertificate(participantId);
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'inline; filename="certificate.pdf"');
-    
+    const stream = new Readable();
+    stream.push(buffer);
+    stream.push(null);
+    stream.pipe(res);
+  }
+
+  @Get('participants/:participantId/qr')
+  @ApiOperation({ summary: 'Download the qr code of a participant' }) 
+  @ApiResponse({
+    status: 200,
+    description: 'The qr code has been successfully downloaded',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request',
+    type: DownloadQrBadRequestDto,
+  })
+  async downloadQr(@Param('participantId') participantId: string, @Res() res: Response) {
+    const buffer = await this.participantsService.getParticipantQr(participantId);
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Content-Disposition', 'attachment; filename="qr.png"');
     const stream = new Readable();
     stream.push(buffer);
     stream.push(null);

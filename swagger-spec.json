@@ -661,6 +661,7 @@
     "/api/training": {
       "post": {
         "operationId": "TrainingController_create",
+        "summary": "Create a training",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -693,6 +694,7 @@
       },
       "get": {
         "operationId": "TrainingController_findAll",
+        "summary": "Get all trainings",
         "parameters": [],
         "responses": {
           "200": {
@@ -707,6 +709,7 @@
     "/api/training/by-document/{documentType}/{documentNumber}": {
       "get": {
         "operationId": "TrainingController_findAllByDocument",
+        "summary": "Get all trainings of a professor",
         "parameters": [
           {
             "name": "documentType",
@@ -738,6 +741,7 @@
     "/api/training/{id}": {
       "get": {
         "operationId": "TrainingController_findOne",
+        "summary": "Get a training",
         "parameters": [
           {
             "name": "id",
@@ -762,6 +766,7 @@
       },
       "put": {
         "operationId": "TrainingController_update",
+        "summary": "Update a training",
         "parameters": [
           {
             "name": "id",
@@ -803,6 +808,7 @@
       },
       "delete": {
         "operationId": "TrainingController_remove",
+        "summary": "Remove a training",
         "parameters": [
           {
             "name": "id",
@@ -829,6 +835,7 @@
     "/api/training/{id}/participants": {
       "post": {
         "operationId": "TrainingController_addParticipant",
+        "summary": "Add a participant",
         "parameters": [
           {
             "name": "id",
@@ -868,6 +875,7 @@
     "/api/training/{id}/participants/{participantId}": {
       "put": {
         "operationId": "TrainingController_updateParticipant",
+        "summary": "Update a participant",
         "parameters": [
           {
             "name": "id",
@@ -913,6 +921,7 @@
       },
       "delete": {
         "operationId": "TrainingController_removeParticipant",
+        "summary": "Remove a participant",
         "parameters": [
           {
             "name": "id",
@@ -950,6 +959,7 @@
     "/api/training/participants/{participantId}/verify": {
       "get": {
         "operationId": "TrainingController_verifyParticipant",
+        "summary": "Verify a participant",
         "parameters": [
           {
             "name": "participantId",
@@ -990,6 +1000,7 @@
     "/api/training/{id}/executions/{executionId}/attendances": {
       "post": {
         "operationId": "TrainingController_addAttendanceToExecution",
+        "summary": "Add attendance to an execution",
         "parameters": [
           {
             "name": "id",
@@ -1037,6 +1048,7 @@
     "/api/training/participants/{participantId}/complete": {
       "post": {
         "operationId": "TrainingController_completeTraining",
+        "summary": "Complete a training",
         "parameters": [
           {
             "name": "participantId",
@@ -1073,6 +1085,7 @@
     "/api/training/participants/{participantId}/certificate": {
       "get": {
         "operationId": "TrainingController_generateCertificate",
+        "summary": "Generate a certificate for a participant",
         "parameters": [
           {
             "name": "participantId",
@@ -1089,6 +1102,40 @@
           },
           "400": {
             "description": "Bad Request"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
+    "/api/training/participants/{participantId}/qr": {
+      "get": {
+        "operationId": "TrainingController_downloadQr",
+        "summary": "Download the qr code of a participant",
+        "parameters": [
+          {
+            "name": "participantId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The qr code has been successfully downloaded"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DownloadQrBadRequestDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2301,6 +2348,25 @@
             "type": "string",
             "description": "The error message.",
             "example": "The training does not have any executions."
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "DownloadQrBadRequestDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "The error code.",
+            "example": "PARTICIPANT_NOT_FOUND"
+          },
+          "message": {
+            "type": "string",
+            "description": "The error message.",
+            "example": "The participant is not found."
           }
         },
         "required": [
