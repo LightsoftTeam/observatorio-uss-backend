@@ -2,7 +2,7 @@ import fs from 'fs';
 import { InjectModel } from '@nestjs/azure-database';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import type { Container } from '@azure/cosmos';
-import { AttendanceStatus, ExecutionAttendance, Training, TrainingCertificate, TrainingParticipant, TrainingRole, TrainingStatus } from '../entities/training.entity';
+import { AttendanceStatus, ExecutionAttendance, Training, TrainingCertificate, TrainingParticipant, TrainingRole } from '../entities/training.entity';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
 import { ProfessorsService } from 'src/professors/professors.service';
 import { AddParticipantDto } from '../dto/add-participant.dto';

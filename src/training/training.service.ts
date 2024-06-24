@@ -48,7 +48,7 @@ export class TrainingService {
       this.logger.log('Creating training');
       const { executions, organizer, code } = createTrainingDto;
       this.validateExecutionsDateRange(executions);
-      const existingTraining = await this.findByCode(code);
+      const existingTraining = await this.getByCode(code);
       if (existingTraining) {
         this.logger.log(`Training code already exists: ${code}`);
         throw new BadRequestException(ERRORS[ERROR_CODES.TRAINING_CODE_ALREADY_EXISTS]);
@@ -82,26 +82,21 @@ export class TrainingService {
     }
   }
 
-  async findByCode(code: string): Promise<Training | null> {
-    try {
-      this.logger.log(`Finding training by code: ${code}`);
-      const { resources } = await this.trainingContainer.items
-        .query({
-          query: 'SELECT * FROM c WHERE c.code = @code',
-          parameters: [{ name: '@code', value: code }],
-        })
-        .fetchAll();
-      this.logger.log(`Found ${resources.length} trainings with code: ${code}`);
-      return resources.at(0);
-    } catch (error) {
-      this.logger.log(`findByCode ${error.message}`);
-      throw error;
-    }
+  async getByCode(code: string): Promise<Training | null> {
+    this.logger.log(`Finding training by code: ${code}`);
+    const { resources } = await this.trainingContainer.items
+      .query({
+        query: 'SELECT * FROM c WHERE c.code = @code',
+        parameters: [{ name: '@code', value: code }],
+      })
+      .fetchAll();
+    this.logger.log(`Found ${resources.length} trainings with code: ${code}`);
+    return resources.at(0);
   }
 
-  async findByDocument(documentType: DocumentType, documentNumber: string){
-    const professor = await this.professorsService.getByDocument({documentType, documentNumber});
-    if(!professor){
+  async findByDocument(documentType: DocumentType, documentNumber: string) {
+    const professor = await this.professorsService.getByDocument({ documentType, documentNumber });
+    if (!professor) {
       throw new NotFoundException(`Professor with document ${documentType} ${documentNumber} not found`);
     }
     const querySpec = {
@@ -163,6 +158,11 @@ export class TrainingService {
       const training = await this.getTrainingById(id);
       if (!training) {
         throw new NotFoundException('Training not found');
+      }
+      const trainingWithCode = await this.getByCode(updateTrainingDto.code);
+      if (trainingWithCode && trainingWithCode.id !== id) {
+        this.logger.log(`Training code already exists: ${updateTrainingDto.code}`);
+        throw new BadRequestException(ERRORS[ERROR_CODES.TRAINING_CODE_ALREADY_EXISTS]);
       }
       const { executions } = updateTrainingDto;
       this.validateExecutionsDateRange(executions);
