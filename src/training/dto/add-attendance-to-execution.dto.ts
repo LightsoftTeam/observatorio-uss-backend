@@ -12,10 +12,10 @@ export class AddAttendanceToExecutionDto {
     participantId: string;
     @ApiProperty({
         description: 'The status of the participant in the execution.',
-        example: AttendanceStatus.PRESENT,
+        example: AttendanceStatus.ATTENDED,
         enum: AttendanceStatus,
         nullable: true,
-        default: AttendanceStatus.PRESENT,
+        default: AttendanceStatus.ATTENDED,
     })
     @IsEnum(AttendanceStatus)
     @IsOptional()

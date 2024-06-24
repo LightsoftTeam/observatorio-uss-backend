@@ -108,7 +108,7 @@ class ParticipantDto{
     role: TrainingRole;
     @ApiProperty({
         description: 'The status of the participant',
-        example: AttendanceStatus.PRESENT,
+        example: AttendanceStatus.ATTENDED,
         enum: AttendanceStatus,
     })
     attendanceStatus: AttendanceStatus;

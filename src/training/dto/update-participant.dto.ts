@@ -6,7 +6,7 @@ import { IsEnum, IsOptional } from "class-validator";
 export class UpdateParticipantDto extends PartialType(AddParticipantDto) {
     @ApiProperty({
         description: 'The attendance status of the participant',
-        example: AttendanceStatus.PRESENT,
+        example: AttendanceStatus.ATTENDED,
         enum: AttendanceStatus,
         nullable: true,
     })

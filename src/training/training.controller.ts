@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, HttpCode, Res } from '@nestjs/common';
 import { TrainingService } from './training.service';
 import { CreateTrainingDto } from './dto/create-training.dto';
 import { UpdateTrainingDto } from './dto/update-training.dto';
@@ -8,6 +8,9 @@ import { UpdateParticipantDto } from './dto/update-participant.dto';
 import { AddAttendanceToExecutionDto } from './dto/add-attendance-to-execution.dto';
 import { ParticipantsService } from './services/participants.service';
 import { VerifyParticipantErrorResponseDto, VerifyParticipantSuccessResponseDto } from './dto/verify-participant-response.dto';
+import { Response } from 'express';
+import { Readable } from 'stream';
+import { CompleteTrainingBadRequestDto } from './dto/complete-training-response.dto';
 
 @ApiTags('Training')
 @Controller('training')
@@ -160,5 +163,43 @@ export class TrainingController {
   })
   addAttendanceToExecution(@Param('id') id: string, @Param('executionId') executionId: string, @Body() addAttendanceToExecutionDto: AddAttendanceToExecutionDto) {
     return this.participantsService.addAttendanceToExecution(id, executionId, addAttendanceToExecutionDto);
+  }
+
+  @Post('participants/:participantId/complete')
+  @ApiResponse({
+    status: 200,
+    description: 'The training has been successfully completed',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Participant not found',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request',
+    type: CompleteTrainingBadRequestDto,
+  })
+  completeTraining(@Param('participantId') participantId: string) {
+    return this.participantsService.completeTraining(participantId);
+  }
+
+  @Get('participants/:participantId/certificate')
+  @ApiResponse({
+    status: 200,
+    description: 'The certificate has been successfully generated',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request',
+  })
+  async generateCertificate(@Param('participantId') participantId: string, @Res() res: Response){
+    const buffer = await this.participantsService.getCertificate(participantId);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename="certificate.pdf"');
+    
+    const stream = new Readable();
+    stream.push(buffer);
+    stream.push(null);
+    stream.pipe(res);
   }
 }

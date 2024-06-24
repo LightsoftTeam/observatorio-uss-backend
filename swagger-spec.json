@@ -989,6 +989,68 @@
         ]
       }
     },
+    "/api/training/participants/{participantId}/complete": {
+      "post": {
+        "operationId": "TrainingController_completeTraining",
+        "parameters": [
+          {
+            "name": "participantId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The training has been successfully completed"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompleteTrainingBadRequestDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Participant not found"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
+    "/api/training/participants/{participantId}/certificate": {
+      "get": {
+        "operationId": "TrainingController_generateCertificate",
+        "parameters": [
+          {
+            "name": "participantId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The certificate has been successfully generated"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
     "/api/professors": {
       "post": {
         "operationId": "ProfessorsController_create",
@@ -1888,11 +1950,10 @@
           "attendanceStatus": {
             "type": "string",
             "description": "The attendance status of the participant",
-            "example": "present",
+            "example": "attended",
             "enum": [
               "pending",
-              "present",
-              "late"
+              "attended"
             ],
             "nullable": true
           }
@@ -2048,11 +2109,10 @@
           "attendanceStatus": {
             "type": "string",
             "description": "The status of the participant",
-            "example": "present",
+            "example": "attended",
             "enum": [
               "pending",
-              "present",
-              "late"
+              "attended"
             ]
           },
           "professor": {
@@ -2113,7 +2173,10 @@
             "description": "The error code.",
             "example": "QR_CODE_NOT_FOUND",
             "enum": [
-              "QR_CODE_NOT_FOUND"
+              "QR_CODE_NOT_FOUND",
+              "PARTICIPANT_NOT_FOUND",
+              "TRAINING_NOT_COMPLETED",
+              "TRAINING_NOT_HAVE_EXECUTIONS"
             ]
           },
           "message": {
@@ -2138,19 +2201,46 @@
           "status": {
             "type": "string",
             "description": "The status of the participant in the execution.",
-            "example": "present",
+            "example": "attended",
             "enum": [
               "pending",
-              "present",
-              "late"
+              "attended"
             ],
             "nullable": true,
-            "default": "present"
+            "default": "attended"
           }
         },
         "required": [
           "participantId",
           "status"
+        ]
+      },
+      "CompleteTrainingBadRequestDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "The error code.",
+            "example": "TRAINING_NOT_HAVE_EXECUTIONS",
+            "enum": [
+              "QR_CODE_NOT_FOUND",
+              "PARTICIPANT_NOT_FOUND",
+              "TRAINING_NOT_COMPLETED",
+              "TRAINING_NOT_HAVE_EXECUTIONS"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "description": "The error message.",
+            "example": {
+              "code": "TRAINING_NOT_HAVE_EXECUTIONS",
+              "message": "The training does not have any executions."
+            }
+          }
+        },
+        "required": [
+          "code",
+          "message"
         ]
       },
       "CreateProfessorDto": {

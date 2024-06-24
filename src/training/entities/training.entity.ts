@@ -14,17 +14,25 @@ export interface Execution {
     attendance: ExecutionAttendance[];
 }
 
+export interface TrainingCertificate {
+    id: string;
+    emisionDate: string;
+    trainingFromDate: string;
+    trainingToDate: string;
+    duration: number;
+}
+
 export interface TrainingParticipant {
     id: string;
     foreignId: string;
     role: TrainingRole;
     attendanceStatus: AttendanceStatus;
+    certificate?: TrainingCertificate;
 }
 
 export enum AttendanceStatus {
     PENDING = 'pending',
-    PRESENT = 'present',
-    LATE = 'late',
+    ATTENDED = 'attended',
 }
 
 export enum TrainingRole {
