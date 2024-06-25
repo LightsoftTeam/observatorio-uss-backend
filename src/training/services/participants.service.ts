@@ -14,6 +14,7 @@ import { AddAttendanceToExecutionDto } from '../dto/add-attendance-to-execution.
 import { TrainingCertificateTemplateData, getTrainingCertificateTemplate } from '../templates/training-certificate';
 import { TrainingParticipantQrTemplateData, getParticipantQrTemplate } from '../templates/participant-qr';
 import nodeHtmlToImage from 'node-html-to-image';
+import { StorageService } from 'src/storage/storage.service';
 const pdf = require('html-pdf');
 
 export enum ERROR_CODES {
@@ -51,6 +52,7 @@ export class ParticipantsService {
         private readonly logger: ApplicationLoggerService,
         private readonly professorService: ProfessorsService,
         private readonly trainingService: TrainingService,
+        private readonly storageService: StorageService,
     ) {
         this.logger.setContext(ParticipantsService.name);
     }
@@ -256,23 +258,10 @@ export class ParticipantsService {
             if (executions.length === 0) {
                 throw new BadRequestException(ERRORS[ERROR_CODES.TRAINING_NOT_HAVE_EXECUTIONS]);
             }
-            const trainingFromDate = executions[0].from;
-            const trainingToDate = executions[executions.length - 1].to;
-            const emisionDate = new Date().toISOString();
-            const durationinMiliseconds = executions.reduce((acc, execution) => {
-                const from = new Date(execution.from);
-                const to = new Date(execution.to);
-                acc += to.getTime() - from.getTime();
-                return acc;
-            }, 0);
-            const durationInHours = durationinMiliseconds / 1000 / 60 / 60;
-            const certificate: TrainingCertificate = {
-                id: uuidv4(),
-                duration: durationInHours,
-                emisionDate,
-                trainingFromDate,
-                trainingToDate,
-            }
+            const certificate = await this.generateCertificate({
+                training,
+                participant,
+            });
             participant.certificate = certificate;
             await this.trainingContainer.item(training.id, training.id).replace(training);
             return participant;
@@ -280,6 +269,49 @@ export class ParticipantsService {
             this.logger.error(`changeStatus ${error.message}`);
             throw error;
         }
+    }
+
+    private async generateCertificate({training, participant}: {training: Training, participant: TrainingParticipant}){
+        const {executions, name: trainingName} = training;
+        const trainingFromDate = executions[0].from;
+        const trainingToDate = executions[executions.length - 1].to;
+        const emisionDate = new Date().toISOString();
+        const durationinMiliseconds = executions.reduce((acc, execution) => {
+            const from = new Date(execution.from);
+            const to = new Date(execution.to);
+            acc += to.getTime() - from.getTime();
+            return acc;
+        }, 0);
+        const durationInHours = durationinMiliseconds / 1000 / 60 / 60;
+        const filledParticipant = await this.fillParticipant(participant);
+        const { id, professor, role } = filledParticipant;
+        const { name } = professor;
+        const data: TrainingCertificateTemplateData = {
+            id,
+            name,
+            role,
+            trainingName,
+            emisionDate: participant.certificate.emisionDate,
+            trainingFromDate: participant.certificate.trainingFromDate,
+            trainingToDate: participant.certificate.trainingToDate,
+            duration: participant.certificate.duration,
+        };
+        const certificate: TrainingCertificate = {
+            id: uuidv4(),
+            duration: durationInHours,
+            emisionDate,
+            trainingFromDate,
+            trainingToDate,
+        }
+        const html = getTrainingCertificateTemplate(data);
+        const buffer: Buffer = await this.getPdfBuffer(html);
+        const { blobUrl } = await this.storageService.uploadMessageMedia({
+            buffer,
+            blobName: `certificates/${certificate.id}.pdf`,
+            contentType: 'application/pdf',
+        });
+        certificate.url = blobUrl;
+        return certificate;
     }
 
     async getCertificate(participantId: string) {
@@ -294,7 +326,7 @@ export class ParticipantsService {
             throw new BadRequestException(ERRORS[ERROR_CODES.TRAINING_NOT_COMPLETED]);
         }
         const { name: trainingName } = training;
-        const { id, professor, role } = filledParticipant;
+        const { id, professor, role, certificate } = filledParticipant;
         const { name } = professor;
         const data: TrainingCertificateTemplateData = {
             id,
@@ -307,8 +339,13 @@ export class ParticipantsService {
             duration: participant.certificate.duration,
         };
         const html = getTrainingCertificateTemplate(data);
-        const buffer = await this.getPdfBuffer(html);
-        return buffer;
+        const buffer: Buffer = await this.getPdfBuffer(html);
+        const { blobUrl } = await this.storageService.uploadMessageMedia({
+            buffer,
+            blobName: `certificates/${certificate.id}.pdf`,
+            contentType: 'application/pdf',
+        });
+        return 1;
     }
 
     async getParticipantQr(participantId: string) {
@@ -342,7 +379,7 @@ export class ParticipantsService {
         }
     }
 
-    async getPdfBuffer(html: string) {
+    async getPdfBuffer(html: string): Promise<Buffer> {
         return new Promise((resolve, reject) => {
             pdf.create(html).toBuffer(function (err: any, buffer: Buffer) {
                 resolve(buffer);

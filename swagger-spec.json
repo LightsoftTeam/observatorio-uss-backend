@@ -1082,33 +1082,6 @@
         ]
       }
     },
-    "/api/training/participants/{participantId}/certificate": {
-      "get": {
-        "operationId": "TrainingController_generateCertificate",
-        "summary": "Generate a certificate for a participant",
-        "parameters": [
-          {
-            "name": "participantId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The certificate has been successfully generated"
-          },
-          "400": {
-            "description": "Bad Request"
-          }
-        },
-        "tags": [
-          "Training"
-        ]
-      }
-    },
     "/api/training/participants/{participantId}/qr": {
       "get": {
         "operationId": "TrainingController_downloadQr",

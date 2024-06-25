@@ -20,6 +20,7 @@ export interface TrainingCertificate {
     trainingFromDate: string;
     trainingToDate: string;
     duration: number;
+    url?: string;
 }
 
 export interface TrainingParticipant {

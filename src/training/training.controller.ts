@@ -213,25 +213,25 @@ export class TrainingController {
     return this.participantsService.completeTraining(participantId);
   }
 
-  @Get('participants/:participantId/certificate')
-  @ApiOperation({ summary: 'Generate a certificate for a participant' })
-  @ApiResponse({
-    status: 200,
-    description: 'The certificate has been successfully generated',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Bad Request',
-  })
-  async generateCertificate(@Param('participantId') participantId: string, @Res() res: Response) {
-    const buffer = await this.participantsService.getCertificate(participantId);
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'inline; filename="certificate.pdf"');
-    const stream = new Readable();
-    stream.push(buffer);
-    stream.push(null);
-    stream.pipe(res);
-  }
+  // @Get('participants/:participantId/certificate')
+  // @ApiOperation({ summary: 'Generate a certificate for a participant' })
+  // @ApiResponse({
+  //   status: 200,
+  //   description: 'The certificate has been successfully generated',
+  // })
+  // @ApiResponse({
+  //   status: 400,
+  //   description: 'Bad Request',
+  // })
+  // async generateCertificate(@Param('participantId') participantId: string, @Res() res: Response) {
+  //   const buffer = await this.participantsService.getCertificate(participantId);
+  //   res.setHeader('Content-Type', 'application/pdf');
+  //   res.setHeader('Content-Disposition', 'inline; filename="certificate.pdf"');
+  //   const stream = new Readable();
+  //   stream.push(buffer);
+  //   stream.push(null);
+  //   stream.pipe(res);
+  // }
 
   @Get('participants/:participantId/qr')
   @ApiOperation({ summary: 'Download the qr code of a participant' }) 
