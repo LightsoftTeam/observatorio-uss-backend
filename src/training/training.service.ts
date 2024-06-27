@@ -12,6 +12,7 @@ import { SchoolsService } from 'src/schools/schools.service';
 import { School } from 'src/schools/entities/school.entity';
 import { ProfessorsService } from 'src/professors/professors.service';
 import { DocumentType } from 'src/professors/entities/professor.entity';
+import { query } from 'express';
 
 const DDA_ORGANIZER_ID = 'DDA';
 
@@ -30,6 +31,21 @@ export const ERRORS = {
     message: 'The date range is invalid.',
   },
 }
+
+const BASIC_FIELDS = [
+  'id',
+  'code',
+  'name',
+  'description',
+  'executions',
+  'place',
+  'floor',
+  'building',
+  'organizer',
+  'status',
+  'modality',
+  'capacity',
+];
 
 @Injectable()
 export class TrainingService {
@@ -130,7 +146,10 @@ export class TrainingService {
   async findAll() {
     try {
       this.logger.log('Finding all trainings');
-      const { resources } = await this.trainingContainer.items.readAll<Training>().fetchAll();
+      const querySpec = {
+        query: `SELECT ${BASIC_FIELDS.map(f => `c.${f}`).join(', ')} FROM c`
+      }
+      const { resources } = await this.trainingContainer.items.query<Training>(querySpec).fetchAll();
       return Promise.all(resources.map(training => this.toJson(training)));
     } catch (error) {
       this.logger.log(`findAll ${error.message}`);

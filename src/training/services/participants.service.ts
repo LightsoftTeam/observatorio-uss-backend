@@ -57,6 +57,27 @@ export class ParticipantsService {
         this.logger.setContext(ParticipantsService.name);
     }
 
+    async findByTrainingId(trainingId: string){
+        const training = await this.trainingService.getTrainingById(trainingId);
+        if (!training) {
+            throw new NotFoundException('Training not found');
+        }
+        const trainingExecutions = training.executions;
+        const participants = training.participants;
+        return Promise.all(participants.map(async (participant) => {
+            const fillParticipant = await this.fillParticipant(participant);
+            return {
+                ...fillParticipant,
+                executions: trainingExecutions.map((execution) => ({
+                    id: execution.id,
+                    from: execution.from,
+                    to: execution.to,
+                    participantAttend: !!execution.attendance.find((attendance) => attendance.participantId === participant.id),
+                })),
+            }
+        }));
+    }
+
     async addParticipant(trainingId: string, addParticipantDto: AddParticipantDto) {
         try {
             this.logger.log(`Adding professor ${addParticipantDto.professorId} to training ${trainingId}`);
@@ -291,10 +312,10 @@ export class ParticipantsService {
             name,
             role,
             trainingName,
-            emisionDate: participant.certificate.emisionDate,
-            trainingFromDate: participant.certificate.trainingFromDate,
-            trainingToDate: participant.certificate.trainingToDate,
-            duration: participant.certificate.duration,
+            emisionDate,
+            trainingFromDate,
+            trainingToDate,
+            duration: durationInHours,
         };
         const certificate: TrainingCertificate = {
             id: uuidv4(),

@@ -870,6 +870,31 @@
         "tags": [
           "Training"
         ]
+      },
+      "get": {
+        "operationId": "TrainingController_findAllParticipants",
+        "summary": "Get all participants",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All participants were found"
+          },
+          "404": {
+            "description": "Training not found"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
       }
     },
     "/api/training/{id}/participants/{participantId}": {

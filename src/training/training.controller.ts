@@ -121,6 +121,20 @@ export class TrainingController {
     return this.participantsService.addParticipant(id, addParticipantDto);
   }
 
+  @Get(':id/participants')
+  @ApiOperation({ summary: 'Get all participants' })
+  @ApiResponse({
+    status: 200,
+    description: 'All participants were found',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Training not found',
+  })
+  findAllParticipants(@Param('id') id: string) {
+    return this.participantsService.findByTrainingId(id);
+  }
+
   @Put(':id/participants/:participantId')
   @ApiOperation({ summary: 'Update a participant' })
   @HttpCode(200)
