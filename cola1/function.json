@@ -1,0 +1,12 @@
+{
+  "bindings": [
+    {
+      "name": "mySbMsg",
+      "type": "serviceBusTrigger",
+      "direction": "in",
+      "queueName": "cola1",
+      "connection": "SERVICE_BUS_CONNECTION"
+    }
+  ],
+  "scriptFile": "../dist/cola1/index.js"
+}
