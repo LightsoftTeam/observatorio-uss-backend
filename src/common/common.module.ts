@@ -11,7 +11,7 @@ import { MailService } from './services/mail.service';
     {
       provide: 'ApplicationInsight',
       useFactory: () => {
-          appInsights.setup(process.env.APPINSIGHTS_INSTRUMENTATIONKEY);
+          appInsights.setup(process.env.APPLICATIONINSIGHTS_CONNECTION_STRING);
           appInsights.start();
           return appInsights.defaultClient;
       }
