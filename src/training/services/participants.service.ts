@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { InjectModel } from '@nestjs/azure-database';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import type { Container } from '@azure/cosmos';
 import { AttendanceStatus, ExecutionAttendance, Training, TrainingCertificate, TrainingParticipant, TrainingRole } from '../entities/training.entity';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
@@ -289,7 +289,7 @@ export class ParticipantsService {
             return participant;
         } catch (error) {
             this.logger.error(`changeStatus ${error.message}`);
-            throw error;
+            throw new InternalServerErrorException(error.message);
         }
     }
 

@@ -224,7 +224,6 @@ export class TrainingController {
     type: CompleteTrainingBadRequestDto,
   })
   completeTraining(@Param('participantId') participantId: string) {
-    return 1;
     return this.participantsService.completeTraining(participantId);
   }
 
