@@ -273,6 +273,7 @@ export class ParticipantsService {
             if (!training) {
                 throw new NotFoundException('Training not found');
             }
+            this.logger.log(`Training ${training.id} found`);
             const participant = training.participants.find((participant) => participant.id === participantId);
             participant.attendanceStatus = AttendanceStatus.ATTENDED;
             await this.trainingContainer.item(training.id, training.id).replace(training);
@@ -294,6 +295,7 @@ export class ParticipantsService {
     }
 
     private async generateCertificate({training, participant}: {training: Training, participant: TrainingParticipant}){
+        this.logger.log(`Generating certificate for participant ${participant.id}`);
         const {executions, name: trainingName} = training;
         const trainingFromDate = executions[0].from;
         const trainingToDate = executions[executions.length - 1].to;
@@ -325,8 +327,10 @@ export class ParticipantsService {
             trainingFromDate,
             trainingToDate,
         }
+        this.logger.log(`Certificate: ${JSON.stringify(certificate)}`)
         const html = getTrainingCertificateTemplate(data);
         const buffer: Buffer = await this.getPdfBuffer(html);
+        this.logger.log(`Buffer ${buffer.length}`)
         const { blobUrl } = await this.storageService.uploadMessageMedia({
             buffer,
             blobName: `certificates/${certificate.id}.pdf`,
