@@ -266,6 +266,7 @@ export class ParticipantsService {
     }
 
     async completeTraining(participantId: string) {
+        this.logger.log(`Completing training for participant ${participantId}`);
         try {
             this.logger.log(`Changing status of participant ${participantId}`);
             const training = await this.getTrainingByParticipantId(participantId);
