@@ -407,7 +407,13 @@ export class ParticipantsService {
 
     async getPdfBuffer(html: string): Promise<Buffer> {
         return new Promise((resolve, reject) => {
+            const logger = this.logger;
             pdf.create(html).toBuffer(function (err: any, buffer: Buffer) {
+                if(err){
+                    logger.error(`getPdfBuffer ${err.message}`);
+                    reject(err);
+                }
+                logger.log(`Buffer ${buffer.length}`)
                 resolve(buffer);
             });
         });
