@@ -15,7 +15,7 @@ import { TrainingCertificateTemplateData, getTrainingCertificateTemplate } from 
 import { TrainingParticipantQrTemplateData, getParticipantQrTemplate } from '../templates/participant-qr';
 import nodeHtmlToImage from 'node-html-to-image';
 import { StorageService } from 'src/storage/storage.service';
-const pdf = require('html-pdf');
+const HTML_TO_PDF = require('html-pdf-node');
 
 export enum ERROR_CODES {
     QR_CODE_NOT_FOUND = 'QR_CODE_NOT_FOUND',
@@ -57,7 +57,7 @@ export class ParticipantsService {
         this.logger.setContext(ParticipantsService.name);
     }
 
-    async findByTrainingId(trainingId: string){
+    async findByTrainingId(trainingId: string) {
         const training = await this.trainingService.getTrainingById(trainingId);
         if (!training) {
             throw new NotFoundException('Training not found');
@@ -294,9 +294,9 @@ export class ParticipantsService {
         }
     }
 
-    private async generateCertificate({training, participant}: {training: Training, participant: TrainingParticipant}){
+    private async generateCertificate({ training, participant }: { training: Training, participant: TrainingParticipant }) {
         this.logger.log(`Generating certificate for participant ${participant.id}`);
-        const {executions, name: trainingName} = training;
+        const { executions, name: trainingName } = training;
         const trainingFromDate = executions[0].from;
         const trainingToDate = executions[executions.length - 1].to;
         const emisionDate = new Date().toISOString();
@@ -408,13 +408,21 @@ export class ParticipantsService {
     async getPdfBuffer(html: string): Promise<Buffer> {
         return new Promise((resolve, reject) => {
             const logger = this.logger;
-            pdf.create(html).toBuffer(function (err: any, buffer: Buffer) {
-                if(err){
-                    logger.error(`getPdfBuffer ${err.message}`);
-                    reject(err);
-                }
-                logger.log(`Buffer ${buffer.length}`)
-                resolve(buffer);
+            // pdf.create(html).toBuffer(function (err: any, buffer: Buffer) {
+            //     if(err){
+            //         logger.error(`getPdfBuffer ${err.message}`);
+            //         reject(err);
+            //     }
+            //     logger.log(`Buffer ${buffer.length}`)
+            //     resolve(buffer);
+            // });
+            let options = { format: 'A4' };
+            // Example of options with args //
+            // let options = { format: 'A4', args: ['--no-sandbox', '--disable-setuid-sandbox'] };
+
+            let file = { content: html };
+            HTML_TO_PDF.generatePdf(file, options).then(pdfBuffer => {
+                resolve(pdfBuffer);
             });
         });
     }
