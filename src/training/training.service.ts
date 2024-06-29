@@ -12,13 +12,16 @@ import { SchoolsService } from 'src/schools/schools.service';
 import { School } from 'src/schools/entities/school.entity';
 import { ProfessorsService } from 'src/professors/professors.service';
 import { DocumentType } from 'src/professors/entities/professor.entity';
-import { query } from 'express';
+import { StorageService } from 'src/storage/storage.service';
+import { CertificatesHelper } from 'src/common/helpers/certificates.helper';
+const AdmZip = require("adm-zip");
 
 const DDA_ORGANIZER_ID = 'DDA';
 
 export enum ERROR_CODES {
   TRAINING_CODE_ALREADY_EXISTS = 'TRAINING_CODE_ALREADY_EXISTS',
   DATE_RANGE_INVALID = 'DATE_RANGE_INVALID',
+  TRAINING_NOT_HAVE_PARTICIPANTS_WITH_CERTIFICATES = 'TRAINING_NOT_HAVE_PARTICIPANTS_WITH_CERTIFICATES',
 }
 
 export const ERRORS = {
@@ -29,6 +32,10 @@ export const ERRORS = {
   [ERROR_CODES.DATE_RANGE_INVALID]: {
     code: ERROR_CODES.DATE_RANGE_INVALID,
     message: 'The date range is invalid.',
+  },
+  [ERROR_CODES.TRAINING_NOT_HAVE_PARTICIPANTS_WITH_CERTIFICATES]: {
+    code: ERROR_CODES.TRAINING_NOT_HAVE_PARTICIPANTS_WITH_CERTIFICATES,
+    message: 'The training does not have participants with certificates.',
   },
 }
 
@@ -55,6 +62,7 @@ export class TrainingService {
     private readonly logger: ApplicationLoggerService,
     private readonly schoolService: SchoolsService,
     private readonly professorsService: ProfessorsService,
+    private readonly storageService: StorageService,
   ) {
     this.logger.setContext(TrainingService.name);
   }
@@ -230,6 +238,35 @@ export class TrainingService {
       //TODO: validate error type
       return null;
     }
+  }
+
+  async downloadCertificatesByTrainingId(trainingId: string) {
+    this.logger.log(`Downloading certificates for training: ${trainingId}`);
+    const training = await this.getTrainingById(trainingId);
+    if (!training) {
+      throw new BadRequestException('Training not found');
+    }
+    const zip = new AdmZip();
+    const participants = training.participants
+      .filter(participant => participant.certificate?.url);
+    if (participants.length === 0) {
+      this.logger.log('No participants with certificates found');
+      throw new BadRequestException(ERRORS[ERROR_CODES.TRAINING_NOT_HAVE_PARTICIPANTS_WITH_CERTIFICATES]);
+    }
+    for (const participant of participants) {
+        const {certificate} = participant;
+        const {id: certificateId} = certificate;
+        const blobName = CertificatesHelper.getBlobName(certificateId);
+        this.logger.log(`Getting buffer ${blobName}`);
+        const buffer = await this.storageService.getBuffer({ blobName });
+        if(!buffer) {
+          this.logger.error(`Blob ${blobName} not found`);
+          continue;
+        }
+        zip.addFile(CertificatesHelper.getUserFilename(certificate), buffer);
+    }
+
+    return zip.toBuffer();
   }
 
   private validateExecutionsDateRange(executions: ExecutionRequest[]) {

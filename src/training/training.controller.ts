@@ -227,6 +227,26 @@ export class TrainingController {
     return this.participantsService.completeTraining(participantId);
   }
 
+  @Get(':id/download-certificates')
+  @ApiOperation({ summary: 'Download the certificates of a training' })
+  @ApiResponse({
+    status: 200,
+    description: 'The certificates have been successfully downloaded',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Training not found',
+  })
+  async downloadCertificatesByTrainingId(@Param('id') id: string, @Res() res: Response) {
+    const buffer = await this.trainingService.downloadCertificatesByTrainingId(id);
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', 'attachment; filename="certificates.zip"');
+    const stream = new Readable();
+    stream.push(buffer);
+    stream.push(null);
+    stream.pipe(res);
+  }
+
   // @Get('participants/:participantId/certificate')
   // @ApiOperation({ summary: 'Generate a certificate for a participant' })
   // @ApiResponse({
@@ -248,7 +268,7 @@ export class TrainingController {
   // }
 
   @Get('participants/:participantId/qr')
-  @ApiOperation({ summary: 'Download the qr code of a participant' }) 
+  @ApiOperation({ summary: 'Download the qr code of a participant' })
   @ApiResponse({
     status: 200,
     description: 'The qr code has been successfully downloaded',

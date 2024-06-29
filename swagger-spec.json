@@ -1107,6 +1107,33 @@
         ]
       }
     },
+    "/api/training/{id}/download-certificates": {
+      "get": {
+        "operationId": "TrainingController_downloadCertificatesByTrainingId",
+        "summary": "Download the certificates of a training",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The certificates have been successfully downloaded"
+          },
+          "404": {
+            "description": "Training not found"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
     "/api/training/participants/{participantId}/qr": {
       "get": {
         "operationId": "TrainingController_downloadQr",
@@ -1921,7 +1948,8 @@
             "example": "TRAINING_CODE_ALREADY_EXISTS",
             "enum": [
               "TRAINING_CODE_ALREADY_EXISTS",
-              "DATE_RANGE_INVALID"
+              "DATE_RANGE_INVALID",
+              "TRAINING_NOT_HAVE_PARTICIPANTS_WITH_CERTIFICATES"
             ]
           },
           "message": {

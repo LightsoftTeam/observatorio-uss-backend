@@ -16,6 +16,8 @@ export interface Execution {
 
 export interface TrainingCertificate {
     id: string;
+    name: string;
+    trainingName: string;
     emisionDate: string;
     trainingFromDate: string;
     trainingToDate: string;

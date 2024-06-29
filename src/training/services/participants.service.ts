@@ -15,6 +15,7 @@ import { TrainingCertificateTemplateData, getTrainingCertificateTemplate } from 
 import { TrainingParticipantQrTemplateData, getParticipantQrTemplate } from '../templates/participant-qr';
 import nodeHtmlToImage from 'node-html-to-image';
 import { StorageService } from 'src/storage/storage.service';
+import { CertificatesHelper } from 'src/common/helpers/certificates.helper';
 const HTML_TO_PDF = require('html-pdf-node');
 
 export enum ERROR_CODES {
@@ -322,6 +323,8 @@ export class ParticipantsService {
         };
         const certificate: TrainingCertificate = {
             id: uuidv4(),
+            name,
+            trainingName,
             duration: durationInHours,
             emisionDate,
             trainingFromDate,
@@ -333,7 +336,7 @@ export class ParticipantsService {
         this.logger.log(`Buffer ${buffer.length}`)
         const { blobUrl } = await this.storageService.uploadMessageMedia({
             buffer,
-            blobName: `certificates/${certificate.id}.pdf`,
+            blobName: CertificatesHelper.getBlobName(certificate.id),
             contentType: 'application/pdf',
         });
         certificate.url = blobUrl;
@@ -341,37 +344,37 @@ export class ParticipantsService {
     }
 
     async getCertificate(participantId: string) {
-        const training = await this.getTrainingByParticipantId(participantId);
-        if (!training) {
-            throw new BadRequestException(ERRORS[ERROR_CODES.PARTICIPANT_NOT_FOUND]);
-        }
-        const participant = training.participants.find((participant) => participant.id === participantId);
-        //TODO: validate that the training is completed and set certificate status
-        const filledParticipant = await this.fillParticipant(participant);
-        if (participant.attendanceStatus !== AttendanceStatus.ATTENDED || !participant.certificate) {
-            throw new BadRequestException(ERRORS[ERROR_CODES.TRAINING_NOT_COMPLETED]);
-        }
-        const { name: trainingName } = training;
-        const { id, professor, role, certificate } = filledParticipant;
-        const { name } = professor;
-        const data: TrainingCertificateTemplateData = {
-            id,
-            name,
-            role,
-            trainingName,
-            emisionDate: participant.certificate.emisionDate,
-            trainingFromDate: participant.certificate.trainingFromDate,
-            trainingToDate: participant.certificate.trainingToDate,
-            duration: participant.certificate.duration,
-        };
-        const html = getTrainingCertificateTemplate(data);
-        const buffer: Buffer = await this.getPdfBuffer(html);
-        const { blobUrl } = await this.storageService.uploadMessageMedia({
-            buffer,
-            blobName: `certificates/${certificate.id}.pdf`,
-            contentType: 'application/pdf',
-        });
-        return 1;
+        // const training = await this.getTrainingByParticipantId(participantId);
+        // if (!training) {
+        //     throw new BadRequestException(ERRORS[ERROR_CODES.PARTICIPANT_NOT_FOUND]);
+        // }
+        // const participant = training.participants.find((participant) => participant.id === participantId);
+        // //TODO: validate that the training is completed and set certificate status
+        // const filledParticipant = await this.fillParticipant(participant);
+        // if (participant.attendanceStatus !== AttendanceStatus.ATTENDED || !participant.certificate) {
+        //     throw new BadRequestException(ERRORS[ERROR_CODES.TRAINING_NOT_COMPLETED]);
+        // }
+        // const { name: trainingName } = training;
+        // const { id, professor, role, certificate } = filledParticipant;
+        // const { name } = professor;
+        // const data: TrainingCertificateTemplateData = {
+        //     id,
+        //     name,
+        //     role,
+        //     trainingName,
+        //     emisionDate: participant.certificate.emisionDate,
+        //     trainingFromDate: participant.certificate.trainingFromDate,
+        //     trainingToDate: participant.certificate.trainingToDate,
+        //     duration: participant.certificate.duration,
+        // };
+        // const html = getTrainingCertificateTemplate(data);
+        // const buffer: Buffer = await this.getPdfBuffer(html);
+        // const { blobUrl } = await this.storageService.uploadMessageMedia({
+        //     buffer,
+        //     blobName: CertificatesHelper.getBlobName(certificate.id),
+        //     contentType: 'application/pdf',
+        // });
+        return participantId;
     }
 
     async getParticipantQr(participantId: string) {

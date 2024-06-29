@@ -42,6 +42,51 @@ export class StorageService {
         }
     }
 
+    async blobExists({
+        blobName
+    }: {
+        blobName: string
+    }) : Promise<boolean> {
+        const blobClient = this.container.getBlobClient(blobName);
+        return blobClient.exists();
+    }
+
+    async getBuffer({
+        blobName
+    }: {
+        blobName: string
+    }): Promise<Buffer | null> {
+        const blobExists = await this.blobExists({blobName});
+        console.log({blobExists});
+        if(!blobExists) {
+            return null;
+        }
+        const blockBlobClient = this.container.getBlockBlobClient(blobName);
+        try {
+            const buffer = await blockBlobClient.downloadToBuffer();
+            console.log({
+                bufferFound: buffer
+            });
+            return buffer;
+        } catch (error) {
+            console.log('getBuffer: Error getting buffer');
+            throw error;
+        }
+    };
+
+    private streamToBuffer(readableStream: NodeJS.ReadableStream): Promise<Buffer> {
+        return new Promise((resolve, reject) => {
+            const chunks: Buffer[] = [];
+            readableStream.on("data", (data) => {
+                chunks.push(data instanceof Buffer ? data : Buffer.from(data));
+            });
+            readableStream.on("end", () => {
+                resolve(Buffer.concat(chunks));
+            });
+            readableStream.on("error", reject);
+        });
+    }
+
     private getSasQueryParameters(blobName: string): string {
         const permissions = BlobSASPermissions.parse("r");
         const startsOn = new Date();
