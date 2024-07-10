@@ -379,6 +379,30 @@
         ]
       }
     },
+    "/api/users/{slug}": {
+      "get": {
+        "operationId": "UsersController_findBySlug",
+        "summary": "Get a user",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return a user"
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      }
+    },
     "/api/users/{id}": {
       "put": {
         "operationId": "UsersController_update",
@@ -438,6 +462,44 @@
         ],
         "responses": {
           "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/users/{id}/posts": {
+      "get": {
+        "operationId": "UsersController_getUserPosts",
+        "summary": "Get user posts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/users/update-slugs": {
+      "post": {
+        "operationId": "UsersController_updateSlugs",
+        "parameters": [],
+        "responses": {
+          "201": {
             "description": ""
           }
         },

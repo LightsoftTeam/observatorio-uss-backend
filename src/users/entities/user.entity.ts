@@ -8,6 +8,7 @@ export enum Role{
 export class User {
     id?: string;
     name: string;
+    slug: string;
     image: string;
     email: string;
     password: string;

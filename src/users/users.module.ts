@@ -6,6 +6,7 @@ import { AzureCosmosDbModule } from '@nestjs/azure-database';
 import { CacheModule } from '@nestjs/cache-manager';
 import { CommonModule } from 'src/common/common.module';
 import { PostsModule } from 'src/posts/posts.module';
+import { PostsService } from 'src/posts/posts.service';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { PostsModule } from 'src/posts/posts.module';
     forwardRef(() => PostsModule)
   ],
   controllers: [UsersController],
-  providers: [UsersService],
-  exports: [UsersService, AzureCosmosDbModule, CacheModule],
+  providers: [UsersService, PostsService],
+  exports: [UsersService, PostsService, AzureCosmosDbModule, CacheModule],
 })
 export class UsersModule {}

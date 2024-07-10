@@ -19,6 +19,13 @@ export class UsersController {
     return this.userService.findAll(role);
   }
 
+  @ApiOperation({ summary: 'Get a user' })
+  @ApiResponse({ status: 200, description: 'Return a user' })
+  @Get('/:slug')
+  findBySlug(@Param('slug') slug: string){
+    return this.userService.findBySlug(slug);
+  }
+
   @UseGuards(AuthGuard)
   @ApiResponse({
     status: 401,
@@ -68,5 +75,16 @@ export class UsersController {
   @Post('/:id/toggle-active-state')
   toggleActiveState(@Param('id') id: string){
     return this.userService.toggleActiveState(id);
+  }
+
+  @ApiOperation({ summary: 'Get user posts' })
+  @Get('/:id/posts')
+  getUserPosts(@Param('id') id: string){
+    return this.userService.findPosts(id);
+  }
+
+  @Post('/update-slugs')
+  updateSlugs(){
+    return this.userService.updateSlugs();
   }
 }

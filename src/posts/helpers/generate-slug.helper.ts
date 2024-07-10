@@ -12,7 +12,7 @@ export function generateSlug(title: string): string{
     return slug;
 }
 
-export function generateUniquePostSlug({title, slugs}: {title: string, slugs: string[]}): string{
+export function generateUniqueSlug({title, slugs}: {title: string, slugs: string[]}): string{
     let slug = generateSlug(title);
     let uniqueSlug = slug;
     let i = 1;

@@ -7,9 +7,9 @@ export class GetPostsDto {
         enum: Category,
         nullable: true,
     })
-    category: Category;
+    category?: Category;
     @ApiProperty({
         nullable: true,
     })
-    userId: string;
+    userId?: string;
 }

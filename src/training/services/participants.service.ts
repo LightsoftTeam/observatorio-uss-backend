@@ -59,24 +59,32 @@ export class ParticipantsService {
     }
 
     async findByTrainingId(trainingId: string) {
-        const training = await this.trainingService.getTrainingById(trainingId);
-        if (!training) {
-            throw new NotFoundException('Training not found');
-        }
-        const trainingExecutions = training.executions;
-        const participants = training.participants;
-        return Promise.all(participants.map(async (participant) => {
-            const fillParticipant = await this.fillParticipant(participant);
-            return {
-                ...fillParticipant,
-                executions: trainingExecutions.map((execution) => ({
-                    id: execution.id,
-                    from: execution.from,
-                    to: execution.to,
-                    participantAttend: !!execution.attendance.find((attendance) => attendance.participantId === participant.id),
-                })),
+        try {
+            const training = await this.trainingService.getTrainingById(trainingId);
+            if (!training) {
+                throw new NotFoundException('Training not found');
             }
-        }));
+            const trainingExecutions = training.executions;
+            const participants = training.participants;
+            return Promise.all(participants.map(async (participant) => {
+                const fillParticipant = await this.fillParticipant(participant);
+                console.log({
+                    trainingExecutions
+                })
+                return {
+                    ...fillParticipant,
+                    executions: trainingExecutions.map((execution) => ({
+                        id: execution.id,
+                        from: execution.from,
+                        to: execution.to,
+                        participantAttend: !!execution.attendance.find((attendance) => attendance.participantId === participant.id),
+                    })),
+                }
+            }));
+        } catch (error) {
+            this.logger.error(`findByTrainingId ${error.message}`);
+            throw error;
+        }
     }
 
     async addParticipant(trainingId: string, addParticipantDto: AddParticipantDto) {

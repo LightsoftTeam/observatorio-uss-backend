@@ -4,7 +4,7 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { GetPostsDto } from './dto/get-posts.dto';
 import { Post } from './entities/post.entity';
-import { generateUniquePostSlug } from './helpers/generate-slug.helper';
+import { generateUniqueSlug } from './helpers/generate-slug.helper';
 import { calculateReadTime } from './helpers/calculate-read-time.helper';
 import { UsersService } from 'src/users/users.service';
 import { InjectModel } from '@nestjs/azure-database';
@@ -63,7 +63,7 @@ export class PostsService {
     }
     const { resources } = await this.postsContainer.items.query<{ slug: string }>(slugsQuerySpec).fetchAll();
     const slugs = resources.map(r => r.slug);
-    const slug = generateUniquePostSlug({ title, slugs });
+    const slug = generateUniqueSlug({ title, slugs });
     const readingTime = content ? calculateReadTime(content) : null;
     if(userId){
       await this.usersService.findOne(userId);//throws error if user not found
@@ -110,7 +110,7 @@ export class PostsService {
       }
       const { resources } = await this.postsContainer.items.query<{ slug: string }>(slugsQuerySpec).fetchAll();
       const slugs = resources.map(r => r.slug);
-      newSlug = generateUniquePostSlug({ title, slugs });
+      newSlug = generateUniqueSlug({ title, slugs });
     }
     const updatedPost: Post = {
       ...post,
@@ -167,20 +167,6 @@ export class PostsService {
       postsWithUser = postsWithUser.filter(p => p.userId === userId);
     }
     return postsWithUser;
-  }
-
-  async findByAuthor(userId: string) {
-    const querySpec = {
-      query: 'SELECT * FROM c WHERE c.userId = @userId',
-      parameters: [
-        {
-          name: '@userId',
-          value: userId,
-        },
-      ],
-    };
-    const { resources: posts } = await this.postsContainer.items.query<Post>(querySpec).fetchAll();
-    return posts;
   }
 
   async findOne(id: string) {
@@ -391,7 +377,7 @@ export class PostsService {
     const { resources } = await this.postsContainer.items.query<Post>(querySpec).fetchAll();
     const temporaryNewSlugs = [];
     const promises = resources.map(async post => {
-      const slug = generateUniquePostSlug({ title: post.title, slugs: temporaryNewSlugs });
+      const slug = generateUniqueSlug({ title: post.title, slugs: temporaryNewSlugs });
       const updatedPost = {
         ...post,
         slug

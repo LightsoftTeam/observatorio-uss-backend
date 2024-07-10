@@ -9,6 +9,8 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
 import { REQUEST } from '@nestjs/core';
+import { PostsService } from 'src/posts/posts.service';
+import { generateUniqueSlug } from 'src/posts/helpers/generate-slug.helper';
 
 const PASSWORD_SALT_ROUNDS = 5;
 const USER_LIST_CACHE_KEY = 'users';
@@ -22,7 +24,9 @@ export class UsersService {
     private readonly usersContainer: Container,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly logger: ApplicationLoggerService,
-    @Inject(REQUEST) private request: Request
+    @Inject(REQUEST) private request: Request,
+    @Inject(forwardRef(() => PostsService))
+    private readonly postsService: PostsService,
   ) { }
 
   async findAll(role?: Role) {
@@ -56,16 +60,25 @@ export class UsersService {
 
   async toggleActiveState(id: string) {
     const user = await this.findOne(id);
-    return this.updateStatus({id, isActive: !user.isActive});
+    return this.updateStatus({ id, isActive: !user.isActive });
   }
 
   async findOne(id: string) {
+    try {
+      const { resource } = await this.usersContainer.item(id, id).read<User>();
+      return resource;
+    } catch (error) {
+      throw new NotFoundException('User not found');
+    }
+  }
+
+  async findBySlug(slug: string) {
     const querySpec = {
-      query: 'SELECT * FROM c WHERE c.id = @id',
+      query: 'SELECT * FROM c WHERE c.slug = @slug AND c.isActive = true',
       parameters: [
         {
-          name: '@id',
-          value: id,
+          name: '@slug',
+          value: slug,
         },
       ],
     };
@@ -73,7 +86,7 @@ export class UsersService {
     if (resources.length === 0) {
       throw new NotFoundException('User not found');
     }
-    return resources[0];
+    return FormatCosmosItem.cleanDocument(resources[0], ['password']);
   }
 
   async findByIds(ids: string[]) {
@@ -109,8 +122,10 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto) {
     const hashedPassword = bcrypt.hashSync(createUserDto.password, PASSWORD_SALT_ROUNDS);
+    const slug = generateUniqueSlug({ title: createUserDto.name, slugs: await this.getSlugs() });
     const user = {
       ...createUserDto,
+      slug,
       password: hashedPassword,
       role: createUserDto.role || Role.AUTHOR,
       isActive: true,
@@ -153,7 +168,7 @@ export class UsersService {
   //   }
   // }
 
-  async updateStatus({id, isActive}: {id: string, isActive: boolean}) {
+  async updateStatus({ id, isActive }: { id: string, isActive: boolean }) {
     const user = await this.findOne(id);//throw not found exception if not found
     const updatedUser = {
       ...user,
@@ -163,6 +178,10 @@ export class UsersService {
     const newUser = FormatCosmosItem.cleanDocument(resource, ['password']);
     this.cacheManager.del(USER_LIST_CACHE_KEY);
     return newUser;
+  }
+
+  findPosts(userId: string) {
+    return this.postsService.findAll({ userId });
   }
 
   getLoggedUser(): User | null {
@@ -179,5 +198,29 @@ export class UsersService {
     if (!this.isAdmin()) {
       throw new NotFoundException('Unauthorized');
     }
+  }
+
+  private async getSlugs(): Promise<string[]> {
+    const querySpec = {
+      query: 'SELECT c.slug FROM c',
+      parameters: [],
+    };
+    const { resources } = await this.usersContainer.items.query<{ slug: string }>(querySpec).fetchAll();
+    return resources.map(u => u.slug);
+  }
+
+  async updateSlugs() {
+    const querySpec = {
+      query: 'SELECT * FROM c',
+      parameters: [],
+    };
+    const { resources } = await this.usersContainer.items.query<User>(querySpec).fetchAll();
+    const slugs = resources.map(u => u.slug || "");
+    for (const user of resources) {
+      const uniqueSlug = generateUniqueSlug({ title: user.name, slugs });
+      user.slug = uniqueSlug;
+      this.usersContainer.item(user.id).replace(user);
+    }
+    return 'ok';
   }
 }
