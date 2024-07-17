@@ -10,7 +10,7 @@ import { AuthGuard } from 'src/auth/guards/auth.guard';
 @ApiTags('Posts')
 @Controller('posts')
 export class PostsController {
-  constructor(private readonly postsService: PostsService) {}
+  constructor(private postsService: PostsService) {}
 
   @ApiResponse({
     status: 401,
@@ -44,19 +44,26 @@ export class PostsController {
     return this.postsService.update(id, updatePostDto);
   }
 
+  @Get()
   @ApiOperation({ summary: 'Get all posts' })
   @ApiResponse({ status: 200, description: 'The posts has been successfully retrieved.'})
-  @Get()
   findAll(@Query() query: GetPostsDto) {
     //TODO: validate query
     return this.postsService.findAll(query);
   }
 
+  @Get('find/home')
   @ApiOperation({ summary: 'Get home posts' })
-  @ApiResponse({ status: 200, description: 'The posts home has been successfully retrieved.'})
-  @Get('/find/home')
-  find() {
+  @ApiResponse({ status: 200, description: 'The home posts has been successfully retrieved.'})
+  getHomePosts(@Query('') _: string) {
     return this.postsService.getHomePosts();
+  }
+
+  @Get('find/requests')
+  @ApiOperation({ summary: 'Get post requests' })
+  @ApiResponse({ status: 200, description: 'The post requests has been successfully retrieved.'})
+  getPostRequests(@Query('') _: string) {
+    return this.postsService.findPostRequests();
   }
 
   @ApiOperation({ summary: 'Get a post by slug' })
@@ -105,16 +112,24 @@ export class PostsController {
   @Post('seed')
   seed() {
     return this.postsService.seed();
-  }  
+  } 
 
   @ApiOperation({ summary: 'Create a post request' })
   @ApiResponse({ status: 201, description: 'The post request has been successfully created.'})
   @Post('create-request')
-  createRequest(createPostDto: CreatePostDto) {
+  createRequest(@Body() createPostDto: CreatePostDto) {
     const {userId} = createPostDto;
     if(userId) {
       throw new UnauthorizedException('You are not allowed to create a post');
     }
     return this.postsService.create(createPostDto);
+  }
+
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Accept a post request' })
+  @ApiResponse({ status: 200, description: 'The post request has been successfully accepted.'})
+  @Post('accept-request/:id')
+  acceptRequest(@Param('id') id: string) {
+    return this.postsService.acceptPostRequest(id);
   }
 }

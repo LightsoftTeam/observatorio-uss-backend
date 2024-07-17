@@ -186,12 +186,27 @@
     },
     "/api/posts/find/home": {
       "get": {
-        "operationId": "PostsController_find",
+        "operationId": "PostsController_getHomePosts",
         "summary": "Get home posts",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "The posts home has been successfully retrieved."
+            "description": "The home posts has been successfully retrieved."
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      }
+    },
+    "/api/posts/find/requests": {
+      "get": {
+        "operationId": "PostsController_getPostRequests",
+        "summary": "Get post requests",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The post requests has been successfully retrieved."
           }
         },
         "tags": [
@@ -317,9 +332,43 @@
         "operationId": "PostsController_createRequest",
         "summary": "Create a post request",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePostDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "The post request has been successfully created."
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      }
+    },
+    "/api/posts/accept-request/{id}": {
+      "post": {
+        "operationId": "PostsController_acceptRequest",
+        "summary": "Accept a post request",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The post request has been successfully accepted."
           }
         },
         "tags": [

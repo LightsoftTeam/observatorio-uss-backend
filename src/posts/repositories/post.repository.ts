@@ -50,14 +50,18 @@ export class PostsRepository {
             query: `
                 SELECT ${BASIC_KEYS} FROM c
                 WHERE c.isActive = true
-                AND c.isPendingApproval = @isPendingApproval 
             `,
-            parameters: [
-                {
-                    name: '@isPendingApproval',
-                    value: isPendingApproval
-                }
-            ]
+            parameters: [{
+                name: '@isPendingApproval',
+                value: isPendingApproval
+            }]
+        }
+        if(!isPendingApproval){
+            //get undefined or true
+            querySpec.query += ' AND (c.isPendingApproval = @isPendingApproval OR NOT IS_DEFINED(c.isPendingApproval))';
+        }else{
+            //get true
+            querySpec.query += ' AND c.isPendingApproval = @isPendingApproval';
         }
         if (userId) {
             querySpec.query += ' AND c.userId = @userId';

@@ -60,6 +60,14 @@ export class PostsService {
     this.logger.setContext(PostsService.name);
   }
 
+  async findPostRequests(){
+    this.logger.log('retrieving posts from db');
+    const postRequests = await this.postsRepository.find({
+      isPendingApproval: true
+    });
+    return this.getPostsWithAuthor(postRequests);
+  }
+
   async create(createPostDto: CreatePostDto) {
     this.logger.log(`Creating post - ${JSON.stringify(createPostDto)}`);
     const { title, category, content, imageUrl, videoUrl, podcastUrl, description, attachments, imageDescription, tags, reference, userId, guestId } = createPostDto;
@@ -143,20 +151,13 @@ export class PostsService {
     category,
     userId
   }: GetPostsDto) {
-    this.logger.log('retrieving posts from db')
+    this.logger.log('retrieving posts from db');
+    this.logger.log(`category: ${category}, userId: ${userId}`);
     const posts = await this.postsRepository.find({
       category,
       userId
     });
-    return posts;
-  }
-
-  async findPostRequests() {
-    this.logger.log('retrieving post requests from db')
-    const postRequests = await this.postsRepository.find({
-      isPendingApproval: true
-    });
-    return postRequests;
+    return this.getPostsWithAuthor(posts);
   }
 
   async acceptPostRequest(id: string) {
@@ -423,5 +424,32 @@ export class PostsService {
       throw new BadRequestException('You cannot perform this action.');
     }
     return true;
+  }
+
+  private async getPostsWithAuthor(posts: Post[]) {
+    const userIds = [];
+    const guestIds = [];
+    posts.forEach(post => {
+      if(post.userId){
+        userIds.push(post.userId);
+      }
+      if(post.guestId){
+        guestIds.push(post.guestId);
+      }
+    });
+    const [users, guests] = await Promise.all([
+      this.usersService.findByIds(userIds),
+      this.guestsService.getByIds(guestIds)
+    ]);
+    const postsWithAuthor = posts.map(post => {
+      const user = users.find(u => u.id === post.userId);
+      const guest = guests.find(g => g.id === post.guestId);
+      return {
+        ...post,
+        user,
+        guest
+      }
+    });
+    return postsWithAuthor;
   }
 }

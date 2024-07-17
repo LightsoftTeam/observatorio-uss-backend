@@ -59,8 +59,10 @@ export class GuestsService {
   }
 
   async findOne(id: string) {
+    this.logger.debug(`find guest by id ${id}`);
     try {
-      const { resource: guest } = await this.guestsContainer.item(id).read<Guest>();
+      const { resource: guest } = await this.guestsContainer.item(id, id).read<Guest>();
+      this.logger.debug(`Guest found: ${JSON.stringify(guest)}`);
       return FormatCosmosItem.cleanDocument(guest);
     } catch (error) {
       this.logger.error(`Guest not found: ${error.message}`);
