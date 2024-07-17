@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsEnum, IsNotEmpty, IsString } from "class-validator";
-import { DocumentType } from "../entities/professor.entity";
+import { DocumentType } from "src/common/types/document-type.enum";
 
 export class CreateProfessorDto {
     @ApiProperty({

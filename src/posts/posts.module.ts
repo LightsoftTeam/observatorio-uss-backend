@@ -8,6 +8,9 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { AlgoliaService } from 'src/common/services/algolia.service';
 import { CommonModule } from 'src/common/common.module';
 import { UsersModule } from 'src/users/users.module';
+import { GuestsService } from 'src/guests/guests.service';
+import { PostsRepository } from './repositories/post.repository';
+import { GuestsModule } from 'src/guests/guests.module';
 
 @Module({
   imports: [
@@ -17,10 +20,11 @@ import { UsersModule } from 'src/users/users.module';
     ]),
     CacheModule.register(),
     CommonModule,
-    forwardRef(() => UsersModule)
+    forwardRef(() => UsersModule),
+    GuestsModule
   ],
   controllers: [PostsController],
-  providers: [PostsService, AlgoliaService],
-  exports: [PostsService, AzureCosmosDbModule, CacheModule]
+  providers: [PostsService, AlgoliaService, GuestsService, PostsRepository],
+  exports: [PostsService, AzureCosmosDbModule, CacheModule, GuestsService, PostsRepository]
 })
 export class PostsModule {}

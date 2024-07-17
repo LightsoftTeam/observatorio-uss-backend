@@ -11,9 +11,9 @@ import { VerifyParticipantErrorResponseDto, VerifyParticipantSuccessResponseDto 
 import { Response } from 'express';
 import { Readable } from 'stream';
 import { CompleteTrainingBadRequestDto } from './dto/complete-training-response.dto';
-import { DocumentType } from 'src/professors/entities/professor.entity';
 import { CreateTrainingBadRequestDto } from './dto/create-training-response.dto';
 import { DownloadQrBadRequestDto } from './dto/download-qr-response.dto';
+import { DocumentType } from 'src/common/types/document-type.enum';
 
 @ApiTags('Training')
 @Controller('training')

@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { AttendanceStatus, TrainingModality, TrainingRole } from "../entities/training.entity";
-import { DocumentType } from "src/professors/entities/professor.entity";
 import { ERROR_CODES } from "../services/participants.service";
+import { DocumentType } from "src/common/types/document-type.enum";
 
 class TrainingDto {
     @ApiProperty({

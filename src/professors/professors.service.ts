@@ -2,7 +2,7 @@ import { BadRequestException, Inject, Injectable, NotFoundException } from '@nes
 import type { Container } from '@azure/cosmos';
 import { CreateProfessorDto } from './dto/create-professor.dto';
 import { UpdateProfessorDto } from './dto/update-professor.dto';
-import { DocumentType, Professor } from './entities/professor.entity';
+import { Professor } from './entities/professor.entity';
 import { InjectModel } from '@nestjs/azure-database';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { SchoolsService } from 'src/schools/schools.service';
@@ -11,6 +11,7 @@ import { UsersService } from 'src/users/users.service';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { Generator } from 'src/common/helpers/generator.helper';
 import { MailService } from 'src/common/services/mail.service';
+import { DocumentType } from 'src/common/types/document-type.enum';
 
 export enum ERROR_CODES {
   PROFESSOR_ALREADY_EXISTS = 'PROFESSOR_ALREADY_EXISTS',

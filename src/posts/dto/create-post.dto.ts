@@ -80,6 +80,14 @@ export class CreatePostDto {
     @IsOptional()
     @IsUUID()
     userId?: string;
+
+    @ApiProperty({
+        description: 'guestId of the post',
+        example: 'a1b2c3d4-1234-5678-90ab-cdef12345678',
+    })
+    @IsOptional()
+    @IsString()
+    guestId?: string;
     
     @ApiProperty({
         description: '',

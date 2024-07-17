@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Query, Put, Delete, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Put, Delete, HttpCode, HttpStatus, UseGuards, UnauthorizedException } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -105,5 +105,16 @@ export class PostsController {
   @Post('seed')
   seed() {
     return this.postsService.seed();
+  }  
+
+  @ApiOperation({ summary: 'Create a post request' })
+  @ApiResponse({ status: 201, description: 'The post request has been successfully created.'})
+  @Post('create-request')
+  createRequest(createPostDto: CreatePostDto) {
+    const {userId} = createPostDto;
+    if(userId) {
+      throw new UnauthorizedException('You are not allowed to create a post');
+    }
+    return this.postsService.create(createPostDto);
   }
 }

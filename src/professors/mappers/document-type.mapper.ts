@@ -1,5 +1,4 @@
-import { TrainingRole } from "../../training/entities/training.entity";
-import { DocumentType } from '../entities/professor.entity';
+import { DocumentType } from "src/common/types/document-type.enum";
 
 export const DocumentTypeMap: {
     [key in DocumentType]: string;

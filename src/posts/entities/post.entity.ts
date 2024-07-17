@@ -43,5 +43,7 @@ export class Post {
     tags: string[];
     isActive: boolean;
     reference?: Reference;
+    guestId?: string;
+    isPendingApproval?: boolean;
     @CosmosDateTime() createdAt: Date;
 }

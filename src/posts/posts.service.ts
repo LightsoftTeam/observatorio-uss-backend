@@ -17,6 +17,8 @@ import { AlgoliaService, PostAlgoliaRecord } from 'src/common/services/algolia.s
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
 import { Role } from 'src/users/entities/user.entity';
 import { scrapedPosts } from 'src/scrap/outputs/posts';
+import { PostsRepository } from './repositories/post.repository';
+import { GuestsService } from 'src/guests/guests.service';
 
 const BASIC_KEYS_LIST = [
   'id',
@@ -37,7 +39,6 @@ const BASIC_KEYS_LIST = [
 
 const BASIC_KEYS = BASIC_KEYS_LIST.map(f => `c.${f}`).join(', ')
 const HOME_POSTS_KEY = 'homePosts';
-const POSTS_LIST_KEY = 'postsList';
 const TAGS_KEY = 'tags';
 const LONG_CACHE_TIME = 1000 * 60 * 60 * 3;//3 hours
 
@@ -51,13 +52,24 @@ export class PostsService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
+    private readonly guestsService: GuestsService,
     private readonly algoliaService: AlgoliaService,
-    private readonly logger: ApplicationLoggerService
-  ) { }
+    private readonly logger: ApplicationLoggerService,
+    private readonly postsRepository: PostsRepository,
+  ) { 
+    this.logger.setContext(PostsService.name);
+  }
 
   async create(createPostDto: CreatePostDto) {
     this.logger.log(`Creating post - ${JSON.stringify(createPostDto)}`);
-    const { title, category, content, imageUrl, videoUrl, podcastUrl, description, attachments, imageDescription, tags, reference, userId } = createPostDto;
+    const { title, category, content, imageUrl, videoUrl, podcastUrl, description, attachments, imageDescription, tags, reference, userId, guestId } = createPostDto;
+    let isPendingApproval = false;
+    if((userId && guestId) || (userId && reference) || (guestId && reference) || (!userId && !guestId && !reference)){
+      throw new BadRequestException('author of the post is not valid');
+    }
+    if(guestId){
+      isPendingApproval = true;
+    }
     const slugsQuerySpec = {
       query: 'SELECT c.slug FROM c'
     }
@@ -69,7 +81,7 @@ export class PostsService {
       await this.usersService.findOne(userId);//throws error if user not found
     }
 
-    const post = {
+    const post: Post = {
       title,
       slug,
       category,
@@ -83,14 +95,15 @@ export class PostsService {
       readingTime,
       tags: tags.map(t => t.trim().toLowerCase()),
       userId,
+      guestId,
       createdAt: new Date(),
       isActive: true,
       likes: 0,
-      reference
+      reference,
+      isPendingApproval
     }
     const { resource } = await this.postsContainer.items.create<Post>(post);
     this.algoliaService.saveObject(this.transformPostToAlgoliaRecord(post));
-    this.cacheManager.del(POSTS_LIST_KEY);
     this.cacheManager.del(TAGS_KEY);
     return FormatCosmosItem.cleanDocument(resource, ['content']);
   }
@@ -121,7 +134,6 @@ export class PostsService {
     }
     const { resource } = await this.postsContainer.item(post.id).replace(updatedPost);
     this.algoliaService.updateObject(this.transformPostToAlgoliaRecord(updatedPost));
-    this.cacheManager.del(POSTS_LIST_KEY);
     this.cacheManager.del(HOME_POSTS_KEY);
     this.cacheManager.del(TAGS_KEY);
     return FormatCosmosItem.cleanDocument(resource, ['content']);
@@ -131,42 +143,37 @@ export class PostsService {
     category,
     userId
   }: GetPostsDto) {
-    const cachedPosts = await this.cacheManager.get(POSTS_LIST_KEY);
-    if (cachedPosts) {
-      let cachedResponse = cachedPosts as Post[];
-      if(category){
-        this.logger.log('retrieving posts from cache with category')
-        cachedResponse = cachedResponse.filter(p => p.category === category);
-      }
-      if(userId){
-        this.logger.log('retrieving posts from cache with userId')
-        cachedResponse = cachedResponse.filter(p => p.userId === userId);
-      }
-      return cachedResponse;
-    }
     this.logger.log('retrieving posts from db')
-    const querySpec = {
-      query: `SELECT ${BASIC_KEYS} FROM c`,
-      parameters: []
-    }
-    querySpec.query += ' ORDER BY c.createdAt DESC';
-    const { resources } = await this.postsContainer.items.query<Post>(querySpec).fetchAll();
-    const users = await this.usersService.findAll();
-    let postsWithUser = resources.map(post => {
-      const user = users.find(u => u.id === post.userId);
-      return {
-        ...post,
-        user
-      }
+    const posts = await this.postsRepository.find({
+      category,
+      userId
     });
-    this.cacheManager.set(POSTS_LIST_KEY, postsWithUser, LONG_CACHE_TIME);
-    if (category) {
-      postsWithUser = postsWithUser.filter(p => p.category === category);
+    return posts;
+  }
+
+  async findPostRequests() {
+    this.logger.log('retrieving post requests from db')
+    const postRequests = await this.postsRepository.find({
+      isPendingApproval: true
+    });
+    return postRequests;
+  }
+
+  async acceptPostRequest(id: string) {
+    const post = await this.findOne(id);
+    if(!post.isPendingApproval){
+      throw new BadRequestException('This post is not pending approval');
     }
-    if (userId) {
-      postsWithUser = postsWithUser.filter(p => p.userId === userId);
+    const guest = await this.guestsService.findOne(post.guestId);
+    if(!guest.isApproved){
+      this.guestsService.approve(post.guestId);
     }
-    return postsWithUser;
+    const updatedPost = {
+      ...post,
+      isPendingApproval: false
+    }
+    const { resource } = await this.postsContainer.item(post.id).replace(updatedPost);
+    return FormatCosmosItem.cleanDocument(resource);
   }
 
   async findOne(id: string) {
@@ -230,7 +237,6 @@ export class PostsService {
     } else {
       this.algoliaService.deleteObject(id);
     }
-    this.cacheManager.del(POSTS_LIST_KEY);
     return resource.isActive;
   }
 
@@ -239,7 +245,6 @@ export class PostsService {
     await this.throwErrorIfUserIsNotOwner(post);
     await this.checkPostReferences(id);//throws error if post is being referenced
     this.algoliaService.deleteObject(id);
-    this.cacheManager.del(POSTS_LIST_KEY);
     await this.postsContainer.item(id, post.category).delete();
     return null;
   }
@@ -389,7 +394,6 @@ export class PostsService {
     const newPosts = await this.postsContainer.items.query<Post>(querySpec).fetchAll();
     const newSlugs = newPosts.resources.map(p => p.slug);
     const uniqueSlugs = new Set(newSlugs);
-    this.cacheManager.del(POSTS_LIST_KEY);
     this.cacheManager.del(TAGS_KEY);
     this.cacheManager.del(HOME_POSTS_KEY);
     return {

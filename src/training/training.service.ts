@@ -11,9 +11,9 @@ import { ApplicationLoggerService } from 'src/common/services/application-logger
 import { SchoolsService } from 'src/schools/schools.service';
 import { School } from 'src/schools/entities/school.entity';
 import { ProfessorsService } from 'src/professors/professors.service';
-import { DocumentType } from 'src/professors/entities/professor.entity';
 import { StorageService } from 'src/storage/storage.service';
 import { CertificatesHelper } from 'src/common/helpers/certificates.helper';
+import { DocumentType } from 'src/common/types/document-type.enum';
 const AdmZip = require("adm-zip");
 
 const DDA_ORGANIZER_ID = 'DDA';

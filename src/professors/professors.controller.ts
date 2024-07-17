@@ -3,9 +3,10 @@ import { ProfessorsService } from './professors.service';
 import { CreateProfessorDto } from './dto/create-professor.dto';
 import { UpdateProfessorDto } from './dto/update-professor.dto';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
-import { DocumentType, Professor } from './entities/professor.entity';
+import { Professor } from './entities/professor.entity';
 import { GuestGuard } from 'src/auth/guards/guest.guard';
 import { InvalidVerificationCodeErrorResponseDto } from './dto/invalid-verification-code.dto';
+import { DocumentType } from 'src/common/types/document-type.enum';
 
 @ApiTags('Professors')
 @Controller('professors')

@@ -14,6 +14,7 @@ import { TrainingModule } from './training/training.module';
 import { ProfessorsModule } from './professors/professors.module';
 import { SchoolsModule } from './schools/schools.module';
 import { MailService } from './common/services/mail.service';
+import { GuestsModule } from './guests/guests.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { MailService } from './common/services/mail.service';
     TrainingModule,
     ProfessorsModule,
     SchoolsModule,
+    GuestsModule,
   ],
   controllers: [AppController],
   providers: [AppService, MailService],

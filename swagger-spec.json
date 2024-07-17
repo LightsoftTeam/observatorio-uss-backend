@@ -312,6 +312,21 @@
         ]
       }
     },
+    "/api/posts/create-request": {
+      "post": {
+        "operationId": "PostsController_createRequest",
+        "summary": "Create a post request",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "The post request has been successfully created."
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      }
+    },
     "/api/common/sync-algolia": {
       "post": {
         "operationId": "CommonController_syncAlgolia",
@@ -506,6 +521,143 @@
         "tags": [
           "Users"
         ]
+      }
+    },
+    "/api/guests": {
+      "post": {
+        "operationId": "GuestsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGuestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The record has been successfully created."
+          },
+          "400": {
+            "description": "Invalid code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateGuestBadRequestDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "GuestsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/guests/{id}": {
+      "get": {
+        "operationId": "GuestsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "patch": {
+        "operationId": "GuestsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGuestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "operationId": "GuestsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/guests/{documentType}/{documentNumber}": {
+      "get": {
+        "operationId": "GuestsController_findByDocument",
+        "parameters": [
+          {
+            "name": "documentType",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "documentNumber",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The found record"
+          },
+          "404": {
+            "description": "Guest not found"
+          }
+        }
       }
     },
     "/api/auth/login": {
@@ -1653,6 +1805,11 @@
             "description": "",
             "example": ""
           },
+          "guestId": {
+            "type": "string",
+            "description": "guestId of the post",
+            "example": "a1b2c3d4-1234-5678-90ab-cdef12345678"
+          },
           "attachments": {
             "description": "",
             "example": "",
@@ -1685,6 +1842,7 @@
           "imageUrl",
           "imageDescription",
           "userId",
+          "guestId",
           "attachments",
           "tags",
           "reference"
@@ -1791,6 +1949,103 @@
             "description": "The role of the user",
             "example": "author",
             "nullable": true
+          }
+        }
+      },
+      "CreateGuestDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the guest",
+            "example": "John Doe"
+          },
+          "image": {
+            "type": "string",
+            "description": "The image of the guest",
+            "example": "https://example.com/image.jpg"
+          },
+          "email": {
+            "type": "string",
+            "description": "The email of the guest",
+            "example": ""
+          },
+          "documentType": {
+            "type": "string",
+            "description": "The document type of the guest",
+            "example": "ID"
+          },
+          "documentNumber": {
+            "type": "string",
+            "description": "The document number of the guest",
+            "example": "123456789"
+          },
+          "verificationCode": {
+            "type": "string",
+            "description": "The token of the guest",
+            "example": false
+          }
+        },
+        "required": [
+          "name",
+          "image",
+          "email",
+          "documentType",
+          "documentNumber",
+          "verificationCode"
+        ]
+      },
+      "CreateGuestBadRequestDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "The error code",
+            "example": "INVALID_CODE_ERROR"
+          },
+          "message": {
+            "type": "string",
+            "description": "The error message",
+            "example": "Invalid code"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "UpdateGuestDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the guest",
+            "example": "John Doe"
+          },
+          "image": {
+            "type": "string",
+            "description": "The image of the guest",
+            "example": "https://example.com/image.jpg"
+          },
+          "email": {
+            "type": "string",
+            "description": "The email of the guest",
+            "example": ""
+          },
+          "documentType": {
+            "type": "string",
+            "description": "The document type of the guest",
+            "example": "ID"
+          },
+          "documentNumber": {
+            "type": "string",
+            "description": "The document number of the guest",
+            "example": "123456789"
+          },
+          "verificationCode": {
+            "type": "string",
+            "description": "The token of the guest",
+            "example": false
           }
         }
       },
