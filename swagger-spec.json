@@ -390,6 +390,31 @@
         ]
       }
     },
+    "/api/common/send-otp": {
+      "post": {
+        "operationId": "CommonController_sendOtp",
+        "summary": "Send OTP",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendOTPDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OTP sent successfully"
+          }
+        },
+        "tags": [
+          "Common"
+        ]
+      }
+    },
     "/api/users": {
       "get": {
         "operationId": "UsersController_findAll",
@@ -1930,6 +1955,19 @@
         },
         "required": [
           "action"
+        ]
+      },
+      "SendOTPDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "The email of the user",
+            "example": "test@test.com"
+          }
+        },
+        "required": [
+          "email"
         ]
       },
       "CreateUserDto": {
