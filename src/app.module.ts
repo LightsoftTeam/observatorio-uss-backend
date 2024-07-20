@@ -15,6 +15,7 @@ import { ProfessorsModule } from './professors/professors.module';
 import { SchoolsModule } from './schools/schools.module';
 import { MailService } from './common/services/mail.service';
 import { GuestsModule } from './guests/guests.module';
+import { StatisticsModule } from './statistics/statistics.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { GuestsModule } from './guests/guests.module';
     ProfessorsModule,
     SchoolsModule,
     GuestsModule,
+    StatisticsModule,
   ],
   controllers: [AppController],
   providers: [AppService, MailService],
