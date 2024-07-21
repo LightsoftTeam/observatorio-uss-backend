@@ -91,7 +91,7 @@ export class UsersService {
 
   async findByIds(ids: string[]) {
     const querySpec = {
-      query: 'SELECT c.id, c.name, c.image FROM c WHERE ARRAY_CONTAINS(@ids, c.id)',
+      query: 'SELECT * FROM c WHERE ARRAY_CONTAINS(@ids, c.id)',
       parameters: [
         {
           name: '@ids',
