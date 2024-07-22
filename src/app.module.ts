@@ -10,6 +10,7 @@ import { CommonModule } from './common/common.module';
 import { StorageModule } from './storage/storage.module';
 import { AuthoritiesModule } from './authorities/authorities.module';
 import { TagsModule } from './tags/tags.module';
+import { StatisticsModule } from './statistics/statistics.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { TagsModule } from './tags/tags.module';
     StorageModule,
     AuthoritiesModule,
     TagsModule,
+    StatisticsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
