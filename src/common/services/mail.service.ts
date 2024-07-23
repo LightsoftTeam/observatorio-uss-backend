@@ -46,6 +46,9 @@ export class MailService {
     }
 
     async sendVerificationCode({ to, code }) {
+        if(process.env.NODE_ENV === 'development') {
+            return;
+        }
         const template = `
                 <h1>Verification Code</h1>
                 <p>Your verification code is: <b>${code}</b></p>

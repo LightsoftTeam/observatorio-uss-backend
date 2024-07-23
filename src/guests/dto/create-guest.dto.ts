@@ -44,5 +44,7 @@ export class CreateGuestDto {
         description: 'The token of the guest',
         example: false,
     })
+    @IsString()
+    @IsNotEmpty()
     verificationCode: string;
 }
