@@ -35,7 +35,7 @@ export class GuestsService {
     };
     const verifiedEmail = await this.cacheManager.get(verificationCode);
     this.logger.log(`Verified email: ${verifiedEmail}, environment: ${process.env.NODE_ENV}`);
-    if (verifiedEmail !== guest.email && process.env.NODE_ENV === 'production') {
+    if (verifiedEmail !== guest.email && process.env.NODE_ENV !== 'development') {
       throw new BadRequestException({
         message: "Invalid code",
         code: CREATE_ERRORS.INVALID_CODE_ERROR,
