@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put } from '@nestjs/common';
 import { GuestsService } from './guests.service';
 import { CreateGuestDto } from './dto/create-guest.dto';
 import { UpdateGuestDto } from './dto/update-guest.dto';
@@ -34,9 +34,9 @@ export class GuestsController {
     return this.guestsService.findByDocument({ documentType, documentNumber });
   }
 
-  @Patch(':id')
+  @Put(':id')
   update(@Param('id') id: string, @Body() updateGuestDto: UpdateGuestDto) {
-    return this.guestsService.update(+id, updateGuestDto);
+    return this.guestsService.update(id, updateGuestDto);
   }
 
   @Delete(':id')

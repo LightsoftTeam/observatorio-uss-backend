@@ -656,7 +656,7 @@
           }
         }
       },
-      "patch": {
+      "put": {
         "operationId": "GuestsController_update",
         "parameters": [
           {

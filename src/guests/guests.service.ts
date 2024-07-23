@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateGuestDto } from './dto/create-guest.dto';
 import { UpdateGuestDto } from './dto/update-guest.dto';
 import { Guest } from './entities/guest.entity';
@@ -45,6 +45,17 @@ export class GuestsService {
     return FormatCosmosItem.cleanDocument(resource);
   }
 
+  async update(id: string, updateGuestDto: UpdateGuestDto) {
+    this.logger.log(`Updating a guest ${JSON.stringify(updateGuestDto)}`);
+    const guest = await this.findOne(id);
+    const updatedGuest = {
+      ...guest,
+      ...updateGuestDto,
+    };
+    const { resource } = await this.guestsContainer.item(id).replace(updatedGuest);
+    return FormatCosmosItem.cleanDocument(resource);
+  }
+
   async getByIds(ids: string[]) {
     this.logger.log('Getting guests by ids');
     const query = {
@@ -67,7 +78,7 @@ export class GuestsService {
       return FormatCosmosItem.cleanDocument(guest);
     } catch (error) {
       this.logger.error(`Guest not found: ${error.message}`);
-      throw new Error('Guest not found');
+      throw new NotFoundException('Guest not found');
     }
   }
 
@@ -93,10 +104,6 @@ export class GuestsService {
     guest.isApproved = true;
     await this.guestsContainer.item(id).replace(guest);
     return FormatCosmosItem.cleanDocument(guest);
-  }
-
-  update(id: number, updateGuestDto: UpdateGuestDto) {
-    return `This action updates a #${id} guest`;
   }
 
   remove(id: number) {
