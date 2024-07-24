@@ -5,6 +5,7 @@ import { DocumentType } from 'src/common/types/document-type.enum';
 export class Guest {
     id?: string;
     name: string;
+    slug: string;
     image: string;
     email: string;
     documentType: DocumentType;

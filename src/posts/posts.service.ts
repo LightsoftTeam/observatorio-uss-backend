@@ -50,7 +50,6 @@ export class PostsService {
     @InjectModel(HomePost)
     private readonly homePostsContainer: Container,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-    @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
     private readonly guestsService: GuestsService,
     private readonly algoliaService: AlgoliaService,
@@ -88,6 +87,7 @@ export class PostsService {
     if(userId){
       await this.usersService.findOne(userId);//throws error if user not found
     }
+    //TODO: verify if guest exists
 
     const post: Post = {
       title,
@@ -149,13 +149,15 @@ export class PostsService {
 
   async findAll({
     category,
-    userId
+    userId,
+    guestId,
   }: GetPostsDto) {
     this.logger.log('retrieving posts from db');
     this.logger.log(`category: ${category}, userId: ${userId}`);
     const posts = await this.postsRepository.find({
       category,
-      userId
+      userId,
+      guestId,
     });
     return this.getPostsWithAuthor(posts);
   }

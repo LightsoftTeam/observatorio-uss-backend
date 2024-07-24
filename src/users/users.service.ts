@@ -9,7 +9,6 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
 import { REQUEST } from '@nestjs/core';
-import { PostsService } from 'src/posts/posts.service';
 import { generateUniqueSlug } from 'src/posts/helpers/generate-slug.helper';
 
 const PASSWORD_SALT_ROUNDS = 5;
@@ -25,8 +24,6 @@ export class UsersService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly logger: ApplicationLoggerService,
     @Inject(REQUEST) private request: Request,
-    @Inject(forwardRef(() => PostsService))
-    private readonly postsService: PostsService,
   ) { }
 
   async findAll(role?: Role) {
@@ -138,6 +135,7 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
+    //TODO: update slug if name changes
     const isAdmin = this.isAdmin();
     const loggedUser = this.getLoggedUser();
     if (!isAdmin && loggedUser?.id !== id) {
@@ -178,10 +176,6 @@ export class UsersService {
     const newUser = FormatCosmosItem.cleanDocument(resource, ['password']);
     this.cacheManager.del(USER_LIST_CACHE_KEY);
     return newUser;
-  }
-
-  findPosts(userId: string) {
-    return this.postsService.findAll({ userId });
   }
 
   getLoggedUser(): User | null {

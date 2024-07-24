@@ -77,12 +77,6 @@ export class UsersController {
     return this.userService.toggleActiveState(id);
   }
 
-  @ApiOperation({ summary: 'Get user posts' })
-  @Get('/:id/posts')
-  getUserPosts(@Param('id') id: string){
-    return this.userService.findPosts(id);
-  }
-
   @Post('/update-slugs')
   updateSlugs(){
     return this.userService.updateSlugs();

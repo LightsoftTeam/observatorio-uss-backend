@@ -4,8 +4,9 @@ import { AlgoliaService } from './services/algolia.service';
 import { CommonController } from './common.controller';
 import { ApplicationLoggerService } from './services/application-logger.service';
 import { MailService } from './services/mail.service';
-import { CacheModule } from '@nestjs/cache-manager';
 import { CommonService } from './common.service';
+import { OtpService } from './services/otp.service';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   providers: [
@@ -20,10 +21,10 @@ import { CommonService } from './common.service';
     },
     ApplicationLoggerService,
     MailService,
-    CommonService
+    CommonService,
+    OtpService,
   ],
   controllers: [CommonController],
-  imports: [CacheModule.register()],
   exports: [AlgoliaService, ApplicationLoggerService, MailService]
 })
 export class CommonModule { }

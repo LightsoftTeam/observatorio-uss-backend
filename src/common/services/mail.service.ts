@@ -46,7 +46,8 @@ export class MailService {
     }
 
     async sendVerificationCode({ to, code }) {
-        if(process.env.NODE_ENV === 'development') {
+        const verificationOtpIsActive = (process.env.OTP_VERIFICATION_IS_ACTIVE || 'true') === 'true'
+        if(!verificationOtpIsActive) {
             return;
         }
         const template = `

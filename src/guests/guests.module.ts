@@ -4,20 +4,20 @@ import { GuestsController } from './guests.controller';
 import { AzureCosmosDbModule } from '@nestjs/azure-database';
 import { Guest } from './entities/guest.entity';
 import { CommonModule } from 'src/common/common.module';
-import { CacheModule } from '@nestjs/cache-manager';
+import { OtpService } from 'src/common/services/otp.service';
 
 @Module({
   controllers: [GuestsController],
-  providers: [GuestsService],
+  providers: [GuestsService, OtpService],
   imports: [
     AzureCosmosDbModule.forFeature([{
       dto: Guest,
     }]),
     CommonModule,
-    CacheModule.register(),
   ],
   exports: [
-    AzureCosmosDbModule
+    AzureCosmosDbModule,
+    OtpService
   ]
 })
 export class GuestsModule {}

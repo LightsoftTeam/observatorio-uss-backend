@@ -10,6 +10,7 @@ export interface PostFilters {
     category?: string;
     isPendingApproval?: boolean;
     userId?: string;
+    guestId?: string;
 }
 
 const BASIC_KEYS_LIST = [
@@ -29,7 +30,7 @@ const BASIC_KEYS_LIST = [
     'tags',
     'createdAt'
 ];
-const BASIC_KEYS = BASIC_KEYS_LIST.map(f => `c.${f}`).join(', ');
+export const BASIC_KEYS = BASIC_KEYS_LIST.map(f => `c.${f}`).join(', ');
 
 @Injectable()
 export class PostsRepository {
@@ -45,6 +46,7 @@ export class PostsRepository {
         category,
         isPendingApproval = false,
         userId,
+        guestId,
     }: PostFilters) {
         const querySpec: SqlQuerySpec = {
             query: `
@@ -68,6 +70,13 @@ export class PostsRepository {
             querySpec.parameters.push({
                 name: '@userId',
                 value: userId
+            });
+        }
+        if(guestId){
+            querySpec.query += ' AND c.guestId = @guestId';
+            querySpec.parameters.push({
+                name: '@guestId',
+                value: guestId
             });
         }
         if (category) {
