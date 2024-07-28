@@ -11,18 +11,29 @@ export class ExecutionRequest {
     @IsString()
     @IsOptional()
     id?: string;
+    
     @ApiProperty({
         description: 'The date of the execution',
         example: '2022-07-01',
     })
     @IsDateString()
     from: string;
+
     @ApiProperty({
         description: 'The end date of the execution',
         example: '2022-07-01',
     })
     @IsDateString()
     to: string;
+
+    @ApiProperty({
+        description: 'The place of the execution',
+        example: 'Building A',
+        nullable: true,
+    })
+    @IsString()
+    @IsOptional()
+    place?: string;
 }
 
 export class CreateTrainingDto {

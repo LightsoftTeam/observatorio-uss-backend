@@ -11,6 +11,7 @@ export interface Execution {
     id: string;
     from: string;
     to: string;
+    place?: string;
     attendance: ExecutionAttendance[];
 }
 
