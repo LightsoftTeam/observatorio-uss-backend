@@ -14,30 +14,10 @@ import { ProfessorsService } from 'src/professors/professors.service';
 import { StorageService } from 'src/storage/storage.service';
 import { CertificatesHelper } from 'src/common/helpers/certificates.helper';
 import { DocumentType } from 'src/common/types/document-type.enum';
+import { ERROR_CODES, ERRORS } from './constants/errors.constants';
 const AdmZip = require("adm-zip");
 
 const DDA_ORGANIZER_ID = 'DDA';
-
-export enum ERROR_CODES {
-  TRAINING_CODE_ALREADY_EXISTS = 'TRAINING_CODE_ALREADY_EXISTS',
-  DATE_RANGE_INVALID = 'DATE_RANGE_INVALID',
-  TRAINING_NOT_HAVE_PARTICIPANTS_WITH_CERTIFICATES = 'TRAINING_NOT_HAVE_PARTICIPANTS_WITH_CERTIFICATES',
-}
-
-export const ERRORS = {
-  [ERROR_CODES.TRAINING_CODE_ALREADY_EXISTS]: {
-    code: ERROR_CODES.TRAINING_CODE_ALREADY_EXISTS,
-    message: 'The training code already exists.',
-  },
-  [ERROR_CODES.DATE_RANGE_INVALID]: {
-    code: ERROR_CODES.DATE_RANGE_INVALID,
-    message: 'The date range is invalid.',
-  },
-  [ERROR_CODES.TRAINING_NOT_HAVE_PARTICIPANTS_WITH_CERTIFICATES]: {
-    code: ERROR_CODES.TRAINING_NOT_HAVE_PARTICIPANTS_WITH_CERTIFICATES,
-    message: 'The training does not have participants with certificates.',
-  },
-}
 
 const BASIC_FIELDS = [
   'id',

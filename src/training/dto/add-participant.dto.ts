@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { ArrayMinSize, IsArray, IsEnum, IsNotEmpty, IsString } from "class-validator";
 import { TrainingRole } from "../entities/training.entity";
 
 export class AddParticipantDto {
@@ -17,7 +17,8 @@ export class AddParticipantDto {
         nullable: true,
         default: TrainingRole.ASSISTANT,
     })
-    @IsEnum(TrainingRole)
-    @IsOptional()
-    role?: TrainingRole;
+    @IsArray()
+    @IsEnum(TrainingRole, { each: true })
+    @ArrayMinSize(1)
+    roles: TrainingRole[];
 }

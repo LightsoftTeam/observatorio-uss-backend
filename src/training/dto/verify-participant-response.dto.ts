@@ -1,6 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { AttendanceStatus, TrainingModality, TrainingRole } from "../entities/training.entity";
-import { ERROR_CODES } from "../services/participants.service";
 import { DocumentType } from "src/common/types/document-type.enum";
 
 class TrainingDto {
@@ -136,18 +135,4 @@ export class VerifyParticipantSuccessResponseDto {
         type: ParticipantDto,
     })
     participant: ParticipantDto;
-}
-
-export class VerifyParticipantErrorResponseDto {
-    @ApiProperty({
-        description: 'The error code.',
-        example: ERROR_CODES.QR_CODE_NOT_FOUND,
-        enum: ERROR_CODES,
-    })
-    code: ERROR_CODES;
-    @ApiProperty({
-        description: 'The error message.',
-        example: 'The QR code is not valid.',
-    })
-    message: string;
 }

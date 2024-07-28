@@ -7,16 +7,19 @@ import { AddParticipantDto } from './dto/add-participant.dto';
 import { UpdateParticipantDto } from './dto/update-participant.dto';
 import { AddAttendanceToExecutionDto } from './dto/add-attendance-to-execution.dto';
 import { ParticipantsService } from './services/participants.service';
-import { VerifyParticipantErrorResponseDto, VerifyParticipantSuccessResponseDto } from './dto/verify-participant-response.dto';
 import { Response } from 'express';
 import { Readable } from 'stream';
-import { CompleteTrainingBadRequestDto } from './dto/complete-training-response.dto';
-import { CreateTrainingBadRequestDto } from './dto/create-training-response.dto';
-import { DownloadQrBadRequestDto } from './dto/download-qr-response.dto';
 import { DocumentType } from 'src/common/types/document-type.enum';
+import { TrainingBadRequestDto } from './dto/bad-response-dto';
+import { VerifyParticipantSuccessResponseDto } from './dto/verify-participant-response.dto';
 
 @ApiTags('Training')
 @Controller('training')
+@ApiResponse({
+  status: 400,
+  description: 'Bad Request',
+  type: TrainingBadRequestDto,
+})
 export class TrainingController {
   constructor(
     private readonly trainingService: TrainingService,
@@ -32,7 +35,6 @@ export class TrainingController {
   @ApiResponse({
     status: 400,
     description: 'Bad Request.',
-    type: CreateTrainingBadRequestDto,
   })
   create(@Body() createTrainingDto: CreateTrainingDto) {
     return this.trainingService.create(createTrainingDto);
@@ -81,7 +83,6 @@ export class TrainingController {
   @ApiResponse({
     status: 404,
     description: 'Training not found',
-    type: CreateTrainingBadRequestDto,
   })
   update(@Param('id') id: string, @Body() updateTrainingDto: UpdateTrainingDto) {
     return this.trainingService.update(id, updateTrainingDto);
@@ -183,7 +184,6 @@ export class TrainingController {
   @ApiResponse({
     status: 400,
     description: 'Bad Request',
-    type: VerifyParticipantErrorResponseDto,
   })
   verifyParticipant(@Param('participantId') participantId: string) {
     return this.participantsService.verifyParticipant(participantId);
@@ -221,7 +221,6 @@ export class TrainingController {
   @ApiResponse({
     status: 400,
     description: 'Bad Request',
-    type: CompleteTrainingBadRequestDto,
   })
   completeTraining(@Param('participantId') participantId: string) {
     return this.participantsService.completeTraining(participantId);
@@ -276,7 +275,6 @@ export class TrainingController {
   @ApiResponse({
     status: 400,
     description: 'Bad Request',
-    type: DownloadQrBadRequestDto,
   })
   async downloadQr(@Param('participantId') participantId: string, @Res() res: Response) {
     const buffer = await this.participantsService.getParticipantQr(participantId);

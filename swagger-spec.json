@@ -831,14 +831,7 @@
             "description": "The training has been successfully created."
           },
           "400": {
-            "description": "Bad Request.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateTrainingBadRequestDto"
-                }
-              }
-            }
+            "description": "Bad Request."
           }
         },
         "tags": [
@@ -852,6 +845,16 @@
         "responses": {
           "200": {
             "description": "All trainings were found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingBadRequestDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -884,6 +887,16 @@
         "responses": {
           "200": {
             "description": "All trainings of a professor were found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingBadRequestDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -908,6 +921,16 @@
         "responses": {
           "200": {
             "description": "A training was found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingBadRequestDto"
+                }
+              }
+            }
           },
           "404": {
             "description": "Training not found"
@@ -944,15 +967,18 @@
           "200": {
             "description": "The training has been successfully updated."
           },
-          "404": {
-            "description": "Training not found",
+          "400": {
+            "description": "Bad Request",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CreateTrainingBadRequestDto"
+                  "$ref": "#/components/schemas/TrainingBadRequestDto"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Training not found"
           }
         },
         "tags": [
@@ -975,6 +1001,16 @@
         "responses": {
           "204": {
             "description": "The training has been successfully removed."
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingBadRequestDto"
+                }
+              }
+            }
           },
           "404": {
             "description": "Training not found"
@@ -1040,6 +1076,16 @@
         "responses": {
           "200": {
             "description": "All participants were found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingBadRequestDto"
+                }
+              }
+            }
           },
           "404": {
             "description": "Training not found"
@@ -1160,14 +1206,7 @@
             }
           },
           "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VerifyParticipantErrorResponseDto"
-                }
-              }
-            }
+            "description": "Bad Request"
           }
         },
         "tags": [
@@ -1242,14 +1281,7 @@
             "description": "The training has been successfully completed"
           },
           "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CompleteTrainingBadRequestDto"
-                }
-              }
-            }
+            "description": "Bad Request"
           },
           "404": {
             "description": "Participant not found"
@@ -1277,6 +1309,16 @@
         "responses": {
           "200": {
             "description": "The certificates have been successfully downloaded"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingBadRequestDto"
+                }
+              }
+            }
           },
           "404": {
             "description": "Training not found"
@@ -1306,14 +1348,7 @@
             "description": "The qr code has been successfully downloaded"
           },
           "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DownloadQrBadRequestDto"
-                }
-              }
-            }
+            "description": "Bad Request"
           }
         },
         "tags": [
@@ -2056,6 +2091,35 @@
           }
         }
       },
+      "TrainingBadRequestDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "The error code.",
+            "example": "TRAINING_CODE_ALREADY_EXISTS",
+            "enum": [
+              "TRAINING_CODE_ALREADY_EXISTS",
+              "DATE_RANGE_INVALID",
+              "TRAINING_NOT_HAVE_PARTICIPANTS_WITH_CERTIFICATES",
+              "QR_CODE_NOT_FOUND",
+              "PARTICIPANT_NOT_FOUND",
+              "TRAINING_NOT_COMPLETED",
+              "TRAINING_NOT_HAVE_EXECUTIONS",
+              "MULTIPLE_ROLES_NOT_ALLOWED"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "description": "The error message.",
+            "example": "The training code already exists."
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
       "CreateTrainingDto": {
         "type": "object",
         "properties": {
@@ -2148,30 +2212,6 @@
           "capacity"
         ]
       },
-      "CreateTrainingBadRequestDto": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string",
-            "description": "The error code.",
-            "example": "TRAINING_CODE_ALREADY_EXISTS",
-            "enum": [
-              "TRAINING_CODE_ALREADY_EXISTS",
-              "DATE_RANGE_INVALID",
-              "TRAINING_NOT_HAVE_PARTICIPANTS_WITH_CERTIFICATES"
-            ]
-          },
-          "message": {
-            "type": "string",
-            "description": "The error message.",
-            "example": "The training code already exists."
-          }
-        },
-        "required": [
-          "code",
-          "message"
-        ]
-      },
       "UpdateTrainingDto": {
         "type": "object",
         "properties": {
@@ -2259,7 +2299,7 @@
             "description": "A valid professor id",
             "example": "a3b4c5d6-1234-5678-90ab-cdef12345678"
           },
-          "role": {
+          "roles": {
             "type": "string",
             "description": "The role of the professor",
             "example": "assistant",
@@ -2274,7 +2314,7 @@
         },
         "required": [
           "professorId",
-          "role"
+          "roles"
         ]
       },
       "UpdateParticipantDto": {
@@ -2285,7 +2325,7 @@
             "description": "A valid professor id",
             "example": "a3b4c5d6-1234-5678-90ab-cdef12345678"
           },
-          "role": {
+          "roles": {
             "type": "string",
             "description": "The role of the professor",
             "example": "assistant",
@@ -2515,31 +2555,6 @@
           "participant"
         ]
       },
-      "VerifyParticipantErrorResponseDto": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string",
-            "description": "The error code.",
-            "example": "QR_CODE_NOT_FOUND",
-            "enum": [
-              "QR_CODE_NOT_FOUND",
-              "PARTICIPANT_NOT_FOUND",
-              "TRAINING_NOT_COMPLETED",
-              "TRAINING_NOT_HAVE_EXECUTIONS"
-            ]
-          },
-          "message": {
-            "type": "string",
-            "description": "The error message.",
-            "example": "The QR code is not valid."
-          }
-        },
-        "required": [
-          "code",
-          "message"
-        ]
-      },
       "AddAttendanceToExecutionDto": {
         "type": "object",
         "properties": {
@@ -2563,50 +2578,6 @@
         "required": [
           "participantId",
           "status"
-        ]
-      },
-      "CompleteTrainingBadRequestDto": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string",
-            "description": "The error code.",
-            "example": "TRAINING_NOT_HAVE_EXECUTIONS",
-            "enum": [
-              "QR_CODE_NOT_FOUND",
-              "PARTICIPANT_NOT_FOUND",
-              "TRAINING_NOT_COMPLETED",
-              "TRAINING_NOT_HAVE_EXECUTIONS"
-            ]
-          },
-          "message": {
-            "type": "string",
-            "description": "The error message.",
-            "example": "The training does not have any executions."
-          }
-        },
-        "required": [
-          "code",
-          "message"
-        ]
-      },
-      "DownloadQrBadRequestDto": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string",
-            "description": "The error code.",
-            "example": "PARTICIPANT_NOT_FOUND"
-          },
-          "message": {
-            "type": "string",
-            "description": "The error message.",
-            "example": "The participant is not found."
-          }
-        },
-        "required": [
-          "code",
-          "message"
         ]
       },
       "CreateProfessorDto": {

@@ -5,7 +5,7 @@ import { TrainingRoleMap } from "../mappers/training-role-map";
 export interface TrainingCertificateTemplateData {
     id: string;
     name: string;
-    role: TrainingRole;
+    roles: TrainingRole[];
     trainingName: string;
     emisionDate: string;
     trainingFromDate: string;
@@ -17,7 +17,7 @@ export function getTrainingCertificateTemplate(data: TrainingCertificateTemplate
     let {  
         id,
         name,
-        role,
+        roles,
         trainingName,
         emisionDate,
         trainingFromDate,
@@ -109,7 +109,7 @@ export function getTrainingCertificateTemplate(data: TrainingCertificateTemplate
                         <h2>CONSTANCIA</h2>
                         <p>A:</p>
                         <p><strong>${name.toUpperCase()}</strong></p>
-                        <p>Por haber participado en calidad de ${TrainingRoleMap[role]} en el curso:</p>
+                        <p>Por haber participado en calidad de ${roles.map(r => TrainingRoleMap[r]).join(', ')} en el curso:</p>
                         <p><strong>${trainingName.toUpperCase()}</strong></p>
                         <p class="data">Organizado por la Universidad Señor de Sipán, a través de la Dirección de Desarrollo Académico, en coordinación con la Dirección de Gestión de Talento Humano, que se desarrolló del ${trainingFromDate} al ${trainingToDate}, con una duración total de ${duration} horas académicas.</p>
                     </div>

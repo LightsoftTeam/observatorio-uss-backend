@@ -5,7 +5,7 @@ import { TrainingRoleMap } from "../mappers/training-role-map";
 
 export interface TrainingParticipantQrTemplateData {
     participantId: string;
-    role: TrainingRole;
+    roles: TrainingRole[];
     name: string;
     email: string;
     documentType: string;
@@ -13,7 +13,7 @@ export interface TrainingParticipantQrTemplateData {
 }
 export function getParticipantQrTemplate({
     participantId,
-    role,
+    roles,
     name,
     email,
     documentType,
@@ -70,7 +70,7 @@ export function getParticipantQrTemplate({
                                 margin: 0;
                                 padding: 0;
                             ">
-                                ${TrainingRoleMap[role]}
+                                ${roles.map((role) => TrainingRoleMap[role]).join(', ')}
                             </p>
                         </div>
                         <h2 style="

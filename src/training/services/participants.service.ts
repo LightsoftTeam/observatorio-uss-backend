@@ -16,33 +16,10 @@ import { TrainingParticipantQrTemplateData, getParticipantQrTemplate } from '../
 import nodeHtmlToImage from 'node-html-to-image';
 import { StorageService } from 'src/storage/storage.service';
 import { CertificatesHelper } from 'src/common/helpers/certificates.helper';
+import { ERROR_CODES, ERRORS } from '../constants/errors.constants';
 const HTML_TO_PDF = require('html-pdf-node');
 
-export enum ERROR_CODES {
-    QR_CODE_NOT_FOUND = 'QR_CODE_NOT_FOUND',
-    PARTICIPANT_NOT_FOUND = 'PARTICIPANT_NOT_FOUND',
-    TRAINING_NOT_COMPLETED = 'TRAINING_NOT_COMPLETED',
-    TRAINING_NOT_HAVE_EXECUTIONS = 'TRAINING_NOT_HAVE_EXECUTIONS',
-}
 
-export const ERRORS = {
-    [ERROR_CODES.QR_CODE_NOT_FOUND]: {
-        code: ERROR_CODES.QR_CODE_NOT_FOUND,
-        message: 'The QR code is not valid.',
-    },
-    [ERROR_CODES.PARTICIPANT_NOT_FOUND]: {
-        code: ERROR_CODES.PARTICIPANT_NOT_FOUND,
-        message: 'The participant is not found.',
-    },
-    [ERROR_CODES.TRAINING_NOT_COMPLETED]: {
-        code: ERROR_CODES.TRAINING_NOT_COMPLETED,
-        message: 'The training is not completed.',
-    },
-    [ERROR_CODES.TRAINING_NOT_HAVE_EXECUTIONS]: {
-        code: ERROR_CODES.TRAINING_NOT_HAVE_EXECUTIONS,
-        message: 'The training does not have any executions.',
-    },
-}
 
 @Injectable()
 export class ParticipantsService {
@@ -95,7 +72,7 @@ export class ParticipantsService {
                 this.logger.error(`Training ${trainingId} not found`);
                 throw new NotFoundException('Training not found');
             }
-            const { professorId, role } = addParticipantDto;
+            const { professorId, roles } = addParticipantDto;
             if (!isUUID(professorId)) {
                 throw new BadRequestException('The professorId must be a valid UUID.');
             }
@@ -104,10 +81,11 @@ export class ParticipantsService {
             if (participant) {
                 return this.fillParticipant(participant);
             }
+            this.validateMultipleRoles(roles);
             training.participants.push({
                 id: uuidv4(),
                 foreignId: professorId,
-                role: role ?? TrainingRole.ASSISTANT,
+                roles,
                 attendanceStatus: AttendanceStatus.PENDING,
             });
             const { resource: trainingUpdated } = await this.trainingContainer.item(trainingId, trainingId).replace(training);
@@ -137,9 +115,10 @@ export class ParticipantsService {
             if (!participant) {
                 throw new NotFoundException('Participant not found');
             }
-            const { role, attendanceStatus } = updateParticipantDto;
-            if (role) {
-                participant.role = role;
+            const { roles, attendanceStatus } = updateParticipantDto;
+            if (roles) {
+                this.validateMultipleRoles(roles);
+                participant.roles = roles;
             }
             if (attendanceStatus) {
                 participant.attendanceStatus = attendanceStatus;
@@ -150,6 +129,12 @@ export class ParticipantsService {
         } catch (error) {
             this.logger.error(`updateParticipant ${error.message}`);
             throw error;
+        }
+    }
+    
+    private validateMultipleRoles(roles: TrainingRole[]) {
+        if (roles.length > 1 && !roles.includes(TrainingRole.ORGANIZER)) {
+            throw new BadRequestException(ERRORS[ERROR_CODES.MULTIPLE_ROLES_NOT_ALLOWED]);
         }
     }
 
@@ -317,12 +302,12 @@ export class ParticipantsService {
         }, 0);
         const durationInHours = durationinMiliseconds / 1000 / 60 / 60;
         const filledParticipant = await this.fillParticipant(participant);
-        const { id, professor, role } = filledParticipant;
+        const { id, professor, roles } = filledParticipant;
         const { name } = professor;
         const data: TrainingCertificateTemplateData = {
             id,
             name,
-            role,
+            roles,
             trainingName,
             emisionDate,
             trainingFromDate,
@@ -394,7 +379,7 @@ export class ParticipantsService {
             }
             const participant = training.participants.find((participant) => participant.id === participantId);
             const filledParticipant = await this.fillParticipant(participant);
-            const { id, role, professor } = filledParticipant;
+            const { id, roles, professor } = filledParticipant;
             const { documentNumber, documentType, email, name } = professor;
             const data: TrainingParticipantQrTemplateData = {
                 documentNumber,
@@ -402,7 +387,7 @@ export class ParticipantsService {
                 email,
                 name,
                 participantId: id,
-                role: role,
+                roles,
             }
             const html = getParticipantQrTemplate(data);
             const buffer = await nodeHtmlToImage({

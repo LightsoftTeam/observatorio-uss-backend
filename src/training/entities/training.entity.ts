@@ -29,7 +29,7 @@ export interface TrainingCertificate {
 export interface TrainingParticipant {
     id: string;
     foreignId: string;
-    role: TrainingRole;
+    roles: TrainingRole[];
     attendanceStatus: AttendanceStatus;
     certificate?: TrainingCertificate;
 }
