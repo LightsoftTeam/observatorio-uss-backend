@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException, Scope, forwardRef } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException, Scope, forwardRef } from '@nestjs/common';
 import type { Container } from '@azure/cosmos';
 import { Role, User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -10,10 +10,12 @@ import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
 import { REQUEST } from '@nestjs/core';
 import { generateUniqueSlug } from 'src/posts/helpers/generate-slug.helper';
+import { FindUsersDto } from './dto/find-users.dto';
 
 const PASSWORD_SALT_ROUNDS = 5;
 const USER_LIST_CACHE_KEY = 'users';
 const LONG_CACHE_TIME = 1000 * 60 * 60 * 5;//5 hours
+
 
 @Injectable({ scope: Scope.REQUEST })
 export class UsersService {
@@ -26,33 +28,31 @@ export class UsersService {
     @Inject(REQUEST) private request: Request,
   ) { }
 
-  async findAll(role?: Role) {
-    const cachedUsers = await this.cacheManager.get<User[]>(USER_LIST_CACHE_KEY);
-    if (cachedUsers) {
-      this.logger.log('retrieving users from cache findAll');
-      return cachedUsers.filter(u => {
-        if (role) {
-          return u.role === role;
-        }
-        return true;
-      });
+  async findAll(findUsersDto: FindUsersDto = {}) {
+    this.logger.log(`retrieving users - ${JSON.stringify(findUsersDto)}`);
+    const { roles: rolesString } = findUsersDto;
+    let roles = rolesString ? rolesString.split(',') : [];
+    if (roles.length === 0) {
+      this.logger.log('pushing roles');
+      roles.push(...Object.values(Role));
     }
-    this.logger.log('retrieving users from db findAll')
+    if(!this.isAdmin()){
+      roles = roles.filter(r => r !== Role.ADMIN);
+    }
+    this.logger.log(`selected roles - ${JSON.stringify(roles)}`);
     const querySpec = {
-      query: 'SELECT * FROM c where c.isActive = true order by c.createdAt DESC',
-      parameters: [],
+      query: 'SELECT * FROM c where c.isActive = true AND ARRAY_CONTAINS(@roles, c.role) order by c.createdAt DESC',
+      parameters: [
+        {
+          name: '@roles',
+          value: roles,
+        },
+      ],
     };
     const startAt = new Date();
     const { resources } = await this.usersContainer.items.query<User>(querySpec).fetchAll();
     this.logger.log(`query time findAll users ${(new Date().getTime() - startAt.getTime())}`);
-    const users = resources.map(user => FormatCosmosItem.cleanDocument(user, ['password']));
-    this.cacheManager.set(USER_LIST_CACHE_KEY, users, LONG_CACHE_TIME);
-    return users.filter(u => {
-      if (role) {
-        return u.role === role;
-      }
-      return true;
-    });
+    return resources.map(user => FormatCosmosItem.cleanDocument(user, ['password']));
   }
 
   async toggleActiveState(id: string) {
@@ -128,6 +128,14 @@ export class UsersService {
       isActive: true,
       createdAt: new Date(),
     };
+    const existingUser = await this.findByEmail(user.email);
+    if (existingUser) {
+      //TODO: use enum for error codes
+      throw new BadRequestException({
+        code: 'USER_ALREADY_EXISTS',
+        message: 'User already exists',
+      });
+    }
     const { resource } = await this.usersContainer.items.create<User>(user);
     const newUser = FormatCosmosItem.cleanDocument(resource, ['password']);
     this.cacheManager.del(USER_LIST_CACHE_KEY);

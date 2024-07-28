@@ -4,13 +4,11 @@ import { Inject, Injectable, forwardRef } from "@nestjs/common";
 import { Container } from "@azure/cosmos";
 import { Post } from "../entities/post.entity";
 import { UsersService } from "src/users/users.service";
-import { GuestsService } from "src/guests/guests.service";
 
 export interface PostFilters {
     category?: string;
     isPendingApproval?: boolean;
     userId?: string;
-    guestId?: string;
 }
 
 const BASIC_KEYS_LIST = [
@@ -25,7 +23,6 @@ const BASIC_KEYS_LIST = [
     'imageUrl',
     'likes',
     'userId',
-    'guestId',
     'reference',
     'tags',
     'createdAt'
@@ -39,14 +36,12 @@ export class PostsRepository {
         private readonly postsContainer: Container,
         @Inject(forwardRef(() => UsersService))
         private readonly usersService: UsersService,
-        private readonly guestsService: GuestsService,
     ) { }
 
     async find({
         category,
         isPendingApproval = false,
         userId,
-        guestId,
     }: PostFilters) {
         const querySpec: SqlQuerySpec = {
             query: `
@@ -72,13 +67,6 @@ export class PostsRepository {
                 value: userId
             });
         }
-        if(guestId){
-            querySpec.query += ' AND c.guestId = @guestId';
-            querySpec.parameters.push({
-                name: '@guestId',
-                value: guestId
-            });
-        }
         if (category) {
             querySpec.query += ' AND c.category = @category';
             querySpec.parameters.push({
@@ -88,17 +76,12 @@ export class PostsRepository {
         }
         querySpec.query += ' ORDER BY c.createdAt DESC';
         const { resources: posts } = await this.postsContainer.items.query<Post>(querySpec).fetchAll();
-        const [users, guests] = await Promise.all([
-            this.usersService.findByIds(posts.map(p => p.userId)),
-            this.guestsService.getByIds(posts.map(p => p.userId)),
-        ]);
+        const users = await this.usersService.findByIds(posts.map(p => p.userId));
         let postsWithAuthor = posts.map(post => {
             const user = users.find(u => u.id === post.userId);
-            const guest = guests.find(g => g.id === post.guestId);
             return {
                 ...post,
                 user,
-                guest,
             }
         });
         return postsWithAuthor;

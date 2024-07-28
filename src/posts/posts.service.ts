@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, NotFoundException, forwardRef } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import type { Container } from '@azure/cosmos';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
@@ -18,7 +18,7 @@ import { ApplicationLoggerService } from 'src/common/services/application-logger
 import { Role } from 'src/users/entities/user.entity';
 import { scrapedPosts } from 'src/scrap/outputs/posts';
 import { PostsRepository } from './repositories/post.repository';
-import { GuestsService } from 'src/guests/guests.service';
+import { MailService } from 'src/common/services/mail.service';
 
 const BASIC_KEYS_LIST = [
   'id',
@@ -51,10 +51,10 @@ export class PostsService {
     private readonly homePostsContainer: Container,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly usersService: UsersService,
-    private readonly guestsService: GuestsService,
     private readonly algoliaService: AlgoliaService,
     private readonly logger: ApplicationLoggerService,
     private readonly postsRepository: PostsRepository,
+    private readonly mailService: MailService,
   ) { 
     this.logger.setContext(PostsService.name);
   }
@@ -69,13 +69,15 @@ export class PostsService {
 
   async create(createPostDto: CreatePostDto) {
     this.logger.log(`Creating post - ${JSON.stringify(createPostDto)}`);
-    const { title, category, content, imageUrl, videoUrl, podcastUrl, description, attachments, imageDescription, tags, reference, userId, guestId } = createPostDto;
-    let isPendingApproval = false;
-    if((userId && guestId) || (userId && reference) || (guestId && reference) || (!userId && !guestId && !reference)){
-      throw new BadRequestException('author of the post is not valid');
+    const { title, category, content, imageUrl, videoUrl, podcastUrl, description, attachments, imageDescription, tags, reference, userId, isPendingApproval = false } = createPostDto;
+    if(userId && reference){
+      throw new BadRequestException({
+        code: 'INVALID_AUTHOR',
+        message: 'You cannot create a post with a reference and an user id'
+      });
     }
-    if(guestId){
-      isPendingApproval = true;
+    if(userId){
+      await this.usersService.findOne(userId);//throws error if user not found
     }
     const slugsQuerySpec = {
       query: 'SELECT c.slug FROM c'
@@ -84,10 +86,6 @@ export class PostsService {
     const slugs = resources.map(r => r.slug);
     const slug = generateUniqueSlug({ title, slugs });
     const readingTime = content ? calculateReadTime(content) : null;
-    if(userId){
-      await this.usersService.findOne(userId);//throws error if user not found
-    }
-    //TODO: verify if guest exists
 
     const post: Post = {
       title,
@@ -103,7 +101,6 @@ export class PostsService {
       readingTime,
       tags: tags.map(t => t.trim().toLowerCase()),
       userId,
-      guestId,
       createdAt: new Date(),
       isActive: true,
       likes: 0,
@@ -150,31 +147,35 @@ export class PostsService {
   async findAll({
     category,
     userId,
-    guestId,
   }: GetPostsDto) {
     this.logger.log('retrieving posts from db');
     this.logger.log(`category: ${category}, userId: ${userId}`);
     const posts = await this.postsRepository.find({
       category,
       userId,
-      guestId,
     });
     return this.getPostsWithAuthor(posts);
   }
 
   async acceptPostRequest(id: string) {
+    this.logger.log(`Accepting post request - ${id}`);
     const post = await this.findOne(id);
     if(!post.isPendingApproval){
-      throw new BadRequestException('This post is not pending approval');
-    }
-    const guest = await this.guestsService.findOne(post.guestId);
-    if(!guest.isApproved){
-      this.guestsService.approve(post.guestId);
+      //TODO: change to enum
+      throw new BadRequestException({
+        code: 'INVALID_STATE',
+        message: 'The post is not pending approval'
+      });
     }
     const updatedPost = {
       ...post,
       isPendingApproval: false
     }
+    const user = await this.usersService.findOne(post.userId);
+    this.mailService.sendPostRequestNotification({
+      to: user.email,
+      post: updatedPost,
+    });
     const { resource } = await this.postsContainer.item(post.id).replace(updatedPost);
     return FormatCosmosItem.cleanDocument(resource);
   }
@@ -430,26 +431,17 @@ export class PostsService {
 
   private async getPostsWithAuthor(posts: Post[]) {
     const userIds = [];
-    const guestIds = [];
     posts.forEach(post => {
       if(post.userId){
         userIds.push(post.userId);
       }
-      if(post.guestId){
-        guestIds.push(post.guestId);
-      }
     });
-    const [users, guests] = await Promise.all([
-      this.usersService.findByIds(userIds),
-      this.guestsService.getByIds(guestIds)
-    ]);
+    const users = await this.usersService.findByIds(userIds);
     const postsWithAuthor = posts.map(post => {
       const user = users.find(u => u.id === post.userId);
-      const guest = guests.find(g => g.id === post.guestId);
       return {
         ...post,
         user,
-        guest
       }
     });
     return postsWithAuthor;

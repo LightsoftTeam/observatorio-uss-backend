@@ -14,7 +14,6 @@ import { TrainingModule } from './training/training.module';
 import { ProfessorsModule } from './professors/professors.module';
 import { SchoolsModule } from './schools/schools.module';
 import { MailService } from './common/services/mail.service';
-import { GuestsModule } from './guests/guests.module';
 import { StatisticsModule } from './statistics/statistics.module';
 import { CacheModule } from '@nestjs/cache-manager';
 
@@ -46,7 +45,6 @@ import { CacheModule } from '@nestjs/cache-manager';
     TrainingModule,
     ProfessorsModule,
     SchoolsModule,
-    GuestsModule,
     StatisticsModule,
   ],
   controllers: [AppController],

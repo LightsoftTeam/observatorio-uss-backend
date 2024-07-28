@@ -118,11 +118,10 @@ export class PostsController {
   @ApiResponse({ status: 201, description: 'The post request has been successfully created.'})
   @Post('create-request')
   createRequest(@Body() createPostDto: CreatePostDto) {
-    const {userId} = createPostDto;
-    if(userId) {
-      throw new UnauthorizedException('You are not allowed to create a post');
-    }
-    return this.postsService.create(createPostDto);
+    return this.postsService.create({
+      ...createPostDto,
+      isPendingApproval: true,
+    });
   }
 
   @UseGuards(AuthGuard)

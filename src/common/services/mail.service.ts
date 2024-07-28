@@ -68,4 +68,27 @@ export class MailService {
             this.logger.error(error.message);
         });
     }
+
+    async sendPostRequestNotification({ to, post }) {
+        const { title, slug, category } = post;
+        //TODO: change this syntax to config file
+        const postUrl = `${(process.env.POST_URL || 'http://localhost:5173')}/${category}/${slug}`;
+        const template = `
+                <h1>Tu solicitud de nuevo post ha sido aceptada.</h1>
+                <p>Felicitaciones! Tu post <b>"${title}"</b> ha sido aceptado.</p>
+                <p>Puedes verlo <a href="${postUrl}">aquí</a></p>
+            `;
+        return this.sendMail({
+            to,
+            template,
+            subject: 'Observatorio USS - Post aceptado',
+        })
+        .then(() => {
+            this.logger.log(`Post request notification sent to ${to}`);
+        })
+        .catch((error) => {
+            this.logger.error(`Error sending post request notification to ${to}`);
+            this.logger.error(error.message);
+        });
+    }
 }

@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsEnum, IsNotEmpty, IsObject, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsArray, IsBoolean, IsEnum, IsNotEmpty, IsObject, IsOptional, IsString, IsUUID } from "class-validator";
 import { Category, Reference } from "../entities/post.entity";
 
 export class CreatePostDto {
@@ -80,14 +80,6 @@ export class CreatePostDto {
     @IsOptional()
     @IsUUID()
     userId?: string;
-
-    @ApiProperty({
-        description: 'guestId of the post',
-        example: 'a1b2c3d4-1234-5678-90ab-cdef12345678',
-    })
-    @IsOptional()
-    @IsString()
-    guestId?: string;
     
     @ApiProperty({
         description: '',
@@ -115,4 +107,12 @@ export class CreatePostDto {
     @IsObject()
     @IsOptional()
     reference: Reference;
+
+    @ApiProperty({
+        description: 'If the post is pending approval',
+        example: false,
+        default: false,
+    })
+    @IsBoolean()
+    isPendingApproval: boolean;
 }

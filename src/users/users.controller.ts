@@ -5,6 +5,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { Role } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { FindUsersDto } from './dto/find-users.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -15,8 +16,8 @@ export class UsersController {
   @ApiOperation({ summary: 'Get users' })
   @ApiResponse({ status: 200, description: 'Return all users' })
   @Get()
-  findAll(@Query('role') role: Role){
-    return this.userService.findAll(role);
+  findAll(@Query() findUsersDto: FindUsersDto){
+    return this.userService.findAll(findUsersDto);
   }
 
   @ApiOperation({ summary: 'Get a user' })

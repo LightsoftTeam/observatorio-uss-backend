@@ -71,15 +71,6 @@
               "nullable": true,
               "type": "string"
             }
-          },
-          {
-            "name": "guestId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "nullable": true,
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -424,153 +415,18 @@
         ]
       }
     },
-    "/api/guests": {
-      "post": {
-        "operationId": "GuestsController_create",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateGuestDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "The record has been successfully created."
-          },
-          "400": {
-            "description": "Invalid code",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateGuestBadRequestDto"
-                }
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "operationId": "GuestsController_findAll",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/api/guests/{id}": {
-      "get": {
-        "operationId": "GuestsController_findOne",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      },
-      "put": {
-        "operationId": "GuestsController_update",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateGuestDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      },
-      "delete": {
-        "operationId": "GuestsController_remove",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/api/guests/{documentType}/{documentNumber}": {
-      "get": {
-        "operationId": "GuestsController_findByDocument",
-        "parameters": [
-          {
-            "name": "documentType",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "documentNumber",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The found record"
-          },
-          "404": {
-            "description": "Guest not found"
-          }
-        }
-      }
-    },
     "/api/users": {
       "get": {
         "operationId": "UsersController_findAll",
         "summary": "Get users",
         "parameters": [
           {
-            "name": "role",
+            "name": "roles",
             "required": true,
             "in": "query",
+            "description": "The roles of the user",
             "schema": {
+              "nullable": true,
               "type": "string"
             }
           }
@@ -739,6 +595,30 @@
           },
           "401": {
             "description": "Unauthorized."
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Register successful."
           }
         },
         "tags": [
@@ -1878,11 +1758,6 @@
             "description": "",
             "example": ""
           },
-          "guestId": {
-            "type": "string",
-            "description": "guestId of the post",
-            "example": "a1b2c3d4-1234-5678-90ab-cdef12345678"
-          },
           "attachments": {
             "description": "",
             "example": "",
@@ -1903,6 +1778,12 @@
             "type": "object",
             "description": "Reference of the post",
             "example": "\n            {\n                author: 'Observatorio Tec Monterrey',\n                url: 'https://observatorio.tec.mx/edu-news/this-is-a-post'\n            }\n        "
+          },
+          "isPendingApproval": {
+            "type": "boolean",
+            "description": "If the post is pending approval",
+            "example": false,
+            "default": false
           }
         },
         "required": [
@@ -1915,10 +1796,10 @@
           "imageUrl",
           "imageDescription",
           "userId",
-          "guestId",
           "attachments",
           "tags",
-          "reference"
+          "reference",
+          "isPendingApproval"
         ]
       },
       "UpdateHomePostDto": {
@@ -1968,103 +1849,6 @@
         "required": [
           "email"
         ]
-      },
-      "CreateGuestDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "The name of the guest",
-            "example": "John Doe"
-          },
-          "image": {
-            "type": "string",
-            "description": "The image of the guest",
-            "example": "https://example.com/image.jpg"
-          },
-          "email": {
-            "type": "string",
-            "description": "The email of the guest",
-            "example": ""
-          },
-          "documentType": {
-            "type": "string",
-            "description": "The document type of the guest",
-            "example": "ID"
-          },
-          "documentNumber": {
-            "type": "string",
-            "description": "The document number of the guest",
-            "example": "123456789"
-          },
-          "verificationCode": {
-            "type": "string",
-            "description": "The token of the guest",
-            "example": false
-          }
-        },
-        "required": [
-          "name",
-          "image",
-          "email",
-          "documentType",
-          "documentNumber",
-          "verificationCode"
-        ]
-      },
-      "CreateGuestBadRequestDto": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string",
-            "description": "The error code",
-            "example": "INVALID_CODE_ERROR"
-          },
-          "message": {
-            "type": "string",
-            "description": "The error message",
-            "example": "Invalid code"
-          }
-        },
-        "required": [
-          "code",
-          "message"
-        ]
-      },
-      "UpdateGuestDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "The name of the guest",
-            "example": "John Doe"
-          },
-          "image": {
-            "type": "string",
-            "description": "The image of the guest",
-            "example": "https://example.com/image.jpg"
-          },
-          "email": {
-            "type": "string",
-            "description": "The email of the guest",
-            "example": ""
-          },
-          "documentType": {
-            "type": "string",
-            "description": "The document type of the guest",
-            "example": "ID"
-          },
-          "documentNumber": {
-            "type": "string",
-            "description": "The document number of the guest",
-            "example": "123456789"
-          },
-          "verificationCode": {
-            "type": "string",
-            "description": "The token of the guest",
-            "example": false
-          }
-        }
       },
       "CreateUserDto": {
         "type": "object",
@@ -2152,6 +1936,28 @@
         "required": [
           "email",
           "password"
+        ]
+      },
+      "RegisterDto": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "description": "The user details",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CreateUserDto"
+              }
+            ]
+          },
+          "verificationCode": {
+            "type": "string",
+            "description": "The verification code",
+            "example": "A1B2C3"
+          }
+        },
+        "required": [
+          "user",
+          "verificationCode"
         ]
       },
       "CreateAuthorityDto": {

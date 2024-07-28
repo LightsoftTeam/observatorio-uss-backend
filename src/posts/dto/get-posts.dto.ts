@@ -15,9 +15,4 @@ export class GetPostsDto {
     })
     @IsOptional()
     userId?: string;
-    @ApiProperty({
-        nullable: true,
-    })
-    @IsOptional()
-    guestId?: string;
 }

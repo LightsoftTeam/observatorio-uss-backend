@@ -8,11 +8,12 @@ import { UsersService } from 'src/users/users.service';
 import { CommonModule } from 'src/common/common.module';
 import { PostsModule } from 'src/posts/posts.module';
 import { AuthGuard } from './guards/auth.guard';
+import { OtpService } from 'src/common/services/otp.service';
 
 @Global()
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, JwtService, ConfigService, UsersService, AuthGuard],
+  providers: [AuthService, JwtService, ConfigService, UsersService, OtpService, AuthGuard],
   imports: [
     UsersModule,
     ConfigModule,
