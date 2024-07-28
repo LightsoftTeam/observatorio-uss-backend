@@ -1722,6 +1722,117 @@
           "Statistics"
         ]
       }
+    },
+    "/api/competencies": {
+      "post": {
+        "operationId": "CompetenciesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCompetencyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The record has been successfully created."
+          }
+        },
+        "tags": [
+          "Competencies"
+        ]
+      },
+      "get": {
+        "operationId": "CompetenciesController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The records have been successfully retrieved."
+          }
+        },
+        "tags": [
+          "Competencies"
+        ]
+      }
+    },
+    "/api/competencies/{id}": {
+      "get": {
+        "operationId": "CompetenciesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record has been successfully retrieved."
+          }
+        },
+        "tags": [
+          "Competencies"
+        ]
+      },
+      "put": {
+        "operationId": "CompetenciesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCompetencyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The record has been successfully updated."
+          }
+        },
+        "tags": [
+          "Competencies"
+        ]
+      },
+      "delete": {
+        "operationId": "CompetenciesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The record has been successfully deleted."
+          }
+        },
+        "tags": [
+          "Competencies"
+        ]
+      }
     }
   },
   "info": {
@@ -2704,6 +2815,29 @@
             "type": "string",
             "description": "The name of the school",
             "example": "Ingeniería de Sistemas"
+          }
+        }
+      },
+      "CreateCompetencyDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the competency",
+            "example": "Software Development"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateCompetencyDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the competency",
+            "example": "Software Development"
           }
         }
       }
