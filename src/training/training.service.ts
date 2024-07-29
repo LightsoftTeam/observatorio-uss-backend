@@ -15,6 +15,7 @@ import { StorageService } from 'src/storage/storage.service';
 import { CertificatesHelper } from 'src/common/helpers/certificates.helper';
 import { DocumentType } from 'src/common/types/document-type.enum';
 import { ERROR_CODES, ERRORS } from './constants/errors.constants';
+import { CompetenciesService } from 'src/competencies/competencies.service';
 const AdmZip = require("adm-zip");
 
 const DDA_ORGANIZER_ID = 'DDA';
@@ -32,6 +33,7 @@ const BASIC_FIELDS = [
   'status',
   'modality',
   'capacity',
+  'competencyId',
 ];
 
 @Injectable()
@@ -43,6 +45,7 @@ export class TrainingService {
     private readonly schoolService: SchoolsService,
     private readonly professorsService: ProfessorsService,
     private readonly storageService: StorageService,
+    private readonly competenciesService: CompetenciesService
   ) {
     this.logger.setContext(TrainingService.name);
   }
@@ -68,6 +71,7 @@ export class TrainingService {
           throw new NotFoundException('The school does not exist.');
         }
       }
+      await this.competenciesService.findOne(createTrainingDto.competencyId);
       const training: Training = {
         ...createTrainingDto,
         executions: executions.map((execution) => ({
@@ -115,7 +119,7 @@ export class TrainingService {
     const { resources } = await this.trainingContainer.items.query(querySpec).fetchAll();
     const mappedTrainingsPromise = resources
       .map(async training => {
-        const formattedTraining = await this.toJson(training);
+        const formattedTraining = (await this.toJson(training)) as Training;
         const participant = formattedTraining.participants.find(participant => participant.foreignId === professor.id);
         delete formattedTraining.participants;
         delete formattedTraining.executions;
@@ -138,7 +142,7 @@ export class TrainingService {
         query: `SELECT ${BASIC_FIELDS.map(f => `c.${f}`).join(', ')} FROM c`
       }
       const { resources } = await this.trainingContainer.items.query<Training>(querySpec).fetchAll();
-      return Promise.all(resources.map(training => this.toJson(training)));
+      return this.toJson(resources);
     } catch (error) {
       this.logger.log(`findAll ${error.message}`);
       throw error;
@@ -171,7 +175,7 @@ export class TrainingService {
         this.logger.log(`Training code already exists: ${updateTrainingDto.code}`);
         throw new BadRequestException(ERRORS[ERROR_CODES.TRAINING_CODE_ALREADY_EXISTS]);
       }
-      const { executions } = updateTrainingDto;
+      const { executions, competencyId } = updateTrainingDto;
       this.validateExecutionsDateRange(executions);
       let mappedExecutions: Execution[] = training.executions;
       if (executions) {
@@ -184,6 +188,9 @@ export class TrainingService {
           }
           return execution as Execution;
         });
+      }
+      if (competencyId && training.competencyId !== competencyId) {
+        await this.competenciesService.findOne(competencyId);
       }
       const newTraining: Training = {
         ...training,
@@ -234,16 +241,16 @@ export class TrainingService {
       throw new BadRequestException(ERRORS[ERROR_CODES.TRAINING_NOT_HAVE_PARTICIPANTS_WITH_CERTIFICATES]);
     }
     for (const participant of participants) {
-        const {certificate} = participant;
-        const {id: certificateId} = certificate;
-        const blobName = CertificatesHelper.getBlobName(certificateId);
-        this.logger.log(`Getting buffer ${blobName}`);
-        const buffer = await this.storageService.getBuffer({ blobName });
-        if(!buffer) {
-          this.logger.error(`Blob ${blobName} not found`);
-          continue;
-        }
-        zip.addFile(CertificatesHelper.getUserFilename(certificate), buffer);
+      const { certificate } = participant;
+      const { id: certificateId } = certificate;
+      const blobName = CertificatesHelper.getBlobName(certificateId);
+      this.logger.log(`Getting buffer ${blobName}`);
+      const buffer = await this.storageService.getBuffer({ blobName });
+      if (!buffer) {
+        this.logger.error(`Blob ${blobName} not found`);
+        continue;
+      }
+      zip.addFile(CertificatesHelper.getUserFilename(certificate), buffer);
     }
 
     return zip.toBuffer();
@@ -262,15 +269,32 @@ export class TrainingService {
     }
   }
 
-  private async toJson(training: Training) {
-    const trainingWithoutCosmosProps = FormatCosmosItem.cleanDocument(training);
-    let formattedOrganizer: string | Partial<School> = trainingWithoutCosmosProps.organizer;
-    if (formattedOrganizer !== DDA_ORGANIZER_ID) {
-      formattedOrganizer = FormatCosmosItem.cleanDocument(await this.schoolService.getById(formattedOrganizer));
+  private async toJson(payload: Training | Training[]): Promise<Training | Training[]> {
+    //TODO: refactor this method
+    const trainings = Array.isArray(payload) ? payload : [payload];
+    const competenceIds = trainings.map(training => training.competencyId);
+    this.logger.log(`Fetching competencies with ids: ${competenceIds}`);
+    const competencies = await this.competenciesService.getByIds(competenceIds);
+    let organizers: (string | Partial<School>)[] = trainings.map(training => training.organizer);
+    const schoolOrganizers = organizers.filter(organizer => isUUID(organizer));
+    const schools = schoolOrganizers.length > 0 ? await this.schoolService.getByIds(organizers as string[]) : [];
+    if (schoolOrganizers.length > 0) {
+      organizers = organizers.map(organizer => {
+        if (isUUID(organizer)) {
+          return schools.find(school => school.id === organizer)!;
+        }
+        return organizer;
+      });
     }
-    return {
-      ...trainingWithoutCosmosProps,
-      organizer: formattedOrganizer
-    }
+    const formattedTrainings = trainings.map((training, index) => {
+      const competency = competencies.find(competency => competency.id === training.competencyId);
+      const organizer = organizers[index];
+      return {
+        ...training,
+        organizer,
+        competency,
+      };
+    });
+    return Array.isArray(payload) ? formattedTrainings : formattedTrainings[0];
   }
 }

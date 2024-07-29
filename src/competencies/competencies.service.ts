@@ -7,7 +7,6 @@ import { Competency } from './entities/competency.entity';
 // import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
-import { query } from 'express';
 
 @Injectable()
 export class CompetenciesService {
@@ -54,6 +53,18 @@ export class CompetenciesService {
     } catch (error) {
       return null;
     }
+  }
+
+  async getByIds(ids: string[]) {
+    this.logger.log('Fetching competencies with ids');
+    const querySpec = {
+      query : 'SELECT * from c where ARRAY_CONTAINS(@ids, c.id)',
+      parameters: [
+        { name: '@ids', value: ids },
+      ],
+    };
+    const { resources: competencies } = await this.competenciesContainer.items.query(querySpec).fetchAll();
+    return competencies.map(c => FormatCosmosItem.cleanDocument(c));
   }
 
   async update(id: string, updateCompetencyDto: UpdateCompetencyDto) {

@@ -58,6 +58,21 @@ export class SchoolsService {
     }
   }
 
+  async getByIds(ids: string[]) {
+    this.logger.log('Fetching schools with ids');
+    const querySpec = {
+      query: 'SELECT * from c where ARRAY_CONTAINS(@ids, c.id)',
+      parameters: [
+        {
+          name: '@ids',
+          value: ids,
+        },
+      ],
+    };
+    const { resources } = await this.schoolsContainer.items.query(querySpec).fetchAll();
+    return resources.map((school) => FormatCosmosItem.cleanDocument<School>(school));
+  }
+
   async update(id: string, updateSchoolDto: UpdateSchoolDto) {
     this.logger.log(`Updating school with id ${id}: ${JSON.stringify(updateSchoolDto)}`);
     const { resource } = await this.schoolsContainer.item(id, id).read<School>();

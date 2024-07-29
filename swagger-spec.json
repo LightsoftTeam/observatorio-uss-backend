@@ -2307,6 +2307,11 @@
             "type": "number",
             "description": "The capacity of the training",
             "example": 100
+          },
+          "competencyId": {
+            "type": "string",
+            "description": "The competency of the training",
+            "example": "a1b2c3d4-1234-5678-90ab-cdef12345678"
           }
         },
         "required": [
@@ -2320,7 +2325,8 @@
           "organizer",
           "status",
           "modality",
-          "capacity"
+          "capacity",
+          "competencyId"
         ]
       },
       "UpdateTrainingDto": {
@@ -2399,6 +2405,11 @@
             "type": "number",
             "description": "The capacity of the training",
             "example": 100
+          },
+          "competencyId": {
+            "type": "string",
+            "description": "The competency of the training",
+            "example": "a1b2c3d4-1234-5678-90ab-cdef12345678"
           }
         }
       },
