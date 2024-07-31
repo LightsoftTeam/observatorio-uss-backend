@@ -32,6 +32,19 @@ export class ProfessorsController {
     return this.professorsService.create(createProfessorDto);
   }
 
+  @Get('reports/asistance-by-year')
+  @ApiResponse({
+    status: 200,
+    description: 'The assistance by year was found',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Professor not found',
+  })
+  getAssistanceByYear() {
+    return this.professorsService.getAssistanceByYear();
+  }
+
   @Get()
   @ApiResponse({
     status: 200,

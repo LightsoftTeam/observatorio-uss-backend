@@ -246,26 +246,6 @@ export class TrainingController {
     stream.pipe(res);
   }
 
-  // @Get('participants/:participantId/certificate')
-  // @ApiOperation({ summary: 'Generate a certificate for a participant' })
-  // @ApiResponse({
-  //   status: 200,
-  //   description: 'The certificate has been successfully generated',
-  // })
-  // @ApiResponse({
-  //   status: 400,
-  //   description: 'Bad Request',
-  // })
-  // async generateCertificate(@Param('participantId') participantId: string, @Res() res: Response) {
-  //   const buffer = await this.participantsService.getCertificate(participantId);
-  //   res.setHeader('Content-Type', 'application/pdf');
-  //   res.setHeader('Content-Disposition', 'inline; filename="certificate.pdf"');
-  //   const stream = new Readable();
-  //   stream.push(buffer);
-  //   stream.push(null);
-  //   stream.pipe(res);
-  // }
-
   @Get('participants/:participantId/qr')
   @ApiOperation({ summary: 'Download the qr code of a participant' })
   @ApiResponse({
@@ -284,5 +264,33 @@ export class TrainingController {
     stream.push(buffer);
     stream.push(null);
     stream.pipe(res);
+  }
+
+  @Get(':id/asistance')
+  @ApiOperation({ summary: 'Get the assistance' })
+  @ApiResponse({
+    status: 200,
+    description: 'The assistance was found',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Training not found',
+  })
+  getAssistance(@Param('id') id: string) {
+    return this.trainingService.getAsistance(id);
+  }
+
+  @Get(':id/asistance-by-school')
+  @ApiOperation({ summary: 'Get the assistance by school' })
+  @ApiResponse({
+    status: 200,
+    description: 'The assistance by school was found',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Training not found',
+  })
+  getAssistanceBySchool(@Param('id') id: string) {
+    return this.trainingService.getAsistanceBySchool(id);
   }
 }

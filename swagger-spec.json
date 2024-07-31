@@ -1356,6 +1356,80 @@
         ]
       }
     },
+    "/api/training/{id}/asistance": {
+      "get": {
+        "operationId": "TrainingController_getAssistance",
+        "summary": "Get the assistance",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The assistance was found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingBadRequestDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Training not found"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
+    "/api/training/{id}/asistance-by-school": {
+      "get": {
+        "operationId": "TrainingController_getAssistanceBySchool",
+        "summary": "Get the assistance by school",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The assistance by school was found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingBadRequestDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Training not found"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
     "/api/professors": {
       "post": {
         "operationId": "ProfessorsController_create",
@@ -1408,6 +1482,23 @@
                 }
               }
             }
+          }
+        },
+        "tags": [
+          "Professors"
+        ]
+      }
+    },
+    "/api/professors/reports/asistance-by-year": {
+      "get": {
+        "operationId": "ProfessorsController_getAssistanceByYear",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The assistance by year was found"
+          },
+          "404": {
+            "description": "Professor not found"
           }
         },
         "tags": [

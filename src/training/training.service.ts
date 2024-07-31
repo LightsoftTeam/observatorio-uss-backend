@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { CreateTrainingDto, ExecutionRequest } from './dto/create-training.dto';
 import { UpdateTrainingDto } from './dto/update-training.dto';
 import { InjectModel } from '@nestjs/azure-database';
-import { Execution, Training } from './entities/training.entity';
+import { AttendanceStatus, Execution, Training } from './entities/training.entity';
 import { isUUID } from 'class-validator';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
@@ -267,6 +267,56 @@ export class TrainingService {
         throw new BadRequestException(ERRORS[ERROR_CODES.DATE_RANGE_INVALID]);
       }
     }
+  }
+
+  async getAsistanceBySchool(trainingId: string){
+    const training = await this.getTrainingById(trainingId);
+    if (!training) {
+      throw new BadRequestException('Training not found');
+    }
+    const schools = await this.schoolService.findAll();
+    const report: {
+      [schoolId: string]: {
+        school: Partial<School>;
+        attended: number;
+        pending: number;
+      }
+    } = {};
+    for (const school of schools) {
+      report[school.id] = {
+        school,
+        attended: 0,
+        pending: 0,
+      };
+    }
+    await Promise.all(training.participants.map(async participant => {
+      const professor = await this.professorsService.getById(participant.foreignId);
+      if(!professor){
+        return;
+      }
+      report[professor.schoolId].attended += participant.attendanceStatus === AttendanceStatus.ATTENDED ? 1 : 0;
+      report[professor.schoolId].pending += participant.attendanceStatus === AttendanceStatus.PENDING ? 1 : 0;
+    }));
+    return Object.values(report);
+  }
+
+  async getAsistance(id: string){
+    const training = await this.getTrainingById(id);
+    if (!training) {
+      throw new NotFoundException('Training not found');
+    }
+    const report: {
+      attended: number;
+      pending: number;
+    } = {
+      attended: 0,
+      pending: 0,
+    }
+    await Promise.all(training.participants.map(async participant => {
+      report.attended += participant.attendanceStatus === AttendanceStatus.ATTENDED ? 1 : 0;
+      report.pending += participant.attendanceStatus === AttendanceStatus.PENDING ? 1 : 0;
+    }));
+    return report;
   }
 
   private async toJson(payload: Training | Training[]): Promise<Training | Training[]> {

@@ -12,6 +12,9 @@ import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { Generator } from 'src/common/helpers/generator.helper';
 import { MailService } from 'src/common/services/mail.service';
 import { DocumentType } from 'src/common/types/document-type.enum';
+import { AttendanceStatus, Training } from 'src/training/entities/training.entity';
+import { ParticipantsService } from 'src/training/services/participants.service';
+import { query } from 'express';
 
 export enum ERROR_CODES {
   PROFESSOR_ALREADY_EXISTS = 'PROFESSOR_ALREADY_EXISTS',
@@ -26,7 +29,9 @@ export class ProfessorsService {
   constructor(
     @InjectModel(Professor)
     private readonly professorsContainer: Container,
-    @Inject(CACHE_MANAGER) 
+    @InjectModel(Training)
+    private readonly trainingContainer: Container,
+    @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
     private readonly schoolService: SchoolsService,
     private readonly usersService: UsersService,
@@ -45,7 +50,7 @@ export class ProfessorsService {
     await this.throwErrorIfProfessorExists(professor);
     let loggedUser = this.usersService.getLoggedUser();
     this.logger.log(`Logged user: ${JSON.stringify(loggedUser)}`);
-    if(!loggedUser){
+    if (!loggedUser) {
       return this.preloadProfessor(professor);
     }
     return this.saveProfessorInDb(professor);
@@ -58,10 +63,10 @@ export class ProfessorsService {
   }
 
   async preloadProfessor(professor: Professor) {
-    const {email} = professor;
+    const { email } = professor;
     //sendEmail
     const code = Generator.code(6);
-    console.log({code});
+    console.log({ code });
     try {
       this.mailService.sendVerificationCode({
         to: email,
@@ -77,7 +82,7 @@ export class ProfessorsService {
   async confirmRegister(code: string) {
     const professor: string | undefined = await this.cacheManager.get(code);
     this.logger.log(`Confirming preloaded professor with code ${code}`);
-    if(!professor){
+    if (!professor) {
       this.logger.log(`Invalid code ${code}`);
       throw new BadRequestException({
         statusCode: 400,
@@ -175,7 +180,6 @@ export class ProfessorsService {
     return resources[0];
   }
 
-
   async getById(id: string) {
     try {
       this.logger.log(`Getting professor with id ${id}`);
@@ -184,5 +188,44 @@ export class ProfessorsService {
     } catch (error) {
       return null;
     }
+  }
+
+  async getAssistanceByYear() {
+    const querySpec = {
+      query: 'SELECT c.createdAt FROM c',
+    }
+    const { resources: createdAtDates } = await this.trainingContainer.items.query(querySpec).fetchAll();
+    const professors = await this.findAll();
+    const dates = createdAtDates.map((resource) => new Date(resource.createdAt));
+    const distinctYears = [...new Set(dates.map((date) => date.getFullYear()))];
+    this.logger.debug(`Distinct years: ${distinctYears}`);
+    const report = {};
+    for (const year of distinctYears) {
+      report[year] = {
+        [AttendanceStatus.ATTENDED]: 0,
+        [AttendanceStatus.PENDING]: 0,
+      };
+      (await Promise.all(professors.map(async (professor) => {
+        const querySpec = {
+          query: `
+            SELECT TOP 1 c.foreignId, c.createdAt, p.attendanceStatus 
+            FROM c JOIN p IN c.participants 
+            WHERE p.foreignId = @id
+            AND c.createdAt >= @startDate
+            AND c.createdAt <= @endDate
+            AND p.attendanceStatus = @status  
+          `,
+          parameters: [
+            { name: '@id', value: professor.id },
+            { name: '@startDate', value: `${year}-01-01T00:00:00.000Z` },
+            { name: '@endDate', value: `${year}-12-31T23:59:59.999Z` },
+            { name: '@status', value: AttendanceStatus.ATTENDED },
+          ],
+        }
+        return this.trainingContainer.items.query<{ foreignId: string, createdAt: string, attendanceStatus: AttendanceStatus }>(querySpec).fetchAll();
+      })))
+        .forEach(({ resources: professorTrainingsInYear }) => professorTrainingsInYear.length > 0 ? report[year][AttendanceStatus.ATTENDED]++ : report[year][AttendanceStatus.PENDING]++);
+    }
+    return report;
   }
 }

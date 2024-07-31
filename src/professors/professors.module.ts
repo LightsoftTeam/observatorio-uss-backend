@@ -9,6 +9,7 @@ import { CommonModule } from 'src/common/common.module';
 import { UsersModule } from 'src/users/users.module';
 import { UsersService } from 'src/users/users.service';
 import { AuthModule } from 'src/auth/auth.module';
+import { Training } from 'src/training/entities/training.entity';
 
 @Module({
   controllers: [ProfessorsController],
@@ -16,6 +17,7 @@ import { AuthModule } from 'src/auth/auth.module';
   imports: [
     AzureCosmosDbModule.forFeature([
       {dto: Professor},
+      {dto: Training},
     ]),
     SchoolsModule,
     CommonModule,
