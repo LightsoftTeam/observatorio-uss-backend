@@ -78,19 +78,27 @@ export class ParticipantsService {
             }
             //TODO: validate that professorId exists in the database
             const participant = training.participants.find((participant) => participant.foreignId === professorId);
-            if (participant) {
+            this.validateMultipleRoles(roles);
+            if (!participant) {
+                this.logger.log(`Participant ${professorId} does not exist in training ${trainingId}`);
+                training.participants.push({
+                    id: uuidv4(),
+                    foreignId: professorId,
+                    roles,
+                    attendanceStatus: AttendanceStatus.PENDING,
+                });
+                const { resource: trainingUpdated } = await this.trainingContainer.item(trainingId, trainingId).replace(training);
+                const newParticipant = trainingUpdated.participants.find((participant) => participant.foreignId === professorId);
+                return this.fillParticipant(newParticipant);
+            }
+            if(participant.roles.length === roles.length && participant.roles.every((role) => roles.includes(role))) {
+                this.logger.log(`Participant ${participant.id} already exists in training ${trainingId} and has the same roles`);
                 return this.fillParticipant(participant);
             }
-            this.validateMultipleRoles(roles);
-            training.participants.push({
-                id: uuidv4(),
-                foreignId: professorId,
-                roles,
-                attendanceStatus: AttendanceStatus.PENDING,
-            });
-            const { resource: trainingUpdated } = await this.trainingContainer.item(trainingId, trainingId).replace(training);
-            const newParticipant = trainingUpdated.participants.find((participant) => participant.foreignId === professorId);
-            return this.fillParticipant(newParticipant);
+            this.logger.log(`Participant ${participant.id} already exists in training ${trainingId} and has different roles`);
+            participant.roles = roles;
+            await this.trainingContainer.item(trainingId, trainingId).replace(training);
+            return this.fillParticipant(participant);
         } catch (error) {
             this.logger.error(`addParticipant ${error.message}`);
             throw error;
