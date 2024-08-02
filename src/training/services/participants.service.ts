@@ -203,12 +203,13 @@ export class ParticipantsService {
                     code,
                     modality,
                 },
-                executions: executions.map((execution) => ({
-                    id: execution.id,
-                    from: execution.from,
-                    to: execution.to,
-                    participantAttend: !!execution.attendance.find((attendance) => attendance.participantId === participantId),
-                })),
+                executions: executions.map((execution) => {
+                    const { attendance, ...rest } = execution;
+                    return {
+                        ...rest,
+                        participantAttend: !!execution.attendance.find((attendance) => attendance.participantId === participantId),
+                    }
+                }),
                 participant: filledParticipant,
             }
         } catch (error) {
