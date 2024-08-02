@@ -1,9 +1,13 @@
 import { FormatDate } from "src/common/helpers/format-date.helper";
 import { TrainingRole } from "../entities/training.entity";
 import { TrainingRoleMap } from "../mappers/training-role-map";
+import axios from "axios";
+
+//TODO: Change the default certificate background URL to the correct one in oficial server
+const DEFAULT_CERTIFICATE_BACKGROUND_URL = 'https://lightsoft.blob.core.windows.net/lightsoft/observatorio-uss%2F1722569940652_fondo_certificado_uss_default.png?sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2099-03-03T13:12:01Z&st=2024-03-03T05:12:01Z&spr=https,http&sig=%2BfzCUZcEebdMsuMC3NDjtrpAoFCoB9I1QbITCfpvmcg%3D';
 
 export interface TrainingCertificateTemplateData {
-    id: string;
+    participantId: string;
     name: string;
     roles: TrainingRole[];
     trainingName: string;
@@ -11,11 +15,12 @@ export interface TrainingCertificateTemplateData {
     trainingFromDate: string;
     trainingToDate: string;
     duration: number;
+    certificateBackgroundUrl?: string;
 }
 
 export function getTrainingCertificateTemplate(data: TrainingCertificateTemplateData) {
-    let {  
-        id,
+    let {
+        participantId,
         name,
         roles,
         trainingName,
@@ -23,11 +28,12 @@ export function getTrainingCertificateTemplate(data: TrainingCertificateTemplate
         trainingFromDate,
         trainingToDate,
         duration,
+        certificateBackgroundUrl = DEFAULT_CERTIFICATE_BACKGROUND_URL
     } = data;
     emisionDate = FormatDate.toHuman(emisionDate);
     trainingFromDate = FormatDate.toHuman(trainingFromDate);
     trainingToDate = FormatDate.toHuman(trainingToDate);
-    
+
     return `
         <!DOCTYPE html>
             <html lang="es">
@@ -36,66 +42,76 @@ export function getTrainingCertificateTemplate(data: TrainingCertificateTemplate
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>Constancia de participación</title>
                 <style>
-                    body {
-                        font-family: Arial, sans-serif;
-                        font-size: 12px;
-                    }
+                body {
+                    font-family: Arial, sans-serif;
+                    font-size: 12px;
+                    background-image: url('${certificateBackgroundUrl}');
+                    background-size: cover;
+                    background-repeat: no-repeat;
+                    background-position: center;
+                    margin: 0;
+                    padding: 0;
+                    width: 100%;
+                    height: 100%;
+                    box-sizing: border-box;
+                }
 
-                    .container {
-                        max-width: 800px;
-                        margin: 0 auto;
-                        padding: 20px;
-                    }
+                .container {
+                    max-width: 800px;
+                    margin: 0 auto;
+                    padding: 20px;
+                    background-color: rgba(255, 255, 255, 0.9); /* Opcional: para hacer el texto más legible */
+                }
 
-                    .header {
-                        text-align: center;
-                        margin-bottom: 20px;
-                    }
+                .header {
+                    text-align: center;
+                    margin-bottom: 20px;
+                }
 
-                    .logo {
-                        width: 100px;
-                        height: auto;
-                    }
+                .logo {
+                    width: 100px;
+                    height: auto;
+                }
 
-                    .title {
-                        font-size: 24px;
-                        font-weight: bold;
-                    }
+                .title {
+                    font-size: 24px;
+                    font-weight: bold;
+                }
 
-                    .content {
-                        margin-bottom: 20px;
-                    }
+                .content {
+                    margin-bottom: 20px;
+                }
 
-                    .data {
-                        font-style: italic;
-                    }
+                .data {
+                    font-style: italic;
+                }
 
-                    .table {
-                        width: 100%;
-                        border-collapse: collapse;
-                    }
+                .table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
 
-                    .table th,
-                    .table td {
-                        border: 1px solid #ccc;
-                        padding: 5px;
-                    }
+                .table th,
+                .table td {
+                    border: 1px solid #ccc;
+                    padding: 5px;
+                }
 
-                    .table th {
-                        text-align: left;
-                        background-color: #eee;
-                    }
+                .table th {
+                    text-align: left;
+                    background-color: #eee;
+                }
 
-                    .signature {
-                        text-align: center;
-                        margin-top: 20px;
-                    }
+                .signature {
+                    text-align: center;
+                    margin-top: 20px;
+                }
 
-                    .firma {
-                        font-size: 16px;
-                        font-weight: bold;
-                    }
-                </style>
+                .firma {
+                    font-size: 16px;
+                    font-weight: bold;
+                }
+            </style>
             </head>
             <body>
                 <div class="container">
@@ -133,4 +149,25 @@ export function getTrainingCertificateTemplate(data: TrainingCertificateTemplate
             </body>
             </html>
     `;
+}
+
+async function getImageAsBase64(url: string) {
+    try {
+        // Realizar la solicitud GET a la URL
+        const response = await axios.get(url, { responseType: 'arraybuffer' });
+        
+        // Convertir el buffer de datos a Base64
+        const base64Image = Buffer.from(response.data, 'binary').toString('base64');
+        
+        // Determinar el tipo de imagen a partir de los headers
+        const mimeType = response.headers['content-type'];
+        
+        // Formatear el resultado para su uso en HTML/CSS
+        const base64ImageFormatted = `data:${mimeType};base64,${base64Image}`;
+        
+        console.log(base64ImageFormatted); // Aquí tienes la imagen en formato Base64
+        return base64ImageFormatted;
+    } catch (error) {
+        console.error('Error al obtener la imagen:', error);
+    }
 }

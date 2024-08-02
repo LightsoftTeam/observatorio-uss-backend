@@ -2308,7 +2308,8 @@
               "PARTICIPANT_NOT_FOUND",
               "TRAINING_NOT_COMPLETED",
               "TRAINING_NOT_HAVE_EXECUTIONS",
-              "MULTIPLE_ROLES_NOT_ALLOWED"
+              "MULTIPLE_ROLES_NOT_ALLOWED",
+              "TRAINING_ALREADY_COMPLETED"
             ]
           },
           "message": {
@@ -2403,6 +2404,12 @@
             "type": "string",
             "description": "The competency of the training",
             "example": "a1b2c3d4-1234-5678-90ab-cdef12345678"
+          },
+          "certificateBackgroundUrl": {
+            "type": "string",
+            "description": "The background url of the certificate",
+            "example": "https://example.com/certificate.png",
+            "nullable": true
           }
         },
         "required": [
@@ -2417,7 +2424,8 @@
           "status",
           "modality",
           "capacity",
-          "competencyId"
+          "competencyId",
+          "certificateBackgroundUrl"
         ]
       },
       "UpdateTrainingDto": {
@@ -2501,6 +2509,12 @@
             "type": "string",
             "description": "The competency of the training",
             "example": "a1b2c3d4-1234-5678-90ab-cdef12345678"
+          },
+          "certificateBackgroundUrl": {
+            "type": "string",
+            "description": "The background url of the certificate",
+            "example": "https://example.com/certificate.png",
+            "nullable": true
           }
         }
       },

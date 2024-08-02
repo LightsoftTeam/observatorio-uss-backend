@@ -278,6 +278,9 @@ export class ParticipantsService {
             }
             this.logger.log(`Training ${training.id} found`);
             const participant = training.participants.find((participant) => participant.id === participantId);
+            if(participant.attendanceStatus === AttendanceStatus.ATTENDED && participant.certificate && process.env.NODE_ENV === 'production') {
+                throw new BadRequestException(ERRORS[ERROR_CODES.TRAINING_ALREADY_COMPLETED]);
+            } 
             participant.attendanceStatus = AttendanceStatus.ATTENDED;
             await this.trainingContainer.item(training.id, training.id).replace(training);
             const executions = training.executions;
@@ -293,13 +296,13 @@ export class ParticipantsService {
             return participant;
         } catch (error) {
             this.logger.error(`changeStatus ${error.message}`);
-            throw new InternalServerErrorException(error.message);
+            throw error;
         }
     }
 
     private async generateCertificate({ training, participant }: { training: Training, participant: TrainingParticipant }) {
         this.logger.log(`Generating certificate for participant ${participant.id}`);
-        const { executions, name: trainingName } = training;
+        const { executions, name: trainingName, certificateBackgroundUrl } = training;
         const trainingFromDate = executions[0].from;
         const trainingToDate = executions[executions.length - 1].to;
         const emisionDate = new Date().toISOString();
@@ -314,7 +317,7 @@ export class ParticipantsService {
         const { id, professor, roles } = filledParticipant;
         const { name } = professor;
         const data: TrainingCertificateTemplateData = {
-            id,
+            participantId: id,
             name,
             roles,
             trainingName,
@@ -322,6 +325,7 @@ export class ParticipantsService {
             trainingFromDate,
             trainingToDate,
             duration: durationInHours,
+            certificateBackgroundUrl,
         };
         const certificate: TrainingCertificate = {
             id: uuidv4(),

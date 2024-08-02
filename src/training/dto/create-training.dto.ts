@@ -133,4 +133,13 @@ export class CreateTrainingDto {
     @IsString()
     @IsNotEmpty()
     competencyId: string;
+
+    @ApiProperty({
+        description: 'The background url of the certificate',
+        example: 'https://example.com/certificate.png',
+        nullable: true,
+    })
+    @IsString()
+    @IsOptional()
+    certificateBackgroundUrl?: string;
 }

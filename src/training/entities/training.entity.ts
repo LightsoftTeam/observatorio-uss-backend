@@ -73,5 +73,6 @@ export class Training {
     capacity: number;
     participants: TrainingParticipant[];
     competencyId: string;
+    certificateBackgroundUrl?: string;
     @CosmosDateTime() createdAt: Date;
 }
