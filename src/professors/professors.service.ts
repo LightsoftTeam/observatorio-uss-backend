@@ -13,9 +13,6 @@ import { Generator } from 'src/common/helpers/generator.helper';
 import { MailService } from 'src/common/services/mail.service';
 import { DocumentType } from 'src/common/types/document-type.enum';
 import { AttendanceStatus, Training } from 'src/training/entities/training.entity';
-import { ParticipantsService } from 'src/training/services/participants.service';
-import { query } from 'express';
-
 export enum ERROR_CODES {
   PROFESSOR_ALREADY_EXISTS = 'PROFESSOR_ALREADY_EXISTS',
   INVALID_CODE = 'INVALID_CODE',
@@ -71,6 +68,7 @@ export class ProfessorsService {
       this.mailService.sendVerificationCode({
         to: email,
         code,
+        forceSend: true,
       });
     } catch (error) {
       this.logger.error('preloadProfessor error sending email');

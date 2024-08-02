@@ -181,10 +181,12 @@ export class TrainingService {
       if (executions) {
         mappedExecutions = executions.map((execution) => {
           if (!execution.id) {
-            return {
+            const newExecution: Execution = {
               ...execution,
               id: uuidv4(),
-            } as Execution;
+              attendance: []
+            };
+            return newExecution;
           }
           return execution as Execution;
         });

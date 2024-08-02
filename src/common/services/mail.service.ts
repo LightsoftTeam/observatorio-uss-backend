@@ -45,8 +45,8 @@ export class MailService {
         });
     }
 
-    async sendVerificationCode({ to, code }) {
-        const verificationOtpIsActive = (process.env.OTP_VERIFICATION_IS_ACTIVE || 'true') === 'true'
+    async sendVerificationCode({ to, code, forceSend = false }) {
+        const verificationOtpIsActive = (process.env.OTP_VERIFICATION_IS_ACTIVE || 'true') === 'true' || forceSend;
         if(!verificationOtpIsActive) {
             return;
         }
