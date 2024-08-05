@@ -8,7 +8,6 @@ import { PostsRepository } from '../repositories/post.repository';
 import { CreatePostCommentDto } from '../dto/create-post-comment.dto';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { User } from 'src/users/entities/user.entity';
-import { children } from 'cheerio/lib/api/traversing';
 import { APP_ERRORS, ERROR_CODES } from 'src/common/constants/errors.constants';
 
 @Injectable()
@@ -52,7 +51,7 @@ export class PostCommentsService {
         const users = await this.usersService.getByIds(resources.map(comment => comment.userId));
         return (Object.values(commentsMap) as PostComment[])
             .filter(comment => !comment.parentId)
-            .map(comment => this.fill({ comment, users, loggedUser }));
+            .map(comment => this.fill({ comment, users }));
     }
 
     async create(postId: string, createPostCommentDto: CreatePostCommentDto) {
@@ -81,10 +80,10 @@ export class PostCommentsService {
             createdAt: new Date(),
         };
         const { resource } = await this.postCommentsContainer.items.create<PostComment>(postComment);
-        return this.fill({ comment: resource, users: [], loggedUser: this.usersService.getLoggedUser() });
+        return this.fill({ comment: resource, users: [] });
     }
 
-    async updateLikes({ postId, postCommentId }: { postId: string, postCommentId: string }) {
+    async updateLikes({ postId, postCommentId }: { postId: string, postCommentId: string }): Promise<Partial<PostComment>> {
         this.logger.log(`Updating likes of post comment: ${postCommentId} of the post ${postId}`);
         const postComment = await this.getById(postCommentId, postId);
         if (!postComment) {
@@ -100,7 +99,7 @@ export class PostCommentsService {
         this.postCommentsContainer.item(postCommentId, postComment.postId).replace(postComment);
         return {
             iLikedIt: !alreadyLiked,
-            likes: postComment.likes.length,
+            numberOfLikes: postComment.likes.length,
         };
     }
 
@@ -128,13 +127,14 @@ export class PostCommentsService {
         }
     }
 
-    fill({ comment, users, loggedUser }: { comment: PostComment, users: Partial<User>[], loggedUser: Partial<User> }) {
+    fill({ comment, users }: { comment: PostComment, users: Partial<User>[] }) {
         const user = users.find(user => user.id === comment.userId);
+        const loggedUser = this.usersService.getLoggedUser();
         return {
             ...FormatCosmosItem.cleanDocument(comment, ['likes']),
-            children: comment.children.map(child => this.fill({ comment: child, users, loggedUser })),
+            children: comment.children.map(child => this.fill({ comment: child, users })),
             user: user ? FormatCosmosItem.cleanDocument(user, ['password']) : null,
-            iLikedIt: comment.likes.some(like => like.userId === loggedUser.id),
+            iLikedIt: comment.likes.some(like => like.userId === loggedUser?.id),
             numberOfLikes: comment.likes.length,
         };
     }
