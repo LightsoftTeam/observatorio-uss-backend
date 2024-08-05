@@ -376,6 +376,126 @@
         ]
       }
     },
+    "/api/posts/{id}/comments": {
+      "get": {
+        "operationId": "PostsController_getComments",
+        "summary": "Get comments of a post",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The comments has been successfully retrieved."
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      },
+      "post": {
+        "operationId": "PostsController_createComment",
+        "summary": "Create a comment",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePostCommentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The comment has been successfully created."
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      }
+    },
+    "/api/posts/{postId}/comments/{postCommentId}/likes": {
+      "post": {
+        "operationId": "PostsController_likeComment",
+        "summary": "Like a comment",
+        "parameters": [
+          {
+            "name": "postId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "postCommentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The comment has been successfully liked."
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      }
+    },
+    "/api/posts/{postId}/comments/{postCommentId}": {
+      "delete": {
+        "operationId": "PostsController_deleteComment",
+        "summary": "Delete a comment",
+        "parameters": [
+          {
+            "name": "postId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "postCommentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The comment has been successfully deleted."
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      }
+    },
     "/api/common/sync-algolia": {
       "post": {
         "operationId": "CommonController_syncAlgolia",
@@ -2051,7 +2171,7 @@
         "properties": {
           "action": {
             "type": "string",
-            "description": "The action to perform on the post likes",
+            "description": "The action to perform on the post or post comment likes",
             "example": "decrement",
             "default": "increment",
             "enum": [
@@ -2062,6 +2182,26 @@
         },
         "required": [
           "action"
+        ]
+      },
+      "CreatePostCommentDto": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "string",
+            "description": "The comment of the post",
+            "example": "This is a comment"
+          },
+          "parentId": {
+            "type": "string",
+            "description": "The parent id",
+            "example": "123e4567-es12-42d9-a456-426614174000",
+            "nullable": true
+          }
+        },
+        "required": [
+          "body",
+          "parentId"
         ]
       },
       "SendOTPDto": {
@@ -2304,7 +2444,8 @@
               "INVALID_AUTHOR",
               "POST_IS_NOT_PENDING_APPROVAL",
               "PROFESSOR_ALREADY_EXISTS",
-              "USER_ALREADY_EXISTS"
+              "USER_ALREADY_EXISTS",
+              "NESTED_COMMENT_NOT_ALLOWED"
             ]
           },
           "message": {

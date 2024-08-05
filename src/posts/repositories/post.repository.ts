@@ -4,6 +4,7 @@ import { Inject, Injectable, forwardRef } from "@nestjs/common";
 import { Container } from "@azure/cosmos";
 import { Post } from "../entities/post.entity";
 import { UsersService } from "src/users/users.service";
+import { ApplicationLoggerService } from "src/common/services/application-logger.service";
 
 export interface PostFilters {
     category?: string;
@@ -36,6 +37,7 @@ export class PostsRepository {
         private readonly postsContainer: Container,
         @Inject(forwardRef(() => UsersService))
         private readonly usersService: UsersService,
+        private logger: ApplicationLoggerService,
     ) { }
 
     async find({
@@ -53,10 +55,10 @@ export class PostsRepository {
                 value: isPendingApproval
             }]
         }
-        if(!isPendingApproval){
+        if (!isPendingApproval) {
             //get undefined or true
             querySpec.query += ' AND (c.isPendingApproval = @isPendingApproval OR NOT IS_DEFINED(c.isPendingApproval))';
-        }else{
+        } else {
             //get true
             querySpec.query += ' AND c.isPendingApproval = @isPendingApproval';
         }
@@ -85,5 +87,20 @@ export class PostsRepository {
             }
         });
         return postsWithAuthor;
+    }
+
+    async getById(id: string) {
+        this.logger.log(`Getting post by id: ${id}`);
+        try {
+            const querySpec = {
+                query: `SELECT * FROM c WHERE c.id = @id`,
+                parameters: [{ name: '@id', value: id }]
+            };
+            const { resources } = await this.postsContainer.items.query<Post>(querySpec).fetchAll();
+            this.logger.log(`Post found: ${JSON.stringify(resources.length)}`);
+            return resources.at(0) ?? null;
+        } catch (error) {
+            return null;
+        }
     }
 }

@@ -7,10 +7,15 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { UpdateHomePostDto } from './dto/update-home-post.dto';
 import { UpdateLikesDto } from './dto/update-likes.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { PostCommentsService } from './services/post-comments.service';
+import { CreatePostCommentDto } from './dto/create-post-comment.dto';
 @ApiTags('Posts')
 @Controller('posts')
 export class PostsController {
-  constructor(private postsService: PostsService) {}
+  constructor(
+    private postsService: PostsService,
+    private postCommentsService: PostCommentsService,
+  ) {}
 
   @ApiResponse({
     status: 401,
@@ -130,5 +135,38 @@ export class PostsController {
   @Post('accept-request/:id')
   acceptRequest(@Param('id') id: string) {
     return this.postsService.acceptPostRequest(id);
+  }
+
+  @Get(':id/comments')
+  @ApiOperation({ summary: 'Get comments of a post' })
+  @ApiResponse({ status: 200, description: 'The comments has been successfully retrieved.'})
+  getComments(@Param('id') id: string) {
+    return this.postCommentsService.findByPostId(id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post(':id/comments')
+  @ApiOperation({ summary: 'Create a comment' })
+  @ApiResponse({ status: 201, description: 'The comment has been successfully created.'})
+  createComment(@Param('id') id: string, @Body() createPostCommentDto: CreatePostCommentDto) {
+    return this.postCommentsService.create(id, createPostCommentDto);
+  }
+
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Like a comment' })
+  @ApiResponse({ status: 200, description: 'The comment has been successfully liked.'})
+  @HttpCode(HttpStatus.OK)
+  @Post('/:postId/comments/:postCommentId/likes')
+  likeComment(@Param('postId') postId: string, @Param('postCommentId') postCommentId: string) {
+    return this.postCommentsService.updateLikes({ postId, postCommentId });
+  }
+
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Delete a comment' })
+  @ApiResponse({ status: 204, description: 'The comment has been successfully deleted.'})
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete(':postId/comments/:postCommentId')
+  async deleteComment(@Param('postId') postId: string, @Param('postCommentId') postCommentId: string) {
+    return this.postCommentsService.remove(postCommentId, postId);
   }
 }

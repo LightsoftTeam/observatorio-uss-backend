@@ -9,18 +9,21 @@ import { CommonModule } from 'src/common/common.module';
 import { PostsRepository } from './repositories/post.repository';
 import { UsersService } from 'src/users/users.service';
 import { UsersModule } from 'src/users/users.module';
+import { PostComment } from './entities/post-comment.entity';
+import { PostCommentsService } from './services/post-comments.service';
 
 @Module({
   imports: [
     AzureCosmosDbModule.forFeature([
       {dto: Post},
       {dto: HomePost},
+      {dto: PostComment},
     ]),
     CommonModule,
     UsersModule,
   ],
   controllers: [PostsController],
-  providers: [PostsService, AlgoliaService, PostsRepository, UsersService],
+  providers: [PostsService, AlgoliaService, PostsRepository, UsersService, PostCommentsService],
   exports: [PostsService, AzureCosmosDbModule, PostsRepository]
 })
 export class PostsModule {}

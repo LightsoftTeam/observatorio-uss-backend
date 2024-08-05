@@ -13,6 +13,7 @@ export enum ERROR_CODES {
     POST_IS_NOT_PENDING_APPROVAL = 'POST_IS_NOT_PENDING_APPROVAL',
     PROFESSOR_ALREADY_EXISTS = 'PROFESSOR_ALREADY_EXISTS',
     USER_ALREADY_EXISTS = 'USER_ALREADY_EXISTS',
+    NESTED_COMMENT_NOT_ALLOWED = 'NESTED_COMMENT_NOT_ALLOWED',
 }
 
 export const APP_ERRORS = {
@@ -71,5 +72,9 @@ export const APP_ERRORS = {
     [ERROR_CODES.USER_ALREADY_EXISTS]: {
         code: ERROR_CODES.USER_ALREADY_EXISTS,
         message: 'The user already exists'
+    },
+    [ERROR_CODES.NESTED_COMMENT_NOT_ALLOWED]: {
+        code: ERROR_CODES.NESTED_COMMENT_NOT_ALLOWED,
+        message: 'Nested comments only allowed one level deep'
     },
 }

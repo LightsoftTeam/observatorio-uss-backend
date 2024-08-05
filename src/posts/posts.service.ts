@@ -254,12 +254,15 @@ export class PostsService {
 
   async updateLikes(id: string, action: LikeAction = LikeAction.INCREMENT) {
     const post = await this.findOne(id);
+    if(action === LikeAction.DECREMENT && post.likes === 0){
+      return 0;
+    }
     const likes = action === LikeAction.INCREMENT ? post.likes + 1 : post.likes - 1;
     const updatedPost = {
       ...post,
       likes
     }
-    await this.postsContainer.item(post.id).replace(updatedPost);
+    this.postsContainer.item(post.id).replace(updatedPost);
     return likes;
   }
 

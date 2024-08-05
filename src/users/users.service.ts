@@ -63,11 +63,38 @@ export class UsersService {
 
   async findOne(id: string) {
     try {
+      const user = await this.getById(id);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      return user;
+    } catch (error) {
+      this.logger.log(error.message);
+      throw error;
+    }
+  }
+
+  async getById(id: string) {
+    try {
       const { resource } = await this.usersContainer.item(id, id).read<User>();
       return resource;
     } catch (error) {
-      throw new NotFoundException('User not found');
+      return null;
     }
+  }
+
+  async getByIds(ids: string[]) {
+    const querySpec = {
+      query: 'SELECT * FROM c WHERE ARRAY_CONTAINS(@ids, c.id)',
+      parameters: [
+        {
+          name: '@ids',
+          value: ids,
+        },
+      ],
+    };
+    const { resources } = await this.usersContainer.items.query<User>(querySpec).fetchAll();
+    return resources.map(user => FormatCosmosItem.cleanDocument(user, ['password']));
   }
 
   async findBySlug(slug: string) {
