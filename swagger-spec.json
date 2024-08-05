@@ -1657,16 +1657,6 @@
         "responses": {
           "200": {
             "description": "The email has been confirmed and the professor has been saved."
-          },
-          "400": {
-            "description": "Bad Request.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/InvalidVerificationCodeErrorResponseDto"
-                }
-              }
-            }
           }
         },
         "tags": [
@@ -2309,7 +2299,12 @@
               "TRAINING_NOT_COMPLETED",
               "TRAINING_NOT_HAVE_EXECUTIONS",
               "MULTIPLE_ROLES_NOT_ALLOWED",
-              "TRAINING_ALREADY_COMPLETED"
+              "TRAINING_ALREADY_COMPLETED",
+              "INVALID_OTP",
+              "INVALID_AUTHOR",
+              "POST_IS_NOT_PENDING_APPROVAL",
+              "PROFESSOR_ALREADY_EXISTS",
+              "USER_ALREADY_EXISTS"
             ]
           },
           "message": {
@@ -2887,29 +2882,6 @@
             "example": "60f4b3b3-1b7b-4b6b-8b7b-1b7b4b6b8b7b"
           }
         }
-      },
-      "InvalidVerificationCodeErrorResponseDto": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string",
-            "description": "The error code.",
-            "example": "INVALID_CODE",
-            "enum": [
-              "PROFESSOR_ALREADY_EXISTS",
-              "INVALID_CODE"
-            ]
-          },
-          "message": {
-            "type": "string",
-            "description": "The error message.",
-            "example": "Invalid code"
-          }
-        },
-        "required": [
-          "code",
-          "message"
-        ]
       },
       "CreateSchoolDto": {
         "type": "object",

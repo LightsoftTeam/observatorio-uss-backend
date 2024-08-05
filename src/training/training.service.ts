@@ -14,7 +14,7 @@ import { ProfessorsService } from 'src/professors/professors.service';
 import { StorageService } from 'src/storage/storage.service';
 import { CertificatesHelper } from 'src/common/helpers/certificates.helper';
 import { DocumentType } from 'src/common/types/document-type.enum';
-import { ERROR_CODES, ERRORS } from './constants/errors.constants';
+import { ERROR_CODES, APP_ERRORS } from '../common/constants/errors.constants';
 import { CompetenciesService } from 'src/competencies/competencies.service';
 const AdmZip = require("adm-zip");
 
@@ -58,7 +58,7 @@ export class TrainingService {
       const existingTraining = await this.getByCode(code);
       if (existingTraining) {
         this.logger.log(`Training code already exists: ${code}`);
-        throw new BadRequestException(ERRORS[ERROR_CODES.TRAINING_CODE_ALREADY_EXISTS]);
+        throw new BadRequestException(APP_ERRORS[ERROR_CODES.TRAINING_CODE_ALREADY_EXISTS]);
       }
       if (organizer !== DDA_ORGANIZER_ID) {
         if (!isUUID(organizer)) {
@@ -173,7 +173,7 @@ export class TrainingService {
       const trainingWithCode = await this.getByCode(updateTrainingDto.code);
       if (trainingWithCode && trainingWithCode.id !== id) {
         this.logger.log(`Training code already exists: ${updateTrainingDto.code}`);
-        throw new BadRequestException(ERRORS[ERROR_CODES.TRAINING_CODE_ALREADY_EXISTS]);
+        throw new BadRequestException(APP_ERRORS[ERROR_CODES.TRAINING_CODE_ALREADY_EXISTS]);
       }
       const { executions, competencyId } = updateTrainingDto;
       this.validateExecutionsDateRange(executions);
@@ -240,7 +240,7 @@ export class TrainingService {
       .filter(participant => participant.certificate?.url);
     if (participants.length === 0) {
       this.logger.log('No participants with certificates found');
-      throw new BadRequestException(ERRORS[ERROR_CODES.TRAINING_NOT_HAVE_PARTICIPANTS_WITH_CERTIFICATES]);
+      throw new BadRequestException(APP_ERRORS[ERROR_CODES.TRAINING_NOT_HAVE_PARTICIPANTS_WITH_CERTIFICATES]);
     }
     for (const participant of participants) {
       const { certificate } = participant;
@@ -266,7 +266,7 @@ export class TrainingService {
       const to = new Date(execution.to);
       if (from > to) {
         this.logger.error(`Execution ${i} has an invalid date range`);
-        throw new BadRequestException(ERRORS[ERROR_CODES.DATE_RANGE_INVALID]);
+        throw new BadRequestException(APP_ERRORS[ERROR_CODES.DATE_RANGE_INVALID]);
       }
     }
   }

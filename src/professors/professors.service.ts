@@ -13,10 +13,7 @@ import { Generator } from 'src/common/helpers/generator.helper';
 import { MailService } from 'src/common/services/mail.service';
 import { DocumentType } from 'src/common/types/document-type.enum';
 import { AttendanceStatus, Training } from 'src/training/entities/training.entity';
-export enum ERROR_CODES {
-  PROFESSOR_ALREADY_EXISTS = 'PROFESSOR_ALREADY_EXISTS',
-  INVALID_CODE = 'INVALID_CODE',
-}
+import { APP_ERRORS, ERROR_CODES } from 'src/common/constants/errors.constants';
 
 const EXPIRATION_PRELOAD_PROFESSOR = 1000 * 60 * 10;//10 minutes
 
@@ -82,11 +79,7 @@ export class ProfessorsService {
     this.logger.log(`Confirming preloaded professor with code ${code}`);
     if (!professor) {
       this.logger.log(`Invalid code ${code}`);
-      throw new BadRequestException({
-        statusCode: 400,
-        code: ERROR_CODES.INVALID_CODE,
-        message: 'Invalid code',
-      });
+      throw new BadRequestException(APP_ERRORS[ERROR_CODES.INVALID_OTP]);
     }
     this.cacheManager.del(code);
     this.logger.log(`Professor confirmed with code ${code}: ${professor}`);
@@ -98,11 +91,7 @@ export class ProfessorsService {
     const { documentType, documentNumber } = professor;
     const professorAlreadyExists = await this.getByDocument({ documentNumber, documentType });
     if (professorAlreadyExists) {
-      throw new BadRequestException({
-        statusCode: 400,
-        code: ERROR_CODES.PROFESSOR_ALREADY_EXISTS,
-        message: `Professor with document ${documentType} ${documentNumber} already exists`,
-      });
+      throw new BadRequestException(APP_ERRORS[ERROR_CODES.PROFESSOR_ALREADY_EXISTS]);
     }
   }
 

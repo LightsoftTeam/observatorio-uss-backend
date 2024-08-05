@@ -11,6 +11,7 @@ import { ApplicationLoggerService } from 'src/common/services/application-logger
 import { REQUEST } from '@nestjs/core';
 import { generateUniqueSlug } from 'src/posts/helpers/generate-slug.helper';
 import { FindUsersDto } from './dto/find-users.dto';
+import { APP_ERRORS, ERROR_CODES } from 'src/common/constants/errors.constants';
 
 const PASSWORD_SALT_ROUNDS = 5;
 const USER_LIST_CACHE_KEY = 'users';
@@ -36,7 +37,7 @@ export class UsersService {
       this.logger.log('pushing roles');
       roles.push(...Object.values(Role));
     }
-    if(!this.isAdmin()){
+    if (!this.isAdmin()) {
       roles = roles.filter(r => r !== Role.ADMIN);
     }
     this.logger.log(`selected roles - ${JSON.stringify(roles)}`);
@@ -130,11 +131,7 @@ export class UsersService {
     };
     const existingUser = await this.findByEmail(user.email);
     if (existingUser) {
-      //TODO: use enum for error codes
-      throw new BadRequestException({
-        code: 'USER_ALREADY_EXISTS',
-        message: 'User already exists',
-      });
+      throw new BadRequestException(APP_ERRORS[ERROR_CODES.USER_ALREADY_EXISTS]);
     }
     const { resource } = await this.usersContainer.items.create<User>(user);
     const newUser = FormatCosmosItem.cleanDocument(resource, ['password']);

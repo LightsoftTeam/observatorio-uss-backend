@@ -16,7 +16,7 @@ import { TrainingParticipantQrTemplateData, getParticipantQrTemplate } from '../
 import nodeHtmlToImage from 'node-html-to-image';
 import { StorageService } from 'src/storage/storage.service';
 import { CertificatesHelper } from 'src/common/helpers/certificates.helper';
-import { ERROR_CODES, ERRORS } from '../constants/errors.constants';
+import { ERROR_CODES, APP_ERRORS } from '../../common/constants/errors.constants';
 const HTML_TO_PDF = require('html-pdf-node');
 
 
@@ -142,7 +142,7 @@ export class ParticipantsService {
     
     private validateMultipleRoles(roles: TrainingRole[]) {
         if (roles.length > 1 && !roles.includes(TrainingRole.ORGANIZER)) {
-            throw new BadRequestException(ERRORS[ERROR_CODES.MULTIPLE_ROLES_NOT_ALLOWED]);
+            throw new BadRequestException(APP_ERRORS[ERROR_CODES.MULTIPLE_ROLES_NOT_ALLOWED]);
         }
     }
 
@@ -187,12 +187,12 @@ export class ParticipantsService {
             this.logger.log(`Verifying participant ${participantId}`);
             const training = await this.getTrainingByParticipantId(participantId);
             if (!training) {
-                throw new BadRequestException(ERRORS[ERROR_CODES.QR_CODE_NOT_FOUND]);
+                throw new BadRequestException(APP_ERRORS[ERROR_CODES.QR_CODE_NOT_FOUND]);
             }
             this.logger.log(`Training ${training.id} found`);
             const participant = training.participants.find((participant) => participant.id === participantId);
             if (!participant) {
-                throw new BadRequestException(ERRORS[ERROR_CODES.QR_CODE_NOT_FOUND]);
+                throw new BadRequestException(APP_ERRORS[ERROR_CODES.QR_CODE_NOT_FOUND]);
             }
             const { id, name, code, modality, executions } = training;
             const filledParticipant = await this.fillParticipant(participant);
@@ -279,13 +279,13 @@ export class ParticipantsService {
             this.logger.log(`Training ${training.id} found`);
             const participant = training.participants.find((participant) => participant.id === participantId);
             if(participant.attendanceStatus === AttendanceStatus.ATTENDED && participant.certificate && process.env.NODE_ENV === 'production') {
-                throw new BadRequestException(ERRORS[ERROR_CODES.TRAINING_ALREADY_COMPLETED]);
+                throw new BadRequestException(APP_ERRORS[ERROR_CODES.TRAINING_ALREADY_COMPLETED]);
             } 
             participant.attendanceStatus = AttendanceStatus.ATTENDED;
             await this.trainingContainer.item(training.id, training.id).replace(training);
             const executions = training.executions;
             if (executions.length === 0) {
-                throw new BadRequestException(ERRORS[ERROR_CODES.TRAINING_NOT_HAVE_EXECUTIONS]);
+                throw new BadRequestException(APP_ERRORS[ERROR_CODES.TRAINING_NOT_HAVE_EXECUTIONS]);
             }
             const certificate = await this.generateCertificate({
                 training,
@@ -388,7 +388,7 @@ export class ParticipantsService {
             this.logger.log(`Generating QR code for participant ${participantId}`);
             const training = await this.getTrainingByParticipantId(participantId);
             if (!training) {
-                throw new BadRequestException(ERRORS[ERROR_CODES.PARTICIPANT_NOT_FOUND]);
+                throw new BadRequestException(APP_ERRORS[ERROR_CODES.PARTICIPANT_NOT_FOUND]);
             }
             const participant = training.participants.find((participant) => participant.id === participantId);
             const filledParticipant = await this.fillParticipant(participant);

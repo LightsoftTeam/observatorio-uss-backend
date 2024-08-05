@@ -19,6 +19,7 @@ import { Role } from 'src/users/entities/user.entity';
 import { scrapedPosts } from 'src/scrap/outputs/posts';
 import { PostsRepository } from './repositories/post.repository';
 import { MailService } from 'src/common/services/mail.service';
+import { APP_ERRORS, ERROR_CODES } from 'src/common/constants/errors.constants';
 
 const BASIC_KEYS_LIST = [
   'id',
@@ -55,11 +56,11 @@ export class PostsService {
     private readonly logger: ApplicationLoggerService,
     private readonly postsRepository: PostsRepository,
     private readonly mailService: MailService,
-  ) { 
+  ) {
     this.logger.setContext(PostsService.name);
   }
 
-  async findPostRequests(){
+  async findPostRequests() {
     this.logger.log('retrieving posts from db');
     const postRequests = await this.postsRepository.find({
       isPendingApproval: true
@@ -70,13 +71,10 @@ export class PostsService {
   async create(createPostDto: CreatePostDto) {
     this.logger.log(`Creating post - ${JSON.stringify(createPostDto)}`);
     const { title, category, content, imageUrl, videoUrl, podcastUrl, description, attachments, imageDescription, tags, reference, userId, isPendingApproval = false } = createPostDto;
-    if(userId && reference){
-      throw new BadRequestException({
-        code: 'INVALID_AUTHOR',
-        message: 'You cannot create a post with a reference and an user id'
-      });
+    if (userId && reference) {
+      throw new BadRequestException(APP_ERRORS[ERROR_CODES.INVALID_AUTHOR]);
     }
-    if(userId){
+    if (userId) {
       await this.usersService.findOne(userId);//throws error if user not found
     }
     const slugsQuerySpec = {
@@ -117,12 +115,12 @@ export class PostsService {
     this.logger.log(`Updating post - ${JSON.stringify(updatePostDto)}`);
     const post = await this.findOne(id);
     await this.throwErrorIfUserIsNotOwner(post);
-    if(updatePostDto.tags?.length > 0) {
+    if (updatePostDto.tags?.length > 0) {
       updatePostDto.tags = updatePostDto.tags.map(t => t.trim().toLowerCase());
     }
-    const {title} = updatePostDto;
+    const { title } = updatePostDto;
     let newSlug = null;
-    if(title){
+    if (title) {
       const slugsQuerySpec = {
         query: 'SELECT c.slug FROM c'
       }
@@ -134,7 +132,7 @@ export class PostsService {
       ...post,
       ...updatePostDto
     }
-    if(newSlug){
+    if (newSlug) {
       updatedPost.slug = newSlug;
     }
     const { resource } = await this.postsContainer.item(post.id).replace(updatedPost);
@@ -160,12 +158,8 @@ export class PostsService {
   async acceptPostRequest(id: string) {
     this.logger.log(`Accepting post request - ${id}`);
     const post = await this.findOne(id);
-    if(!post.isPendingApproval){
-      //TODO: change to enum
-      throw new BadRequestException({
-        code: 'INVALID_STATE',
-        message: 'The post is not pending approval'
-      });
+    if (!post.isPendingApproval) {
+      throw new BadRequestException(APP_ERRORS[ERROR_CODES.POST_IS_NOT_PENDING_APPROVAL]);
     }
     const updatedPost = {
       ...post,
@@ -214,7 +208,7 @@ export class PostsService {
     }
     let user = null;
     const userId = resources[0].userId;
-    if(userId){
+    if (userId) {
       user = (await this.usersService.findByIds([userId])).at(0);
     }
     const postWithUser = {
@@ -313,7 +307,7 @@ export class PostsService {
   }
 
   async updateHomePosts(id: string, updateHomePostDto: UpdateHomePostDto) {
-    if(!this.usersService.isAdmin()){
+    if (!this.usersService.isAdmin()) {
       throw new BadRequestException('You cannot perform this action.');
     }
     const { postId } = updateHomePostDto;
@@ -366,7 +360,7 @@ export class PostsService {
 
   async getDistinctTags(search: string) {
     const cachedTags = await this.cacheManager.get(TAGS_KEY);
-    if(cachedTags) {
+    if (cachedTags) {
       console.log('retrieving tags from cache')
       return (cachedTags as string[]).filter(t => t.includes(search));
     }
@@ -379,7 +373,7 @@ export class PostsService {
     return resources.filter(t => t.includes(search));
   }
 
-  async updateSlugs(){
+  async updateSlugs() {
     const querySpec = {
       query: 'SELECT * FROM c'
     }
@@ -419,11 +413,11 @@ export class PostsService {
 
   private async throwErrorIfUserIsNotOwner(post: Post) {
     const user = this.usersService.getLoggedUser();
-    if(!user){
+    if (!user) {
       throw new BadRequestException('You cannot perform this action.');
     }
     const role = user.role;
-    if(post.userId !== user.id && role !== Role.ADMIN) {
+    if (post.userId !== user.id && role !== Role.ADMIN) {
       throw new BadRequestException('You cannot perform this action.');
     }
     return true;
@@ -432,7 +426,7 @@ export class PostsService {
   private async getPostsWithAuthor(posts: Post[]) {
     const userIds = [];
     posts.forEach(post => {
-      if(post.userId){
+      if (post.userId) {
         userIds.push(post.userId);
       }
     });

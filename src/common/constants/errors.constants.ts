@@ -8,9 +8,14 @@ export enum ERROR_CODES {
     TRAINING_NOT_HAVE_EXECUTIONS = 'TRAINING_NOT_HAVE_EXECUTIONS',
     MULTIPLE_ROLES_NOT_ALLOWED = 'MULTIPLE_ROLES_NOT_ALLOWED',
     TRAINING_ALREADY_COMPLETED = 'TRAINING_ALREADY_COMPLETED',
+    INVALID_OTP = 'INVALID_OTP',
+    INVALID_AUTHOR = 'INVALID_AUTHOR',
+    POST_IS_NOT_PENDING_APPROVAL = 'POST_IS_NOT_PENDING_APPROVAL',
+    PROFESSOR_ALREADY_EXISTS = 'PROFESSOR_ALREADY_EXISTS',
+    USER_ALREADY_EXISTS = 'USER_ALREADY_EXISTS',
 }
 
-export const ERRORS = {
+export const APP_ERRORS = {
     [ERROR_CODES.QR_CODE_NOT_FOUND]: {
         code: ERROR_CODES.QR_CODE_NOT_FOUND,
         message: 'The QR code is not valid.',
@@ -46,5 +51,25 @@ export const ERRORS = {
     [ERROR_CODES.TRAINING_ALREADY_COMPLETED]: {
         code: ERROR_CODES.TRAINING_ALREADY_COMPLETED,
         message: 'The training is already completed.',
+    },
+    [ERROR_CODES.INVALID_OTP]: {
+        code: ERROR_CODES.INVALID_OTP,
+        message: 'The OTP is invalid.',
+    },
+    [ERROR_CODES.INVALID_AUTHOR]: {
+        code: ERROR_CODES.INVALID_AUTHOR,
+        message: 'You cannot create a post with a reference and an user id'
+    },
+    [ERROR_CODES.POST_IS_NOT_PENDING_APPROVAL]: {
+        code: ERROR_CODES.POST_IS_NOT_PENDING_APPROVAL,
+        message: 'The post is not pending approval'
+    },
+    [ERROR_CODES.PROFESSOR_ALREADY_EXISTS]: {
+        code: ERROR_CODES.PROFESSOR_ALREADY_EXISTS,
+        message: 'The professor already exists'
+    },
+    [ERROR_CODES.USER_ALREADY_EXISTS]: {
+        code: ERROR_CODES.USER_ALREADY_EXISTS,
+        message: 'The user already exists'
     },
 }

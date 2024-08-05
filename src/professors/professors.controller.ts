@@ -5,7 +5,6 @@ import { UpdateProfessorDto } from './dto/update-professor.dto';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Professor } from './entities/professor.entity';
 import { GuestGuard } from 'src/auth/guards/guest.guard';
-import { InvalidVerificationCodeErrorResponseDto } from './dto/invalid-verification-code.dto';
 import { DocumentType } from 'src/common/types/document-type.enum';
 
 @ApiTags('Professors')
@@ -118,11 +117,6 @@ export class ProfessorsController {
   @ApiResponse({
     status: 200,
     description: 'The email has been confirmed and the professor has been saved.',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Bad Request.',
-    type: InvalidVerificationCodeErrorResponseDto
   })
   confirmRegister(@Param('code') code: string) {
     return this.professorsService.confirmRegister(code);

@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { ERROR_CODES, ERRORS } from "../constants/errors.constants";
+import { ERROR_CODES, APP_ERRORS } from "../../common/constants/errors.constants";
 
 export class TrainingBadRequestDto {
     @ApiProperty({
@@ -10,7 +10,7 @@ export class TrainingBadRequestDto {
     code: ERROR_CODES;
     @ApiProperty({
         description: 'The error message.',
-        example: ERRORS[ERROR_CODES.TRAINING_CODE_ALREADY_EXISTS].message,
+        example: APP_ERRORS[ERROR_CODES.TRAINING_CODE_ALREADY_EXISTS].message,
     })
     message: string;
 }

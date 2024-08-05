@@ -3,6 +3,7 @@ import { ApplicationLoggerService } from './application-logger.service';
 import { MailService } from './mail.service';
 import { SendOTPDto } from '../dtos/send-otp.dto';
 import { Generator } from '../helpers/generator.helper';
+import { APP_ERRORS, ERROR_CODES } from '../constants/errors.constants';
 // const Redis = require('ioredis');
 
 const OTP_CODE_LENGTH = 6;
@@ -58,10 +59,7 @@ export class OtpService {
         this.logger.log(`Verification Otp is active: ${verificationOtpIsActive}`);
         const isValid = (email === verifiedEmail || !verificationOtpIsActive);
         if (!isValid) {
-            throw new BadRequestException({
-                message: "Invalid code",
-                code: "INVALID_CODE_ERROR",
-            });
+            throw new BadRequestException(APP_ERRORS[ERROR_CODES.INVALID_OTP]);
         }
         return isValid;
     }
