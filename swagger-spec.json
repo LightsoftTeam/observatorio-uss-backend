@@ -1394,6 +1394,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "inLine",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1405,6 +1413,30 @@
           },
           "404": {
             "description": "Participant not found"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
+    "/api/training/previews/certificate": {
+      "get": {
+        "operationId": "TrainingController_getCertificatePreview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingBadRequestDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2546,6 +2578,16 @@
             "description": "The background url of the certificate",
             "example": "https://example.com/certificate.png",
             "nullable": true
+          },
+          "certificateSignatureUrl": {
+            "type": "string",
+            "description": "The signature url of the certificate",
+            "example": "https://example.com/signature.png",
+            "nullable": true
+          },
+          "certificateEmisionDate": {
+            "type": "string",
+            "description": "The emision date of the certificate"
           }
         },
         "required": [
@@ -2561,7 +2603,9 @@
           "modality",
           "capacity",
           "competencyId",
-          "certificateBackgroundUrl"
+          "certificateBackgroundUrl",
+          "certificateSignatureUrl",
+          "certificateEmisionDate"
         ]
       },
       "UpdateTrainingDto": {
@@ -2651,6 +2695,16 @@
             "description": "The background url of the certificate",
             "example": "https://example.com/certificate.png",
             "nullable": true
+          },
+          "certificateSignatureUrl": {
+            "type": "string",
+            "description": "The signature url of the certificate",
+            "example": "https://example.com/signature.png",
+            "nullable": true
+          },
+          "certificateEmisionDate": {
+            "type": "string",
+            "description": "The emision date of the certificate"
           }
         }
       },

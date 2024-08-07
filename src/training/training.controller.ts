@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, HttpCode, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, HttpCode, Res, Query } from '@nestjs/common';
 import { TrainingService } from './training.service';
 import { CreateTrainingDto } from './dto/create-training.dto';
 import { UpdateTrainingDto } from './dto/update-training.dto';
@@ -222,8 +222,18 @@ export class TrainingController {
     status: 400,
     description: 'Bad Request',
   })
-  completeTraining(@Param('participantId') participantId: string) {
+  completeTraining(@Param('participantId') participantId: string, @Query('inLine') inLine: string) {
     return this.participantsService.completeTraining(participantId);
+  }
+
+  @Get('previews/certificate')
+  async getCertificatePreview(@Res() res: Response) {
+    const certificateBuffer = await this.participantsService.getCertificatePreview();
+    res.setHeader('Content-Type', 'application/pdf');
+    const stream = new Readable();
+    stream.push(certificateBuffer);
+    stream.push(null);
+    stream.pipe(res);
   }
 
   @Get(':id/download-certificates')

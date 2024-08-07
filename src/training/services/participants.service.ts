@@ -17,6 +17,7 @@ import nodeHtmlToImage from 'node-html-to-image';
 import { StorageService } from 'src/storage/storage.service';
 import { CertificatesHelper } from 'src/common/helpers/certificates.helper';
 import { ERROR_CODES, APP_ERRORS } from '../../common/constants/errors.constants';
+import { Role } from 'src/users/entities/user.entity';
 const HTML_TO_PDF = require('html-pdf-node');
 
 
@@ -300,6 +301,22 @@ export class ParticipantsService {
         }
     }
 
+    async getCertificatePreview() {
+        const data: TrainingCertificateTemplateData = {
+            participantId: '123456',
+            name: 'John Doe',
+            roles: [TrainingRole.ASSISTANT],
+            trainingName: 'Training Name',
+            emisionDate: new Date().toISOString(),
+            trainingFromDate: new Date().toISOString(),
+            trainingToDate: new Date().toISOString(),
+            duration: 24,
+        }
+        const html = getTrainingCertificateTemplate(data);
+        const buffer: Buffer = await this.getPdfBuffer(html);
+        return buffer;
+    }
+
     private async generateCertificate({ training, participant }: { training: Training, participant: TrainingParticipant }) {
         this.logger.log(`Generating certificate for participant ${participant.id}`);
         const { executions, name: trainingName, certificateBackgroundUrl } = training;
@@ -325,7 +342,7 @@ export class ParticipantsService {
             trainingFromDate,
             trainingToDate,
             duration: durationInHours,
-            certificateBackgroundUrl,
+            backgroundUrl: certificateBackgroundUrl,
         };
         const certificate: TrainingCertificate = {
             id: uuidv4(),
