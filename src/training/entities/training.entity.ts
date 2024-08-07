@@ -74,5 +74,7 @@ export class Training {
     participants: TrainingParticipant[];
     competencyId: string;
     certificateBackgroundUrl?: string;
+    certificateSignatureUrl?: string;
+    certificateEmisionDate?: string;
     @CosmosDateTime() createdAt: Date;
 }

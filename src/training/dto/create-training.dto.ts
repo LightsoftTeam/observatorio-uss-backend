@@ -142,4 +142,20 @@ export class CreateTrainingDto {
     @IsString()
     @IsOptional()
     certificateBackgroundUrl?: string;
+
+    @ApiProperty({
+        description: 'The signature url of the certificate',
+        example: 'https://example.com/signature.png',
+        nullable: true,
+    })
+    @IsString()
+    @IsOptional()
+    certificateSignatureUrl?: string;
+
+    @ApiProperty({
+        description: 'The emision date of the certificate' 
+    })
+    @IsOptional()
+    @IsDateString()
+    certificateEmisionDate?: string;
 }
