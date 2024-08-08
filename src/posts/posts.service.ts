@@ -20,6 +20,8 @@ import { scrapedPosts } from 'src/scrap/outputs/posts';
 import { PostsRepository } from './repositories/post.repository';
 import { MailService } from 'src/common/services/mail.service';
 import { APP_ERRORS, ERROR_CODES } from 'src/common/constants/errors.constants';
+import { PostComment } from './entities/post-comment.entity';
+import { query } from 'express';
 
 const BASIC_KEYS_LIST = [
   'id',
@@ -50,6 +52,8 @@ export class PostsService {
     private readonly postsContainer: Container,
     @InjectModel(HomePost)
     private readonly homePostsContainer: Container,
+    @InjectModel(PostComment)
+    private readonly postCommentsContainer: Container,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly usersService: UsersService,
     private readonly algoliaService: AlgoliaService,
@@ -206,14 +210,26 @@ export class PostsService {
     if (resources.length === 0) {
       throw new NotFoundException('Post not found');
     }
+    const post = resources[0];
     let user = null;
-    const userId = resources[0].userId;
+    const userId = post.userId;
     if (userId) {
       user = (await this.usersService.findByIds([userId])).at(0);
     }
+    const numberOfCommentsQuery = {
+      query: 'SELECT VALUE COUNT(1) FROM c WHERE c.postId = @postId',
+      parameters: [
+        {
+          name: '@postId',
+          value: post.id
+        }
+      ]
+    }
+    const { resources: counts } = await this.postCommentsContainer.items.query<number[]>(numberOfCommentsQuery).fetchAll();
     const postWithUser = {
-      ...FormatCosmosItem.cleanDocument(resources[0]),
-      user
+      ...FormatCosmosItem.cleanDocument(post),
+      user,
+      numberOfComments: counts.at(0)
     }
     return postWithUser;
   }
