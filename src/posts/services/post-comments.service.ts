@@ -23,7 +23,6 @@ export class PostCommentsService {
     }
 
     async findByPostId(postId: string) {
-        const loggedUser = this.usersService.getLoggedUser();
         this.logger.log(`Finding post comments by post id: ${postId}`);
         const querySpec = {
             query: 'SELECT * FROM c WHERE c.postId = @postId AND NOT IS_DEFINED(c.deletedAt)',
@@ -130,6 +129,7 @@ export class PostCommentsService {
     fill({ comment, users }: { comment: PostComment, users: Partial<User>[] }) {
         const user = users.find(user => user.id === comment.userId);
         const loggedUser = this.usersService.getLoggedUser();
+        comment.children = comment.children || [];
         return {
             ...FormatCosmosItem.cleanDocument(comment, ['likes']),
             children: comment.children.map(child => this.fill({ comment: child, users })),
