@@ -21,7 +21,6 @@ import { PostsRepository } from './repositories/post.repository';
 import { MailService } from 'src/common/services/mail.service';
 import { APP_ERRORS, ERROR_CODES } from 'src/common/constants/errors.constants';
 import { PostComment } from './entities/post-comment.entity';
-import { query } from 'express';
 
 const BASIC_KEYS_LIST = [
   'id',

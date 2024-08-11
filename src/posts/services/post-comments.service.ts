@@ -25,7 +25,7 @@ export class PostCommentsService {
     async findByPostId(postId: string) {
         this.logger.log(`Finding post comments by post id: ${postId}`);
         const querySpec = {
-            query: 'SELECT * FROM c WHERE c.postId = @postId AND NOT IS_DEFINED(c.deletedAt)',
+            query: 'SELECT * FROM c WHERE c.postId = @postId AND NOT IS_DEFINED(c.deletedAt) order by c.createdAt asc',
             parameters: [{ name: '@postId', value: postId }],
         }
         const { resources } = await this.postCommentsContainer.items.query<PostComment>(querySpec).fetchAll();
@@ -45,12 +45,11 @@ export class PostCommentsService {
             }
         });
 
-        console.log(commentsMap);
-
         const users = await this.usersService.getByIds(resources.map(comment => comment.userId));
         return (Object.values(commentsMap) as PostComment[])
             .filter(comment => !comment.parentId)
-            .map(comment => this.fill({ comment, users }));
+            .map(comment => this.fill({ comment, users }))
+            .sort((a, b) => b.createdAt > a.createdAt ? 1 : -1);
     }
 
     async create(postId: string, createPostCommentDto: CreatePostCommentDto) {
@@ -71,15 +70,16 @@ export class PostCommentsService {
                 throw new BadRequestException(APP_ERRORS[ERROR_CODES.NESTED_COMMENT_NOT_ALLOWED]);
             }
         }
+        const loggedUser = this.usersService.getLoggedUser();
         const postComment: PostComment = {
             ...createPostCommentDto,
             postId,
-            userId: this.usersService.getLoggedUser().id,
+            userId: loggedUser.id,
             likes: [],
             createdAt: new Date(),
         };
         const { resource } = await this.postCommentsContainer.items.create<PostComment>(postComment);
-        return this.fill({ comment: resource, users: [] });
+        return this.fill({ comment: resource, users: [loggedUser] });
     }
 
     async updateLikes({ postId, postCommentId }: { postId: string, postCommentId: string }): Promise<Partial<PostComment>> {
@@ -126,7 +126,7 @@ export class PostCommentsService {
         }
     }
 
-    fill({ comment, users }: { comment: PostComment, users: Partial<User>[] }) {
+    fill({ comment, users }: { comment: Partial<PostComment>, users: Partial<User>[] }): Partial<PostComment> {
         const user = users.find(user => user.id === comment.userId);
         const loggedUser = this.usersService.getLoggedUser();
         comment.children = comment.children || [];

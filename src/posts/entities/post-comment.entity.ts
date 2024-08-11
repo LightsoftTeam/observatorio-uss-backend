@@ -1,5 +1,6 @@
 import { CosmosDateTime, CosmosPartitionKey } from "@nestjs/azure-database";
 import { children } from 'cheerio/lib/api/traversing';
+import { User } from "src/users/entities/user.entity";
 
 export class Like{
     userId: string;
@@ -13,7 +14,8 @@ export class PostComment {
     likes: Like[];
     userId: string;
     parentId?: string;
-    children?: PostComment[];
+    children?: Partial<PostComment>[];
+    user?: Partial<User>;
     iLikedIt?: boolean;
     numberOfLikes?: number;
     postId: string;
