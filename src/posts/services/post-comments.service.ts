@@ -108,12 +108,31 @@ export class PostCommentsService {
         if (!postComment) {
             throw new NotFoundException('Post comment not found');
         }
+        const childs = await this.getByParentId(id);
+        //delete childs
+        for (const child of childs) {
+            const updatedChild = {
+                ...child,
+                deletedAt: new Date(),
+            };
+            this.postCommentsContainer.item(child.id, child.postId).replace(updatedChild);
+        }
         const updatedPostComment = {
             ...postComment,
             deletedAt: new Date(),
         };
         this.postCommentsContainer.item(id, postComment.postId).replace(updatedPostComment);
         return null;
+    }
+
+    async getByParentId(parentId: string) {
+        this.logger.log(`Getting post comments by parent id: ${parentId}`);
+        const querySpec = {
+            query: 'SELECT * FROM c WHERE c.parentId = @parentId AND NOT IS_DEFINED(c.deletedAt)',
+            parameters: [{ name: '@parentId', value: parentId }],
+        }
+        const { resources } = await this.postCommentsContainer.items.query<PostComment>(querySpec).fetchAll();
+        return resources;
     }
 
     async getById(id: string, postId: string) {
