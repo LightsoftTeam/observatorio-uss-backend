@@ -317,7 +317,7 @@ export class ParticipantsService {
 
     private async generateCertificate({ training, participant }: { training: Training, participant: TrainingParticipant }) {
         this.logger.log(`Generating certificate for participant ${participant.id}`);
-        const { executions, name: trainingName, certificateBackgroundUrl, certificateSignatureUrl,  } = training;
+        const { executions, name: trainingName, certificateBackgroundUrl, certificateSignatureUrl } = training;
         const trainingFromDate = executions[0].from;
         const trainingToDate = executions[executions.length - 1].to;
         const emisionDate = new Date().toISOString();
@@ -341,7 +341,7 @@ export class ParticipantsService {
             trainingToDate,
             duration: durationInHours,
             backgroundUrl: certificateBackgroundUrl,
-            signatureUrl: certificateBackgroundUrl,
+            signatureUrl: certificateSignatureUrl,
         };
         const certificate: TrainingCertificate = {
             id: uuidv4(),
