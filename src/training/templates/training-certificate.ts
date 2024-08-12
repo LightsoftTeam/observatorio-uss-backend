@@ -68,6 +68,12 @@ export function getTrainingCertificateTemplate(data: TrainingCertificateTemplate
                     width: 100%;
                     height: 100%;
                     position: relative;
+                    overflow: hidden;
+                }
+                
+                .container img {
+                    width: 100%;
+                    height: 100%;
                 }
 
                 .innerContainer{
@@ -86,11 +92,14 @@ export function getTrainingCertificateTemplate(data: TrainingCertificateTemplate
                 .innerContainer .content .name{
                     display: flex;
                     justify-content: center;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
                 }
-               
+                
                 .innerContainer .content .name p{
-                    font-size: 30px;
-                    font-weight: bold;
+                    font-size: 24px;
+                    font-weight: semibold;
                 }
 
                 .innerContainer .emisionDate{
@@ -105,52 +114,16 @@ export function getTrainingCertificateTemplate(data: TrainingCertificateTemplate
                     margin-top: 40px;
                 }
 
-                .background{
-                    width: 100%;
-                    height: 100%;
-                }
-
-                .background img {
-                    width: 100%;
-                    height: 100%;
-                    object-fit: contain;
-                }
-
-                .title {
-                    font-size: 24px;
-                    font-weight: bold;
-                }
-
-                .content {
-                    margin-bottom: 20px;
-                }
-
-                .data {
-                    font-style: italic;
-                }
-
-                .table {
-                    width: 100%;
-                    border-collapse: collapse;
-                }
-
-                .table th,
-                .table td {
-                    border: 1px solid #ccc;
-                    padding: 5px;
-                }
-
-                .table th {
-                    text-align: left;
-                    background-color: #eee;
+                .innerContainer .signature img {
+                    width: 200px;
+                    height: 100px;
                 }
             </style>
             </head>
             <body>
                 <div class="container">
-                    <div class="background">
-                        <img src="${backgroundUrl}" alt="Logo USS" class="logo">
-                    </div>
+                    <img src="${backgroundUrl}" alt="Logo USS" class="logo">
+
                     <div class="innerContainer">
                         <div class="content">
                             <div class="name"><p>${name.toUpperCase()}</p></div>
@@ -160,7 +133,7 @@ export function getTrainingCertificateTemplate(data: TrainingCertificateTemplate
                                 <p>Pimentel, ${emisionDate}</p>
                         </div>
                         <div class="signature">
-                            <img width="200px" src="${signatureUrl}">
+                            <img src="${signatureUrl}">
                         </div>
                     </div>
                 </div>
@@ -172,21 +145,39 @@ export function getTrainingCertificateTemplate(data: TrainingCertificateTemplate
 function getCertificateBody(data: TrainingCertificateTemplateData) {
     const { roles, trainingName, trainingFromDate, trainingToDate, duration } = data;
 
-    //use luxon
-    const fromDateInPeru = DateTime.fromISO(trainingFromDate, { zone: 'utc' }).setZone('America/Lima');
-    const toDateInPeru = DateTime.fromISO(trainingToDate, { zone: 'utc' }).setZone('America/Lima');
+    const dateRangeLabel = getDateRangeLabel({ from: trainingFromDate, to: trainingToDate });
+
+    const roundedDuration = Math.round(duration);
+
+    return `Por haber participado en calidad de ${roles.map(r => TrainingRoleMap[r].toUpperCase()).join(', ')} en la capacitación docente "${trainingName}" organizada por el Vicerrectorado Académico de la Universidad Señor de Sipán, en coordinación con la Dirección de Desarrollo Académico, realizada del ${dateRangeLabel}, con una duración de ${roundedDuration} horas académicas.`;
+}
+
+function getDateRangeLabel({from: trainingFromDate, to: trainingToDate}){
+
+    const from = DateTime.fromISO(trainingFromDate, { zone: 'utc' }).setZone('America/Lima');
+    const to = DateTime.fromISO(trainingToDate, { zone: 'utc' }).setZone('America/Lima');
 
     let dateRangeLabel = ``;
 
-    if(fromDateInPeru.year === toDateInPeru.year){ 
-        if(fromDateInPeru.month === toDateInPeru.month){
-            dateRangeLabel = `${fromDateInPeru.day} al ${toDateInPeru.day} de ${MONTH_NAMES[toDateInPeru.month]} de ${toDateInPeru.year}`
+    const fromDay = from.day;
+    const fromMonth = MONTH_NAMES[from.month];
+    const fromYear = from.year;
+
+    const toDay = to.day;
+    const toMonth = MONTH_NAMES[to.month];
+    const toYear = to.year;
+
+    if (fromYear === toYear) {
+        if (fromMonth === toMonth) {
+            if (fromDay === toDay) {
+                dateRangeLabel = `${fromDay} de ${fromMonth} de ${fromYear}`;
+            } else {
+                dateRangeLabel = `${fromDay} al ${toDay} de ${toMonth} de ${toYear}`;
+            }
         } else {
-            dateRangeLabel = `${fromDateInPeru.day} de ${MONTH_NAMES[fromDateInPeru.month]} al ${toDateInPeru.day} de ${MONTH_NAMES[toDateInPeru.month]} de ${toDateInPeru.year}`
+            dateRangeLabel = `${fromDay} de ${fromMonth} al ${toDay} de ${toMonth} de ${toYear}`;
         }
     } else {
-        dateRangeLabel = `${fromDateInPeru.day} de ${MONTH_NAMES[fromDateInPeru.month]} de ${fromDateInPeru.year} al ${toDateInPeru.day} de ${MONTH_NAMES[toDateInPeru.month]} de ${toDateInPeru.year}`
+        dateRangeLabel = `${fromDay} de ${fromMonth} de ${fromYear} al ${toDay} de ${toMonth} de ${toYear}`;
     }
-
-    return `Por haber participado en calidad de ${roles.map(r => TrainingRoleMap[r].toUpperCase()).join(', ')} en la capacitación docente "${trainingName}" organizada por el Vicerrectorado Académico de la Universidad Señor de Sipán, en coordinación con la Dirección de Desarrollo Académico, realizada del ${dateRangeLabel}, con una duración de ${duration} horas académicas.`;
 }

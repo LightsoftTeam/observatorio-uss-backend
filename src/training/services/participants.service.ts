@@ -1,6 +1,5 @@
-import fs from 'fs';
 import { InjectModel } from '@nestjs/azure-database';
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import type { Container } from '@azure/cosmos';
 import { AttendanceStatus, ExecutionAttendance, Training, TrainingCertificate, TrainingParticipant, TrainingRole } from '../entities/training.entity';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
@@ -17,7 +16,6 @@ import nodeHtmlToImage from 'node-html-to-image';
 import { StorageService } from 'src/storage/storage.service';
 import { CertificatesHelper } from 'src/common/helpers/certificates.helper';
 import { ERROR_CODES, APP_ERRORS } from '../../common/constants/errors.constants';
-import { Role } from 'src/users/entities/user.entity';
 const HTML_TO_PDF = require('html-pdf-node');
 
 
@@ -304,7 +302,7 @@ export class ParticipantsService {
     async getCertificatePreview() {
         const data: TrainingCertificateTemplateData = {
             participantId: '123456',
-            name: 'John Doe',
+            name: 'Renatto Farid Perleche Alvitez',
             roles: [TrainingRole.ASSISTANT],
             trainingName: 'Training Name',
             emisionDate: new Date().toISOString(),
@@ -319,7 +317,7 @@ export class ParticipantsService {
 
     private async generateCertificate({ training, participant }: { training: Training, participant: TrainingParticipant }) {
         this.logger.log(`Generating certificate for participant ${participant.id}`);
-        const { executions, name: trainingName, certificateBackgroundUrl } = training;
+        const { executions, name: trainingName, certificateBackgroundUrl, certificateSignatureUrl,  } = training;
         const trainingFromDate = executions[0].from;
         const trainingToDate = executions[executions.length - 1].to;
         const emisionDate = new Date().toISOString();
@@ -329,7 +327,7 @@ export class ParticipantsService {
             acc += to.getTime() - from.getTime();
             return acc;
         }, 0);
-        const durationInHours = durationinMiliseconds / 1000 / 60 / 60;
+        const durationInHours = Math.round((durationinMiliseconds / 1000 / 60 / 60) * 100) / 100;
         const filledParticipant = await this.fillParticipant(participant);
         const { id, professor, roles } = filledParticipant;
         const { name } = professor;
@@ -343,6 +341,7 @@ export class ParticipantsService {
             trainingToDate,
             duration: durationInHours,
             backgroundUrl: certificateBackgroundUrl,
+            signatureUrl: certificateBackgroundUrl,
         };
         const certificate: TrainingCertificate = {
             id: uuidv4(),
