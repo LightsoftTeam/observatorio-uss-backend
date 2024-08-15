@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { BlobSASPermissions, BlobServiceClient, ContainerClient, StorageSharedKeyCredential, generateBlobSASQueryParameters } from "@azure/storage-blob";
+import { BlobSASPermissions, BlobServiceClient, ContainerClient, SASProtocol, StorageSharedKeyCredential, generateBlobSASQueryParameters } from "@azure/storage-blob";
 
 @Injectable()
 export class StorageService {
@@ -96,7 +96,8 @@ export class StorageService {
             blobName,
             permissions,
             startsOn,
-            expiresOn
+            expiresOn,
+            protocol: SASProtocol.HttpsAndHttp
         }, this.sharedKeyCredential).toString();
 
         return sasQueryParameters;
