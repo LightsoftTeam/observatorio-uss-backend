@@ -41,7 +41,7 @@ const BASIC_KEYS_LIST = [
   'approvalStatus',
 ]
 
-const BASIC_KEYS = BASIC_KEYS_LIST.map(f => `c.${f}`).join(', ')
+export const BASIC_KEYS = BASIC_KEYS_LIST.map(f => `c.${f}`).join(', ')
 const HOME_POSTS_KEY = 'homePosts';
 const TAGS_KEY = 'tags';
 const LONG_CACHE_TIME = 1000 * 60 * 60 * 3;//3 hours
@@ -68,7 +68,7 @@ export class PostsService {
   async findPostRequests() {
     this.logger.log('retrieving posts from db');
     const postRequests = await this.postsRepository.find({
-      approvalStatus: ApprovalStatus.APPROVED
+      approvalStatuses: [ApprovalStatus.PENDING, ApprovalStatus.REJECTED]
     });
     return this.getPostsWithAuthor(postRequests);
   }

@@ -5,30 +5,13 @@ import { Container } from "@azure/cosmos";
 import { ApprovalStatus, Post } from "../entities/post.entity";
 import { UsersService } from "src/users/users.service";
 import { ApplicationLoggerService } from "src/common/services/application-logger.service";
+import { BASIC_KEYS } from "../posts.service";
 
 export interface PostFilters {
     category?: string;
-    approvalStatus?: ApprovalStatus;
+    approvalStatuses?: ApprovalStatus[];
     userId?: string;
 }
-
-const BASIC_KEYS_LIST = [
-    'id',
-    'title',
-    'slug',
-    'category',
-    'subCategory',
-    'readingTime',
-    'description',
-    'videoUrl',
-    'imageUrl',
-    'likes',
-    'userId',
-    'reference',
-    'tags',
-    'createdAt'
-];
-export const BASIC_KEYS = BASIC_KEYS_LIST.map(f => `c.${f}`).join(', ');
 
 @Injectable()
 export class PostsRepository {
@@ -42,20 +25,20 @@ export class PostsRepository {
 
     async find({
         category,
-        approvalStatus = ApprovalStatus.APPROVED,
+        approvalStatuses = [ApprovalStatus.APPROVED],
         userId,
     }: PostFilters) {
         const querySpec: SqlQuerySpec = {
             query: `
                 SELECT ${BASIC_KEYS} FROM c
-                WHERE c.isActive = true AND c.approvalStatus = @approvalStatus
+                WHERE c.isActive = true AND ARRAY_CONTAINS(@approvalStatuses, c.approvalStatus)
             `,
             parameters: [{
-                name: '@approvalStatus',
-                value: approvalStatus
+                name: '@approvalStatuses',
+                value: approvalStatuses
             }]
         }
-        if (approvalStatus === ApprovalStatus.APPROVED) {
+        if (approvalStatuses.includes(ApprovalStatus.APPROVED)) {
             querySpec.query += 'OR NOT IS_DEFINED(c.approvalStatus)';
         }
         if (userId) {
@@ -73,6 +56,7 @@ export class PostsRepository {
             });
         }
         querySpec.query += ' ORDER BY c.createdAt DESC';
+        console.log(querySpec);
         const { resources: posts } = await this.postsContainer.items.query<Post>(querySpec).fetchAll();
         const users = await this.usersService.findByIds(posts.map(p => p.userId));
         let postsWithAuthor = posts.map(post => {
