@@ -9,6 +9,8 @@ import { UpdateLikesDto } from './dto/update-likes.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { PostCommentsService } from './services/post-comments.service';
 import { CreatePostCommentDto } from './dto/create-post-comment.dto';
+import { ApprovalStatus } from './entities/post.entity';
+import { UpdatePostRequestDto } from './dto/update-post-request.dto';
 @ApiTags('Posts')
 @Controller('posts')
 export class PostsController {
@@ -26,7 +28,7 @@ export class PostsController {
   @ApiResponse({ status: 201, description: 'The post has been successfully created.'})
   @Post()
   create(@Body() createPostDto: CreatePostDto) {
-    return this.postsService.create(createPostDto);
+    return this.postsService.create({...createPostDto});
   }
 
   @UseGuards(AuthGuard)
@@ -125,16 +127,17 @@ export class PostsController {
   createRequest(@Body() createPostDto: CreatePostDto) {
     return this.postsService.create({
       ...createPostDto,
-      isPendingApproval: true,
+      approvalStatus: ApprovalStatus.PENDING,
     });
   }
 
   @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Accept a post request' })
   @ApiResponse({ status: 200, description: 'The post request has been successfully accepted.'})
-  @Post('accept-request/:id')
-  acceptRequest(@Param('id') id: string) {
-    return this.postsService.acceptPostRequest(id);
+  @Post('update-request/:id')
+  updatePostRequest(@Param('id') id: string, @Body() updatePostRequestDto: UpdatePostRequestDto) {
+    return this.postsService.updatePostRequest(id, updatePostRequestDto);
   }
 
   @Get(':id/comments')

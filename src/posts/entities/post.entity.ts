@@ -19,6 +19,12 @@ export enum SubCategory{
     VIDEOTRENDS = 'videotrends',
 }
 
+export enum ApprovalStatus{
+    PENDING = 'pending',
+    APPROVED = 'approved',
+    REJECTED = 'rejected',
+}
+
 export interface Reference{
     author: string;
     url: string;
@@ -43,6 +49,6 @@ export class Post {
     tags: string[];
     isActive: boolean;
     reference?: Reference;
-    isPendingApproval?: boolean;
+    approvalStatus?: ApprovalStatus;
     @CosmosDateTime() createdAt: Date;
 }

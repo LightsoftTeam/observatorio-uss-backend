@@ -352,9 +352,9 @@
         ]
       }
     },
-    "/api/posts/accept-request/{id}": {
+    "/api/posts/update-request/{id}": {
       "post": {
-        "operationId": "PostsController_acceptRequest",
+        "operationId": "PostsController_updatePostRequest",
         "summary": "Accept a post request",
         "parameters": [
           {
@@ -366,6 +366,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePostRequestDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "The post request has been successfully accepted."
@@ -2158,11 +2168,16 @@
             "description": "Reference of the post",
             "example": "\n            {\n                author: 'Observatorio Tec Monterrey',\n                url: 'https://observatorio.tec.mx/edu-news/this-is-a-post'\n            }\n        "
           },
-          "isPendingApproval": {
-            "type": "boolean",
-            "description": "If the post is pending approval",
+          "approvalStatus": {
+            "type": "string",
+            "description": "Approval status of the post",
             "example": false,
-            "default": false
+            "default": false,
+            "enum": [
+              "pending",
+              "approved",
+              "rejected"
+            ]
           }
         },
         "required": [
@@ -2178,7 +2193,7 @@
           "attachments",
           "tags",
           "reference",
-          "isPendingApproval"
+          "approvalStatus"
         ]
       },
       "UpdateHomePostDto": {
@@ -2214,6 +2229,24 @@
         },
         "required": [
           "action"
+        ]
+      },
+      "UpdatePostRequestDto": {
+        "type": "object",
+        "properties": {
+          "approvalStatus": {
+            "type": "string",
+            "description": "The action to be performed on the post",
+            "example": "approved",
+            "enum": [
+              "pending",
+              "approved",
+              "rejected"
+            ]
+          }
+        },
+        "required": [
+          "approvalStatus"
         ]
       },
       "CreatePostCommentDto": {

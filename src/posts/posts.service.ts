@@ -3,7 +3,7 @@ import type { Container } from '@azure/cosmos';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { GetPostsDto } from './dto/get-posts.dto';
-import { Post } from './entities/post.entity';
+import { ApprovalStatus, Post } from './entities/post.entity';
 import { generateUniqueSlug } from './helpers/generate-slug.helper';
 import { calculateReadTime } from './helpers/calculate-read-time.helper';
 import { UsersService } from 'src/users/users.service';
@@ -21,6 +21,7 @@ import { PostsRepository } from './repositories/post.repository';
 import { MailService } from 'src/common/services/mail.service';
 import { APP_ERRORS, ERROR_CODES } from 'src/common/constants/errors.constants';
 import { PostComment } from './entities/post-comment.entity';
+import { UpdatePostRequestDto } from './dto/update-post-request.dto';
 
 const BASIC_KEYS_LIST = [
   'id',
@@ -36,7 +37,8 @@ const BASIC_KEYS_LIST = [
   'userId',
   'reference',
   'tags',
-  'createdAt'
+  'createdAt',
+  'approvalStatus',
 ]
 
 const BASIC_KEYS = BASIC_KEYS_LIST.map(f => `c.${f}`).join(', ')
@@ -66,14 +68,14 @@ export class PostsService {
   async findPostRequests() {
     this.logger.log('retrieving posts from db');
     const postRequests = await this.postsRepository.find({
-      isPendingApproval: true
+      approvalStatus: ApprovalStatus.APPROVED
     });
     return this.getPostsWithAuthor(postRequests);
   }
 
   async create(createPostDto: CreatePostDto) {
     this.logger.log(`Creating post - ${JSON.stringify(createPostDto)}`);
-    const { title, category, content, imageUrl, videoUrl, podcastUrl, description, attachments, imageDescription, tags, reference, userId, isPendingApproval = false } = createPostDto;
+    const { title, category, content, imageUrl, videoUrl, podcastUrl, description, attachments, imageDescription, tags, reference, userId, approvalStatus } = createPostDto;
     if (userId && reference) {
       throw new BadRequestException(APP_ERRORS[ERROR_CODES.INVALID_AUTHOR]);
     }
@@ -106,7 +108,7 @@ export class PostsService {
       isActive: true,
       likes: 0,
       reference,
-      isPendingApproval
+      approvalStatus
     }
     const { resource } = await this.postsContainer.items.create<Post>(post);
     this.algoliaService.saveObject(this.transformPostToAlgoliaRecord(post));
@@ -158,20 +160,19 @@ export class PostsService {
     return this.getPostsWithAuthor(posts);
   }
 
-  async acceptPostRequest(id: string) {
-    this.logger.log(`Accepting post request - ${id}`);
+  async updatePostRequest(id: string, updatePostRequestDto: UpdatePostRequestDto) {
+    this.logger.log(`updating post request - ${id}`);
+    const { approvalStatus } = updatePostRequestDto;
     const post = await this.findOne(id);
-    if (!post.isPendingApproval) {
-      throw new BadRequestException(APP_ERRORS[ERROR_CODES.POST_IS_NOT_PENDING_APPROVAL]);
-    }
-    const updatedPost = {
+    const updatedPost: Post = {
       ...post,
-      isPendingApproval: false
+      approvalStatus
     }
     const user = await this.usersService.findOne(post.userId);
     this.mailService.sendPostRequestNotification({
       to: user.email,
       post: updatedPost,
+      approvalStatus
     });
     const { resource } = await this.postsContainer.item(post.id).replace(updatedPost);
     return FormatCosmosItem.cleanDocument(resource);

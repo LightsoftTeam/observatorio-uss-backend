@@ -2,13 +2,13 @@ import { InjectModel } from "@nestjs/azure-database";
 import { SqlQuerySpec } from "@azure/cosmos";
 import { Inject, Injectable, forwardRef } from "@nestjs/common";
 import { Container } from "@azure/cosmos";
-import { Post } from "../entities/post.entity";
+import { ApprovalStatus, Post } from "../entities/post.entity";
 import { UsersService } from "src/users/users.service";
 import { ApplicationLoggerService } from "src/common/services/application-logger.service";
 
 export interface PostFilters {
     category?: string;
-    isPendingApproval?: boolean;
+    approvalStatus?: ApprovalStatus;
     userId?: string;
 }
 
@@ -42,25 +42,21 @@ export class PostsRepository {
 
     async find({
         category,
-        isPendingApproval = false,
+        approvalStatus = ApprovalStatus.APPROVED,
         userId,
     }: PostFilters) {
         const querySpec: SqlQuerySpec = {
             query: `
                 SELECT ${BASIC_KEYS} FROM c
-                WHERE c.isActive = true
+                WHERE c.isActive = true AND c.approvalStatus = @approvalStatus
             `,
             parameters: [{
-                name: '@isPendingApproval',
-                value: isPendingApproval
+                name: '@approvalStatus',
+                value: approvalStatus
             }]
         }
-        if (!isPendingApproval) {
-            //get undefined or true
-            querySpec.query += ' AND (c.isPendingApproval = @isPendingApproval OR NOT IS_DEFINED(c.isPendingApproval))';
-        } else {
-            //get true
-            querySpec.query += ' AND c.isPendingApproval = @isPendingApproval';
+        if (approvalStatus === ApprovalStatus.APPROVED) {
+            querySpec.query += 'OR NOT IS_DEFINED(c.approvalStatus)';
         }
         if (userId) {
             querySpec.query += ' AND c.userId = @userId';
