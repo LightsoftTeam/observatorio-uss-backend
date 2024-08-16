@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsEnum, IsNotEmpty, IsString } from "class-validator";
 import { DocumentType } from "src/common/types/document-type.enum";
+import { EmploymentType } from "../entities/professor.entity";
 
 export class CreateProfessorDto {
     @ApiProperty({
@@ -34,6 +35,14 @@ export class CreateProfessorDto {
     @IsString()
     @IsNotEmpty()
     documentNumber: string;
+
+    @ApiProperty({
+        description: 'The employment type of the professor',
+        example: EmploymentType.FULL_TIME,
+        enum: EmploymentType,
+    })
+    @IsEnum(EmploymentType)
+    employmentType: EmploymentType;
 
     @ApiProperty({
         description: 'The school id of the professor',

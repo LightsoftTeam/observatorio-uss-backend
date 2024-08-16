@@ -3199,6 +3199,15 @@
             "description": "The document number of the professor",
             "example": "12345678"
           },
+          "employmentType": {
+            "type": "string",
+            "description": "The employment type of the professor",
+            "example": "full_time",
+            "enum": [
+              "full_time",
+              "part_time"
+            ]
+          },
           "schoolId": {
             "type": "string",
             "description": "The school id of the professor",
@@ -3210,6 +3219,7 @@
           "email",
           "documentType",
           "documentNumber",
+          "employmentType",
           "schoolId"
         ]
       },
@@ -3244,6 +3254,15 @@
             "type": "string",
             "description": "The document number of the professor",
             "example": "12345678"
+          },
+          "employmentType": {
+            "type": "string",
+            "description": "The employment type of the professor",
+            "example": "full_time",
+            "enum": [
+              "full_time",
+              "part_time"
+            ]
           },
           "schoolId": {
             "type": "string",
