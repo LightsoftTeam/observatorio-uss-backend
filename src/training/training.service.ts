@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { CreateTrainingDto, ExecutionRequest } from './dto/create-training.dto';
 import { UpdateTrainingDto } from './dto/update-training.dto';
 import { InjectModel } from '@nestjs/azure-database';
-import { AttendanceStatus, Execution, Training } from './entities/training.entity';
+import { AttendanceStatus, Execution, Training, TrainingType } from './entities/training.entity';
 import { isUUID } from 'class-validator';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
@@ -277,7 +277,7 @@ export class TrainingService {
     }
   }
 
-  async getAsistanceBySchool(trainingId: string){
+  async getAsistanceBySchool(trainingId: string) {
     const training = await this.getTrainingById(trainingId);
     if (!training) {
       throw new BadRequestException('Training not found');
@@ -299,7 +299,7 @@ export class TrainingService {
     }
     await Promise.all(training.participants.map(async participant => {
       const professor = await this.professorsService.getById(participant.foreignId);
-      if(!professor){
+      if (!professor) {
         return;
       }
       report[professor.schoolId].attended += participant.attendanceStatus === AttendanceStatus.ATTENDED ? 1 : 0;
@@ -308,7 +308,7 @@ export class TrainingService {
     return Object.values(report);
   }
 
-  async getAsistance(id: string){
+  async getAsistance(id: string) {
     const training = await this.getTrainingById(id);
     if (!training) {
       throw new NotFoundException('Training not found');
@@ -325,6 +325,22 @@ export class TrainingService {
       report.pending += participant.attendanceStatus === AttendanceStatus.PENDING ? 1 : 0;
     }));
     return report;
+  }
+
+  async getByCompetence(semesterId: string): Promise<{count: number, competencyId: string, type: TrainingType}[]> {
+    const querySpec = {
+      // query: `SELECT COUNT(1) FROM c WHERE c.semesterId = @semesterId`,
+      query: `
+        SELECT COUNT(1) AS count, c.competencyId, c.type 
+        FROM c 
+        WHERE c.semesterId = @semesterId
+        GROUP BY c.competencyId, c.type
+      `,
+      parameters: [{ name: '@semesterId', value: semesterId }]
+    }
+    const { resources } = await this.trainingContainer.items.query(querySpec).fetchAll();
+    console.log(resources);
+    return resources;
   }
 
   private async toJson(payload: Training | Training[]): Promise<Training | Training[]> {

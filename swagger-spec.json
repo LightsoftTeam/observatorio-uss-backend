@@ -2230,6 +2230,29 @@
           "Competencies"
         ]
       }
+    },
+    "/api/reports/trainings-by-competency": {
+      "get": {
+        "operationId": "ReportsController_getTrainingsByCompetency",
+        "parameters": [
+          {
+            "name": "semesterId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All trainings by competency were found"
+          }
+        },
+        "tags": [
+          "Reports"
+        ]
+      }
     }
   },
   "info": {

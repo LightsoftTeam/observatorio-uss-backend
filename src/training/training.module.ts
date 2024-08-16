@@ -28,5 +28,11 @@ import { SemestersService } from 'src/semesters/semesters.service';
     SchoolsModule,
     SemestersModule,
   ],
+  exports: [
+    AzureCosmosDbModule,
+    ProfessorsModule,
+    SchoolsModule,
+    SemestersModule,
+  ],
 })
 export class TrainingModule {}

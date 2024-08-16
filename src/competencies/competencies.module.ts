@@ -13,6 +13,9 @@ import { Competency } from './entities/competency.entity';
       dto: Competency,
     }]),
     CommonModule,
-  ]
+  ],
+  exports: [
+    AzureCosmosDbModule
+  ],
 })
 export class CompetenciesModule {}
