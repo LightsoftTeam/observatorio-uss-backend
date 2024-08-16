@@ -4,6 +4,7 @@ import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SignInDto } from './dto/sign-in.dto';
 import { AuthGuard, LoggedUser } from './guards/auth.guard';
 import { UsersService } from 'src/users/users.service';
+import { RegisterDto } from './entities/register.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -29,6 +30,15 @@ export class AuthController {
 
   @ApiResponse({
     status: 200,
+    description: 'Register successful.',
+  })
+  @Post('register')
+  register(@Body() registerDto: RegisterDto) {
+    return this.authService.register(registerDto);
+  }
+
+  @ApiResponse({
+    status: 200,
     description: 'Retrieve authenticated user.',
   })
   @ApiResponse({
@@ -37,8 +47,7 @@ export class AuthController {
   })
   @UseGuards(AuthGuard)
   @Get('authenticate')
-  async getAuthenticatedUser(@Request() req: LoggedUser) {
-    const user = req['loggedUser'];
-    return user;
+  async getAuthenticatedUser(@Request() req: any) {
+    return this.authService.getAuthenticatedUser(req);
   }
 }

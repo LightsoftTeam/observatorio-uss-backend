@@ -1,6 +1,6 @@
 import { User } from "src/users/entities/user.entity";
 
 export interface LoginResponse {
-    user: User;
+    user: Partial<User>;
     token: string;
 }

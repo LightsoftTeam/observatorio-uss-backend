@@ -4,7 +4,7 @@ import { LikeAction } from "../types/like-action.type";
 
 export class UpdateLikesDto {
     @ApiProperty({
-        description: 'The action to perform on the post likes',
+        description: 'The action to perform on the post or post comment likes',
         example: LikeAction.DECREMENT,
         default: LikeAction.INCREMENT,
         enum: LikeAction,

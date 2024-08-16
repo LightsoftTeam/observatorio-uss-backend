@@ -15,14 +15,15 @@ export class CreateUserDto {
         description: 'The image of the user',
         example: 'https://example.com/image.jpg'
     })
-    @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     image: string;
 
     @ApiProperty({
         description: 'The email of the user',
         example: 'jhondoe@test.com'
     })
+    @IsString()
+    @IsNotEmpty()
     email: string;
 
     @ApiProperty({

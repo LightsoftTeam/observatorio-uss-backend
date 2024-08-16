@@ -1,10 +1,11 @@
-import { BadRequestException, Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, HttpCode, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Role } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { FindUsersDto } from './dto/find-users.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -15,8 +16,15 @@ export class UsersController {
   @ApiOperation({ summary: 'Get users' })
   @ApiResponse({ status: 200, description: 'Return all users' })
   @Get()
-  findAll(@Query('role') role: Role){
-    return this.userService.findAll(role);
+  findAll(@Query() findUsersDto: FindUsersDto){
+    return this.userService.findAll(findUsersDto);
+  }
+
+  @ApiOperation({ summary: 'Get a user' })
+  @ApiResponse({ status: 200, description: 'Return a user' })
+  @Get('/:slug')
+  findBySlug(@Param('slug') slug: string){
+    return this.userService.findBySlug(slug);
   }
 
   @UseGuards(AuthGuard)
@@ -69,5 +77,9 @@ export class UsersController {
   toggleActiveState(@Param('id') id: string){
     return this.userService.toggleActiveState(id);
   }
-    
+
+  @Post('/update-slugs')
+  updateSlugs(){
+    return this.userService.updateSlugs();
+  }
 }

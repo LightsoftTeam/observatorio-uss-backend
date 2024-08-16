@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsEnum, IsNotEmpty, IsObject, IsOptional, IsString, IsUUID } from "class-validator";
-import { Category, Reference } from "../entities/post.entity";
+import { IsArray, IsBoolean, IsEnum, IsNotEmpty, IsObject, IsOptional, IsString, IsUUID } from "class-validator";
+import { ApprovalStatus, Category, Reference } from "../entities/post.entity";
 
 export class CreatePostDto {
     @ApiProperty({
@@ -107,4 +107,14 @@ export class CreatePostDto {
     @IsObject()
     @IsOptional()
     reference: Reference;
+
+    @ApiProperty({
+        description: 'Approval status of the post',
+        example: false,
+        default: false,
+        enum: ApprovalStatus,
+    })
+    @IsEnum(ApprovalStatus)
+    @IsOptional()
+    approvalStatus: ApprovalStatus;
 }

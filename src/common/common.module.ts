@@ -3,6 +3,10 @@ import * as appInsights from 'applicationinsights';
 import { AlgoliaService } from './services/algolia.service';
 import { CommonController } from './common.controller';
 import { ApplicationLoggerService } from './services/application-logger.service';
+import { MailService } from './services/mail.service';
+import { CommonService } from './common.service';
+import { OtpService } from './services/otp.service';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   providers: [
@@ -10,14 +14,17 @@ import { ApplicationLoggerService } from './services/application-logger.service'
     {
       provide: 'ApplicationInsight',
       useFactory: () => {
-          appInsights.setup(process.env.APPINSIGHTS_INSTRUMENTATIONKEY);
-          appInsights.start();
-          return appInsights.defaultClient;
+        appInsights.setup(process.env.APPLICATIONINSIGHTS_CONNECTION_STRING);
+        appInsights.start();
+        return appInsights.defaultClient;
       }
-  },
-  ApplicationLoggerService
+    },
+    ApplicationLoggerService,
+    MailService,
+    CommonService,
+    OtpService,
   ],
   controllers: [CommonController],
-  exports: [AlgoliaService, ApplicationLoggerService]
+  exports: [AlgoliaService, ApplicationLoggerService, MailService]
 })
-export class CommonModule {}
+export class CommonModule { }

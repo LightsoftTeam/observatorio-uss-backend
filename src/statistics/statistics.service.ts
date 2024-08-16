@@ -17,7 +17,7 @@ export class StatisticsService {
         private readonly cacheManager: Cache,
         private readonly logger: ApplicationLoggerService,
     ) {
-        // this.logger.setContext(StatisticsService.name);
+        this.logger.setContext(StatisticsService.name);
     }
     
     async registerVisit() {

@@ -6,7 +6,10 @@ import { writeFile } from 'fs/promises';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
+    forbidNonWhitelisted: true,
+  }));
   app.setGlobalPrefix('api');
   const config = new DocumentBuilder()
     .setTitle('Observatorio USS')
@@ -17,6 +20,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   writeFile('swagger-spec.json', JSON.stringify(document, null, 2));
   SwaggerModule.setup('api', app, document);
+  
   await app.listen(5555);
 }
 bootstrap();

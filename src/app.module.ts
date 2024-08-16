@@ -10,7 +10,13 @@ import { CommonModule } from './common/common.module';
 import { StorageModule } from './storage/storage.module';
 import { AuthoritiesModule } from './authorities/authorities.module';
 import { TagsModule } from './tags/tags.module';
+import { TrainingModule } from './training/training.module';
+import { ProfessorsModule } from './professors/professors.module';
+import { SchoolsModule } from './schools/schools.module';
+import { MailService } from './common/services/mail.service';
 import { StatisticsModule } from './statistics/statistics.module';
+import { CacheModule } from '@nestjs/cache-manager';
+import { CompetenciesModule } from './competencies/competencies.module';
 
 @Module({
   imports: [
@@ -27,6 +33,9 @@ import { StatisticsModule } from './statistics/statistics.module';
       }),
       inject: [ConfigService],
     }),
+    CacheModule.register({
+      isGlobal: true,
+    }),
     PostsModule,
     UsersModule,
     AuthModule,
@@ -34,9 +43,13 @@ import { StatisticsModule } from './statistics/statistics.module';
     StorageModule,
     AuthoritiesModule,
     TagsModule,
+    TrainingModule,
+    ProfessorsModule,
+    SchoolsModule,
     StatisticsModule,
+    CompetenciesModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, MailService],
 })
 export class AppModule { }

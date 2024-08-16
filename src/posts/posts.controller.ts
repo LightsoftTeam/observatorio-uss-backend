@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Query, Put, Delete, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Put, Delete, HttpCode, HttpStatus, UseGuards, UnauthorizedException } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -7,10 +7,17 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { UpdateHomePostDto } from './dto/update-home-post.dto';
 import { UpdateLikesDto } from './dto/update-likes.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { PostCommentsService } from './services/post-comments.service';
+import { CreatePostCommentDto } from './dto/create-post-comment.dto';
+import { ApprovalStatus } from './entities/post.entity';
+import { UpdatePostRequestDto } from './dto/update-post-request.dto';
 @ApiTags('Posts')
 @Controller('posts')
 export class PostsController {
-  constructor(private readonly postsService: PostsService) {}
+  constructor(
+    private postsService: PostsService,
+    private postCommentsService: PostCommentsService,
+  ) {}
 
   @ApiResponse({
     status: 401,
@@ -21,7 +28,7 @@ export class PostsController {
   @ApiResponse({ status: 201, description: 'The post has been successfully created.'})
   @Post()
   create(@Body() createPostDto: CreatePostDto) {
-    return this.postsService.create(createPostDto);
+    return this.postsService.create({...createPostDto});
   }
 
   @UseGuards(AuthGuard)
@@ -44,19 +51,26 @@ export class PostsController {
     return this.postsService.update(id, updatePostDto);
   }
 
+  @Get()
   @ApiOperation({ summary: 'Get all posts' })
   @ApiResponse({ status: 200, description: 'The posts has been successfully retrieved.'})
-  @Get()
   findAll(@Query() query: GetPostsDto) {
     //TODO: validate query
     return this.postsService.findAll(query);
   }
 
+  @Get('find/home')
   @ApiOperation({ summary: 'Get home posts' })
-  @ApiResponse({ status: 200, description: 'The posts home has been successfully retrieved.'})
-  @Get('/find/home')
-  find() {
+  @ApiResponse({ status: 200, description: 'The home posts has been successfully retrieved.'})
+  getHomePosts(@Query('') _: string) {
     return this.postsService.getHomePosts();
+  }
+
+  @Get('find/requests')
+  @ApiOperation({ summary: 'Get post requests' })
+  @ApiResponse({ status: 200, description: 'The post requests has been successfully retrieved.'})
+  getPostRequests(@Query('') _: string) {
+    return this.postsService.findPostRequests();
   }
 
   @ApiOperation({ summary: 'Get a post by slug' })
@@ -105,5 +119,57 @@ export class PostsController {
   @Post('seed')
   seed() {
     return this.postsService.seed();
+  } 
+
+  @ApiOperation({ summary: 'Create a post request' })
+  @ApiResponse({ status: 201, description: 'The post request has been successfully created.'})
+  @Post('create-request')
+  createRequest(@Body() createPostDto: CreatePostDto) {
+    return this.postsService.create({
+      ...createPostDto,
+      approvalStatus: ApprovalStatus.PENDING,
+    });
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Accept a post request' })
+  @ApiResponse({ status: 200, description: 'The post request has been successfully accepted.'})
+  @Post('update-request/:id')
+  updatePostRequest(@Param('id') id: string, @Body() updatePostRequestDto: UpdatePostRequestDto) {
+    return this.postsService.updatePostRequest(id, updatePostRequestDto);
+  }
+
+  @Get(':id/comments')
+  @ApiOperation({ summary: 'Get comments of a post' })
+  @ApiResponse({ status: 200, description: 'The comments has been successfully retrieved.'})
+  getComments(@Param('id') id: string) {
+    return this.postCommentsService.findByPostId(id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post(':id/comments')
+  @ApiOperation({ summary: 'Create a comment' })
+  @ApiResponse({ status: 201, description: 'The comment has been successfully created.'})
+  createComment(@Param('id') id: string, @Body() createPostCommentDto: CreatePostCommentDto) {
+    return this.postCommentsService.create(id, createPostCommentDto);
+  }
+
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Like a comment' })
+  @ApiResponse({ status: 200, description: 'The comment has been successfully liked.'})
+  @HttpCode(HttpStatus.OK)
+  @Post('/:postId/comments/:postCommentId/likes')
+  likeComment(@Param('postId') postId: string, @Param('postCommentId') postCommentId: string) {
+    return this.postCommentsService.updateLikes({ postId, postCommentId });
+  }
+
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Delete a comment' })
+  @ApiResponse({ status: 204, description: 'The comment has been successfully deleted.'})
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete(':postId/comments/:postCommentId')
+  async deleteComment(@Param('postId') postId: string, @Param('postCommentId') postCommentId: string) {
+    return this.postCommentsService.remove(postCommentId, postId);
   }
 }

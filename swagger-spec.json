@@ -186,12 +186,27 @@
     },
     "/api/posts/find/home": {
       "get": {
-        "operationId": "PostsController_find",
+        "operationId": "PostsController_getHomePosts",
         "summary": "Get home posts",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "The posts home has been successfully retrieved."
+            "description": "The home posts has been successfully retrieved."
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      }
+    },
+    "/api/posts/find/requests": {
+      "get": {
+        "operationId": "PostsController_getPostRequests",
+        "summary": "Get post requests",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The post requests has been successfully retrieved."
           }
         },
         "tags": [
@@ -312,6 +327,185 @@
         ]
       }
     },
+    "/api/posts/create-request": {
+      "post": {
+        "operationId": "PostsController_createRequest",
+        "summary": "Create a post request",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePostDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The post request has been successfully created."
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      }
+    },
+    "/api/posts/update-request/{id}": {
+      "post": {
+        "operationId": "PostsController_updatePostRequest",
+        "summary": "Accept a post request",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePostRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The post request has been successfully accepted."
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      }
+    },
+    "/api/posts/{id}/comments": {
+      "get": {
+        "operationId": "PostsController_getComments",
+        "summary": "Get comments of a post",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The comments has been successfully retrieved."
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      },
+      "post": {
+        "operationId": "PostsController_createComment",
+        "summary": "Create a comment",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePostCommentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The comment has been successfully created."
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      }
+    },
+    "/api/posts/{postId}/comments/{postCommentId}/likes": {
+      "post": {
+        "operationId": "PostsController_likeComment",
+        "summary": "Like a comment",
+        "parameters": [
+          {
+            "name": "postId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "postCommentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The comment has been successfully liked."
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      }
+    },
+    "/api/posts/{postId}/comments/{postCommentId}": {
+      "delete": {
+        "operationId": "PostsController_deleteComment",
+        "summary": "Delete a comment",
+        "parameters": [
+          {
+            "name": "postId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "postCommentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The comment has been successfully deleted."
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      }
+    },
     "/api/common/sync-algolia": {
       "post": {
         "operationId": "CommonController_syncAlgolia",
@@ -326,16 +520,43 @@
         ]
       }
     },
+    "/api/common/send-otp": {
+      "post": {
+        "operationId": "CommonController_sendOtp",
+        "summary": "Send OTP",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendOTPDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OTP sent successfully"
+          }
+        },
+        "tags": [
+          "Common"
+        ]
+      }
+    },
     "/api/users": {
       "get": {
         "operationId": "UsersController_findAll",
         "summary": "Get users",
         "parameters": [
           {
-            "name": "role",
+            "name": "roles",
             "required": true,
             "in": "query",
+            "description": "The roles of the user",
             "schema": {
+              "nullable": true,
               "type": "string"
             }
           }
@@ -372,6 +593,30 @@
           },
           "401": {
             "description": "Unauthorized."
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/users/{slug}": {
+      "get": {
+        "operationId": "UsersController_findBySlug",
+        "summary": "Get a user",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return a user"
           }
         },
         "tags": [
@@ -446,6 +691,20 @@
         ]
       }
     },
+    "/api/users/update-slugs": {
+      "post": {
+        "operationId": "UsersController_updateSlugs",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      }
+    },
     "/api/auth/login": {
       "post": {
         "operationId": "AuthController_signIn",
@@ -466,6 +725,30 @@
           },
           "401": {
             "description": "Unauthorized."
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Register successful."
           }
         },
         "tags": [
@@ -658,6 +941,1017 @@
         ]
       }
     },
+    "/api/training": {
+      "post": {
+        "operationId": "TrainingController_create",
+        "summary": "Create a training",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTrainingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The training has been successfully created."
+          },
+          "400": {
+            "description": "Bad Request."
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      },
+      "get": {
+        "operationId": "TrainingController_findAll",
+        "summary": "Get all trainings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "All trainings were found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingBadRequestDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
+    "/api/training/by-document/{documentType}/{documentNumber}": {
+      "get": {
+        "operationId": "TrainingController_findAllByDocument",
+        "summary": "Get all trainings of a professor",
+        "parameters": [
+          {
+            "name": "documentType",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "documentNumber",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All trainings of a professor were found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingBadRequestDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
+    "/api/training/{id}": {
+      "get": {
+        "operationId": "TrainingController_findOne",
+        "summary": "Get a training",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A training was found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingBadRequestDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Training not found"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      },
+      "put": {
+        "operationId": "TrainingController_update",
+        "summary": "Update a training",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTrainingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The training has been successfully updated."
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingBadRequestDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Training not found"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      },
+      "delete": {
+        "operationId": "TrainingController_remove",
+        "summary": "Remove a training",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The training has been successfully removed."
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingBadRequestDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Training not found"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
+    "/api/training/{id}/participants": {
+      "post": {
+        "operationId": "TrainingController_addParticipant",
+        "summary": "Add a participant",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddParticipantDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The participant has been successfully added."
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Training not found"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      },
+      "get": {
+        "operationId": "TrainingController_findAllParticipants",
+        "summary": "Get all participants",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All participants were found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingBadRequestDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Training not found"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
+    "/api/training/{id}/participants/{participantId}": {
+      "put": {
+        "operationId": "TrainingController_updateParticipant",
+        "summary": "Update a participant",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "participantId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateParticipantDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The participant has been successfully updated."
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Training not found"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      },
+      "delete": {
+        "operationId": "TrainingController_removeParticipant",
+        "summary": "Remove a participant",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "participantId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The participant has been successfully removed."
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Training not found"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
+    "/api/training/participants/{participantId}/verify": {
+      "get": {
+        "operationId": "TrainingController_verifyParticipant",
+        "summary": "Verify a participant",
+        "parameters": [
+          {
+            "name": "participantId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The qr code has been successfully verified",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyParticipantSuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
+    "/api/training/{id}/executions/{executionId}/attendances": {
+      "post": {
+        "operationId": "TrainingController_addAttendanceToExecution",
+        "summary": "Add attendance to an execution",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "executionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddAttendanceToExecutionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The assistance has been successfully added."
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Training not found"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
+    "/api/training/participants/{participantId}/complete": {
+      "post": {
+        "operationId": "TrainingController_completeTraining",
+        "summary": "Complete a training",
+        "parameters": [
+          {
+            "name": "participantId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "inLine",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The training has been successfully completed"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Participant not found"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
+    "/api/training/previews/certificate": {
+      "get": {
+        "operationId": "TrainingController_getCertificatePreview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingBadRequestDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
+    "/api/training/{id}/download-certificates": {
+      "get": {
+        "operationId": "TrainingController_downloadCertificatesByTrainingId",
+        "summary": "Download the certificates of a training",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The certificates have been successfully downloaded"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingBadRequestDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Training not found"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
+    "/api/training/participants/{participantId}/qr": {
+      "get": {
+        "operationId": "TrainingController_downloadQr",
+        "summary": "Download the qr code of a participant",
+        "parameters": [
+          {
+            "name": "participantId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The qr code has been successfully downloaded"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
+    "/api/training/{id}/asistance": {
+      "get": {
+        "operationId": "TrainingController_getAssistance",
+        "summary": "Get the assistance",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The assistance was found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingBadRequestDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Training not found"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
+    "/api/training/{id}/asistance-by-school": {
+      "get": {
+        "operationId": "TrainingController_getAssistanceBySchool",
+        "summary": "Get the assistance by school",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The assistance by school was found"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingBadRequestDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Training not found"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
+    "/api/professors": {
+      "post": {
+        "operationId": "ProfessorsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProfessorDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The professor has been successfully created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Professor"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request."
+          },
+          "404": {
+            "description": "School not found."
+          }
+        },
+        "tags": [
+          "Professors"
+        ]
+      },
+      "get": {
+        "operationId": "ProfessorsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "All professors were found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Professor"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Professors"
+        ]
+      }
+    },
+    "/api/professors/reports/asistance-by-year": {
+      "get": {
+        "operationId": "ProfessorsController_getAssistanceByYear",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The assistance by year was found"
+          },
+          "404": {
+            "description": "Professor not found"
+          }
+        },
+        "tags": [
+          "Professors"
+        ]
+      }
+    },
+    "/api/professors/{id}": {
+      "get": {
+        "operationId": "ProfessorsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A professor was found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Professor"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Professor not found"
+          }
+        },
+        "tags": [
+          "Professors"
+        ]
+      },
+      "put": {
+        "operationId": "ProfessorsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfessorDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The professor has been successfully updated."
+          },
+          "400": {
+            "description": "Bad Request."
+          },
+          "404": {
+            "description": "Professor not found."
+          }
+        },
+        "tags": [
+          "Professors"
+        ]
+      },
+      "delete": {
+        "operationId": "ProfessorsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The professor has been successfully deleted."
+          },
+          "404": {
+            "description": "Professor not found."
+          }
+        },
+        "tags": [
+          "Professors"
+        ]
+      }
+    },
+    "/api/professors/{documentType}/{documentNumber}": {
+      "get": {
+        "operationId": "ProfessorsController_findByDocument",
+        "parameters": [
+          {
+            "name": "documentType",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "documentNumber",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A professor was found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Professor"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Professor not found"
+          }
+        },
+        "tags": [
+          "Professors"
+        ]
+      }
+    },
+    "/api/professors/confirm-register/{code}": {
+      "post": {
+        "operationId": "ProfessorsController_confirmRegister",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The email has been confirmed and the professor has been saved."
+          }
+        },
+        "tags": [
+          "Professors"
+        ]
+      }
+    },
+    "/api/schools": {
+      "post": {
+        "operationId": "SchoolsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSchoolDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The school has been successfully created."
+          },
+          "400": {
+            "description": "Bad Request."
+          },
+          "404": {
+            "description": "School not found."
+          }
+        },
+        "tags": [
+          "Schools"
+        ]
+      },
+      "get": {
+        "operationId": "SchoolsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "All schools were found"
+          }
+        },
+        "tags": [
+          "Schools"
+        ]
+      }
+    },
+    "/api/schools/{id}": {
+      "get": {
+        "operationId": "SchoolsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A school was found"
+          },
+          "404": {
+            "description": "School not found"
+          }
+        },
+        "tags": [
+          "Schools"
+        ]
+      },
+      "put": {
+        "operationId": "SchoolsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSchoolDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The school has been successfully updated."
+          },
+          "404": {
+            "description": "School not found"
+          }
+        },
+        "tags": [
+          "Schools"
+        ]
+      },
+      "delete": {
+        "operationId": "SchoolsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The school has been successfully deleted."
+          },
+          "404": {
+            "description": "School not found"
+          }
+        },
+        "tags": [
+          "Schools"
+        ]
+      }
+    },
     "/api/statistics/register-visit": {
       "post": {
         "operationId": "StatisticsController_registerVisit",
@@ -669,6 +1963,117 @@
         },
         "tags": [
           "Statistics"
+        ]
+      }
+    },
+    "/api/competencies": {
+      "post": {
+        "operationId": "CompetenciesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCompetencyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The record has been successfully created."
+          }
+        },
+        "tags": [
+          "Competencies"
+        ]
+      },
+      "get": {
+        "operationId": "CompetenciesController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The records have been successfully retrieved."
+          }
+        },
+        "tags": [
+          "Competencies"
+        ]
+      }
+    },
+    "/api/competencies/{id}": {
+      "get": {
+        "operationId": "CompetenciesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record has been successfully retrieved."
+          }
+        },
+        "tags": [
+          "Competencies"
+        ]
+      },
+      "put": {
+        "operationId": "CompetenciesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCompetencyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The record has been successfully updated."
+          }
+        },
+        "tags": [
+          "Competencies"
+        ]
+      },
+      "delete": {
+        "operationId": "CompetenciesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The record has been successfully deleted."
+          }
+        },
+        "tags": [
+          "Competencies"
         ]
       }
     }
@@ -762,6 +2167,17 @@
             "type": "object",
             "description": "Reference of the post",
             "example": "\n            {\n                author: 'Observatorio Tec Monterrey',\n                url: 'https://observatorio.tec.mx/edu-news/this-is-a-post'\n            }\n        "
+          },
+          "approvalStatus": {
+            "type": "string",
+            "description": "Approval status of the post",
+            "example": false,
+            "default": false,
+            "enum": [
+              "pending",
+              "approved",
+              "rejected"
+            ]
           }
         },
         "required": [
@@ -776,7 +2192,8 @@
           "userId",
           "attachments",
           "tags",
-          "reference"
+          "reference",
+          "approvalStatus"
         ]
       },
       "UpdateHomePostDto": {
@@ -801,7 +2218,7 @@
         "properties": {
           "action": {
             "type": "string",
-            "description": "The action to perform on the post likes",
+            "description": "The action to perform on the post or post comment likes",
             "example": "decrement",
             "default": "increment",
             "enum": [
@@ -812,6 +2229,57 @@
         },
         "required": [
           "action"
+        ]
+      },
+      "UpdatePostRequestDto": {
+        "type": "object",
+        "properties": {
+          "approvalStatus": {
+            "type": "string",
+            "description": "The action to be performed on the post",
+            "example": "approved",
+            "enum": [
+              "pending",
+              "approved",
+              "rejected"
+            ]
+          }
+        },
+        "required": [
+          "approvalStatus"
+        ]
+      },
+      "CreatePostCommentDto": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "string",
+            "description": "The comment of the post",
+            "example": "This is a comment"
+          },
+          "parentId": {
+            "type": "string",
+            "description": "The parent id",
+            "example": "123e4567-es12-42d9-a456-426614174000",
+            "nullable": true
+          }
+        },
+        "required": [
+          "body",
+          "parentId"
+        ]
+      },
+      "SendOTPDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "The email of the user",
+            "example": "test@test.com"
+          }
+        },
+        "required": [
+          "email"
         ]
       },
       "CreateUserDto": {
@@ -900,6 +2368,28 @@
         "required": [
           "email",
           "password"
+        ]
+      },
+      "RegisterDto": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "description": "The user details",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CreateUserDto"
+              }
+            ]
+          },
+          "verificationCode": {
+            "type": "string",
+            "description": "The verification code",
+            "example": "A1B2C3"
+          }
+        },
+        "required": [
+          "user",
+          "verificationCode"
         ]
       },
       "CreateAuthorityDto": {
@@ -995,6 +2485,675 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "TrainingBadRequestDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "The error code.",
+            "example": "TRAINING_CODE_ALREADY_EXISTS",
+            "enum": [
+              "TRAINING_CODE_ALREADY_EXISTS",
+              "DATE_RANGE_INVALID",
+              "TRAINING_NOT_HAVE_PARTICIPANTS_WITH_CERTIFICATES",
+              "QR_CODE_NOT_FOUND",
+              "PARTICIPANT_NOT_FOUND",
+              "TRAINING_NOT_COMPLETED",
+              "TRAINING_NOT_HAVE_EXECUTIONS",
+              "MULTIPLE_ROLES_NOT_ALLOWED",
+              "TRAINING_ALREADY_COMPLETED",
+              "INVALID_OTP",
+              "INVALID_AUTHOR",
+              "POST_IS_NOT_PENDING_APPROVAL",
+              "PROFESSOR_ALREADY_EXISTS",
+              "USER_ALREADY_EXISTS",
+              "NESTED_COMMENT_NOT_ALLOWED"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "description": "The error message.",
+            "example": "The training code already exists."
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "CreateTrainingDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "The code of the training",
+            "example": "0001-2020-II"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the training",
+            "example": "Training 1"
+          },
+          "description": {
+            "type": "string",
+            "description": "The description of the training",
+            "example": "This is the training number 1"
+          },
+          "executions": {
+            "description": "The executions of the training",
+            "example": [
+              {
+                "date": "2022-07-01"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "place": {
+            "type": "string",
+            "description": "The place of the training",
+            "example": "Av. Los Pinos 123",
+            "nullable": true
+          },
+          "floor": {
+            "type": "number",
+            "description": "The floor of the training",
+            "example": 1,
+            "nullable": true
+          },
+          "building": {
+            "type": "string",
+            "description": "The building of the training",
+            "example": "Building A",
+            "nullable": true
+          },
+          "organizer": {
+            "type": "string",
+            "description": "The organizer of the training",
+            "example": "DDA"
+          },
+          "status": {
+            "type": "string",
+            "description": "The status of the training",
+            "example": "active",
+            "enum": [
+              "active",
+              "inactive"
+            ]
+          },
+          "modality": {
+            "type": "string",
+            "description": "The modality of the training",
+            "example": "presential",
+            "enum": [
+              "presential",
+              "virtual",
+              "semipresential"
+            ]
+          },
+          "capacity": {
+            "type": "number",
+            "description": "The capacity of the training",
+            "example": 100
+          },
+          "competencyId": {
+            "type": "string",
+            "description": "The competency of the training",
+            "example": "a1b2c3d4-1234-5678-90ab-cdef12345678"
+          },
+          "certificateBackgroundUrl": {
+            "type": "string",
+            "description": "The background url of the certificate",
+            "example": "https://example.com/certificate.png",
+            "nullable": true
+          },
+          "certificateSignatureUrl": {
+            "type": "string",
+            "description": "The signature url of the certificate",
+            "example": "https://example.com/signature.png",
+            "nullable": true
+          },
+          "certificateEmisionDate": {
+            "type": "string",
+            "description": "The emision date of the certificate"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "description",
+          "executions",
+          "place",
+          "floor",
+          "building",
+          "organizer",
+          "status",
+          "modality",
+          "capacity",
+          "competencyId",
+          "certificateBackgroundUrl",
+          "certificateSignatureUrl",
+          "certificateEmisionDate"
+        ]
+      },
+      "UpdateTrainingDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "The code of the training",
+            "example": "0001-2020-II"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the training",
+            "example": "Training 1"
+          },
+          "description": {
+            "type": "string",
+            "description": "The description of the training",
+            "example": "This is the training number 1"
+          },
+          "executions": {
+            "description": "The executions of the training",
+            "example": [
+              {
+                "date": "2022-07-01"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "place": {
+            "type": "string",
+            "description": "The place of the training",
+            "example": "Av. Los Pinos 123",
+            "nullable": true
+          },
+          "floor": {
+            "type": "number",
+            "description": "The floor of the training",
+            "example": 1,
+            "nullable": true
+          },
+          "building": {
+            "type": "string",
+            "description": "The building of the training",
+            "example": "Building A",
+            "nullable": true
+          },
+          "organizer": {
+            "type": "string",
+            "description": "The organizer of the training",
+            "example": "DDA"
+          },
+          "status": {
+            "type": "string",
+            "description": "The status of the training",
+            "example": "active",
+            "enum": [
+              "active",
+              "inactive"
+            ]
+          },
+          "modality": {
+            "type": "string",
+            "description": "The modality of the training",
+            "example": "presential",
+            "enum": [
+              "presential",
+              "virtual",
+              "semipresential"
+            ]
+          },
+          "capacity": {
+            "type": "number",
+            "description": "The capacity of the training",
+            "example": 100
+          },
+          "competencyId": {
+            "type": "string",
+            "description": "The competency of the training",
+            "example": "a1b2c3d4-1234-5678-90ab-cdef12345678"
+          },
+          "certificateBackgroundUrl": {
+            "type": "string",
+            "description": "The background url of the certificate",
+            "example": "https://example.com/certificate.png",
+            "nullable": true
+          },
+          "certificateSignatureUrl": {
+            "type": "string",
+            "description": "The signature url of the certificate",
+            "example": "https://example.com/signature.png",
+            "nullable": true
+          },
+          "certificateEmisionDate": {
+            "type": "string",
+            "description": "The emision date of the certificate"
+          }
+        }
+      },
+      "AddParticipantDto": {
+        "type": "object",
+        "properties": {
+          "professorId": {
+            "type": "string",
+            "description": "A valid professor id",
+            "example": "a3b4c5d6-1234-5678-90ab-cdef12345678"
+          },
+          "roles": {
+            "type": "string",
+            "description": "The role of the professor",
+            "example": "assistant",
+            "enum": [
+              "assistant",
+              "organizer",
+              "speaker"
+            ],
+            "nullable": true,
+            "default": "assistant"
+          }
+        },
+        "required": [
+          "professorId",
+          "roles"
+        ]
+      },
+      "UpdateParticipantDto": {
+        "type": "object",
+        "properties": {
+          "professorId": {
+            "type": "string",
+            "description": "A valid professor id",
+            "example": "a3b4c5d6-1234-5678-90ab-cdef12345678"
+          },
+          "roles": {
+            "type": "string",
+            "description": "The role of the professor",
+            "example": "assistant",
+            "enum": [
+              "assistant",
+              "organizer",
+              "speaker"
+            ],
+            "nullable": true,
+            "default": "assistant"
+          },
+          "attendanceStatus": {
+            "type": "string",
+            "description": "The attendance status of the participant",
+            "example": "attended",
+            "enum": [
+              "pending",
+              "attended"
+            ],
+            "nullable": true
+          }
+        },
+        "required": [
+          "attendanceStatus"
+        ]
+      },
+      "TrainingDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "A valid training id",
+            "example": "a3b4c5d6-1234-5678-90ab-cdef12345678"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the training",
+            "example": "NestJS for beginners"
+          },
+          "code": {
+            "type": "string",
+            "description": "The code of the training",
+            "example": "004-2024-II"
+          },
+          "modality": {
+            "type": "string",
+            "description": "The modality of the training",
+            "example": "presential",
+            "enum": [
+              "presential",
+              "virtual",
+              "semipresential"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "code",
+          "modality"
+        ]
+      },
+      "ExecutionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "A valid execution id",
+            "example": "a3b4c5d6-1234-5678-90ab-cdef12345678"
+          },
+          "from": {
+            "type": "string",
+            "description": "The date and time when the training will start",
+            "example": "2024-02-01T08:00:00Z"
+          },
+          "to": {
+            "type": "string",
+            "description": "The date and time when the training will end",
+            "example": "2024-02-01T17:00:00Z"
+          },
+          "participantAttend": {
+            "type": "boolean",
+            "description": "If the participant attended the training",
+            "example": true
+          }
+        },
+        "required": [
+          "id",
+          "from",
+          "to",
+          "participantAttend"
+        ]
+      },
+      "ProfessorDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The id of the professor",
+            "example": "a3b4c5d6-1234-5678-90ab-cdef12345678"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the professor",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "description": "The email of the professor",
+            "example": "jhon@uss.edu.pe"
+          },
+          "documentType": {
+            "type": "string",
+            "description": "The document type of the professor",
+            "example": "dni",
+            "enum": [
+              "dni",
+              "pasaporte",
+              "carnet_extranjeria"
+            ]
+          },
+          "documentNumber": {
+            "type": "string",
+            "description": "The document number of the professor",
+            "example": "12345678"
+          },
+          "schoolId": {
+            "type": "string",
+            "description": "The school id of the professor",
+            "example": "a3b4c5d6-1234-5678-90ab-cdef12345678"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "The creation date of the professor",
+            "example": "2024-02-01T08:00:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "documentType",
+          "documentNumber",
+          "schoolId",
+          "createdAt"
+        ]
+      },
+      "ParticipantDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "A valid participant id",
+            "example": "a3b4c5d6-1234-5678-90ab-cdef12345678"
+          },
+          "foreignId": {
+            "type": "string",
+            "description": "Id of the professor",
+            "example": "a3b4c5d6-1234-5678-90ab-cdef12345678"
+          },
+          "role": {
+            "type": "string",
+            "description": "The role of the participant",
+            "example": "assistant",
+            "enum": [
+              "assistant",
+              "organizer",
+              "speaker"
+            ]
+          },
+          "attendanceStatus": {
+            "type": "string",
+            "description": "The status of the participant",
+            "example": "attended",
+            "enum": [
+              "pending",
+              "attended"
+            ]
+          },
+          "professor": {
+            "description": "The professor of the participant",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProfessorDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "foreignId",
+          "role",
+          "attendanceStatus",
+          "professor"
+        ]
+      },
+      "VerifyParticipantSuccessResponseDto": {
+        "type": "object",
+        "properties": {
+          "training": {
+            "description": "The training to which the participant is associated.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TrainingDto"
+              }
+            ]
+          },
+          "executions": {
+            "description": "The executions of the training.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExecutionDto"
+            }
+          },
+          "participant": {
+            "description": "The participant of the training.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ParticipantDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "training",
+          "executions",
+          "participant"
+        ]
+      },
+      "AddAttendanceToExecutionDto": {
+        "type": "object",
+        "properties": {
+          "participantId": {
+            "type": "string",
+            "description": "A valid participant id",
+            "example": "a3b4c5d6-1234-5678-90ab-cdef12345678"
+          },
+          "status": {
+            "type": "string",
+            "description": "The status of the participant in the execution.",
+            "example": "attended",
+            "enum": [
+              "pending",
+              "attended"
+            ],
+            "nullable": true,
+            "default": "attended"
+          }
+        },
+        "required": [
+          "participantId",
+          "status"
+        ]
+      },
+      "CreateProfessorDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the professor",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "description": "The email of the professor",
+            "example": "jhon.doe@uss.com"
+          },
+          "documentType": {
+            "type": "string",
+            "description": "The document type of the professor",
+            "example": "dni",
+            "enum": [
+              "dni",
+              "pasaporte",
+              "carnet_extranjeria"
+            ]
+          },
+          "documentNumber": {
+            "type": "string",
+            "description": "The document number of the professor",
+            "example": "12345678"
+          },
+          "schoolId": {
+            "type": "string",
+            "description": "The school id of the professor",
+            "example": "60f4b3b3-1b7b-4b6b-8b7b-1b7b4b6b8b7b"
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "documentType",
+          "documentNumber",
+          "schoolId"
+        ]
+      },
+      "Professor": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateProfessorDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the professor",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "description": "The email of the professor",
+            "example": "jhon.doe@uss.com"
+          },
+          "documentType": {
+            "type": "string",
+            "description": "The document type of the professor",
+            "example": "dni",
+            "enum": [
+              "dni",
+              "pasaporte",
+              "carnet_extranjeria"
+            ]
+          },
+          "documentNumber": {
+            "type": "string",
+            "description": "The document number of the professor",
+            "example": "12345678"
+          },
+          "schoolId": {
+            "type": "string",
+            "description": "The school id of the professor",
+            "example": "60f4b3b3-1b7b-4b6b-8b7b-1b7b4b6b8b7b"
+          }
+        }
+      },
+      "CreateSchoolDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the school",
+            "example": "Ingeniería de Sistemas"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateSchoolDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the school",
+            "example": "Ingeniería de Sistemas"
+          }
+        }
+      },
+      "CreateCompetencyDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the competency",
+            "example": "Software Development"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateCompetencyDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the competency",
+            "example": "Software Development"
           }
         }
       }

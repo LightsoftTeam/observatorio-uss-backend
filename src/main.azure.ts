@@ -5,7 +5,9 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 export async function createApp(): Promise<INestApplication> {
   const app = await NestFactory.create(AppModule);
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
+  }));
   app.setGlobalPrefix('api');
   const config = new DocumentBuilder()
     .setTitle('Observatorio USS')
@@ -14,7 +16,7 @@ export async function createApp(): Promise<INestApplication> {
     .addTag('Api')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('swagger', app, document);
   
   await app.init();
   return app;
