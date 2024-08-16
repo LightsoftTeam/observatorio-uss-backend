@@ -1952,6 +1952,117 @@
         ]
       }
     },
+    "/api/semesters": {
+      "post": {
+        "operationId": "SemestersController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSemesterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Semester created successfully"
+          }
+        },
+        "tags": [
+          "Semesters"
+        ]
+      },
+      "get": {
+        "operationId": "SemestersController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Semesters found successfully"
+          }
+        },
+        "tags": [
+          "Semesters"
+        ]
+      }
+    },
+    "/api/semesters/{id}": {
+      "get": {
+        "operationId": "SemestersController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Semester found successfully"
+          }
+        },
+        "tags": [
+          "Semesters"
+        ]
+      },
+      "put": {
+        "operationId": "SemestersController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSemesterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Semester updated successfully"
+          }
+        },
+        "tags": [
+          "Semesters"
+        ]
+      },
+      "delete": {
+        "operationId": "SemestersController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Semester deleted successfully"
+          }
+        },
+        "tags": [
+          "Semesters"
+        ]
+      }
+    },
     "/api/statistics/register-visit": {
       "post": {
         "operationId": "StatisticsController_registerVisit",
@@ -2537,6 +2648,11 @@
             "description": "The name of the training",
             "example": "Training 1"
           },
+          "semesterId": {
+            "type": "string",
+            "description": "The id of the semester",
+            "example": "a1b2c3d4-1234-5678-90ab-cdef12345678"
+          },
           "description": {
             "type": "string",
             "description": "The description of the training",
@@ -2626,6 +2742,7 @@
         "required": [
           "code",
           "name",
+          "semesterId",
           "description",
           "executions",
           "place",
@@ -2653,6 +2770,11 @@
             "type": "string",
             "description": "The name of the training",
             "example": "Training 1"
+          },
+          "semesterId": {
+            "type": "string",
+            "description": "The id of the semester",
+            "example": "a1b2c3d4-1234-5678-90ab-cdef12345678"
           },
           "description": {
             "type": "string",
@@ -3131,6 +3253,29 @@
             "type": "string",
             "description": "The name of the school",
             "example": "Ingeniería de Sistemas"
+          }
+        }
+      },
+      "CreateSemesterDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the semester",
+            "example": "2024-I"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateSemesterDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the semester",
+            "example": "2024-I"
           }
         }
       },

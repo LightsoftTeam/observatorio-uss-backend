@@ -17,6 +17,7 @@ import { MailService } from './common/services/mail.service';
 import { StatisticsModule } from './statistics/statistics.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { CompetenciesModule } from './competencies/competencies.module';
+import { SemestersModule } from './semesters/semesters.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { CompetenciesModule } from './competencies/competencies.module';
     SchoolsModule,
     StatisticsModule,
     CompetenciesModule,
+    SemestersModule,
   ],
   controllers: [AppController],
   providers: [AppService, MailService],

@@ -16,6 +16,7 @@ import { CertificatesHelper } from 'src/common/helpers/certificates.helper';
 import { DocumentType } from 'src/common/types/document-type.enum';
 import { ERROR_CODES, APP_ERRORS } from '../common/constants/errors.constants';
 import { CompetenciesService } from 'src/competencies/competencies.service';
+import { SemestersService } from 'src/semesters/semesters.service';
 const AdmZip = require("adm-zip");
 
 const DDA_ORGANIZER_ID = 'DDA';
@@ -34,6 +35,7 @@ const BASIC_FIELDS = [
   'modality',
   'capacity',
   'competencyId',
+  'semesterId',
 ];
 
 @Injectable()
@@ -45,7 +47,8 @@ export class TrainingService {
     private readonly schoolService: SchoolsService,
     private readonly professorsService: ProfessorsService,
     private readonly storageService: StorageService,
-    private readonly competenciesService: CompetenciesService
+    private readonly competenciesService: CompetenciesService,
+    private readonly semestersService: SemestersService,
   ) {
     this.logger.setContext(TrainingService.name);
   }
@@ -327,26 +330,23 @@ export class TrainingService {
     //TODO: refactor this method
     const trainings = Array.isArray(payload) ? payload : [payload];
     const competenceIds = trainings.map(training => training.competencyId);
+    const semesterIds = trainings.map(training => training.semesterId);
+    const organizersIds: (string | Partial<School>)[] = trainings.map(training => training.organizer);
     this.logger.log(`Fetching competencies with ids: ${competenceIds}`);
-    const competencies = await this.competenciesService.getByIds(competenceIds);
-    let organizers: (string | Partial<School>)[] = trainings.map(training => training.organizer);
-    const schoolOrganizers = organizers.filter(organizer => isUUID(organizer));
-    const schools = schoolOrganizers.length > 0 ? await this.schoolService.getByIds(organizers as string[]) : [];
-    if (schoolOrganizers.length > 0) {
-      organizers = organizers.map(organizer => {
-        if (isUUID(organizer)) {
-          return schools.find(school => school.id === organizer)!;
-        }
-        return organizer;
-      });
-    }
+    const [competencies, semesters, schools] = await Promise.all([
+      this.competenciesService.getByIds(competenceIds),
+      this.semestersService.getByIds(semesterIds),
+      this.schoolService.getByIds(organizersIds as string[]),
+    ]);
     const formattedTrainings = trainings.map((training, index) => {
       const competency = competencies.find(competency => competency.id === training.competencyId);
-      const organizer = organizers[index];
+      const organizer = schools.find(school => school.id === training.organizer);
+      const semester = semesters.find(semester => semester.id === training.semesterId);
       return {
         ...training,
         organizer,
         competency,
+        semester
       };
     });
     return Array.isArray(payload) ? formattedTrainings : formattedTrainings[0];

@@ -63,6 +63,7 @@ export class Training {
     id?: string;
     code: string;
     name: string;
+    semesterId: string;
     description?: string;
     executions: Execution[];
     place?: string;
