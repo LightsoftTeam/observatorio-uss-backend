@@ -58,11 +58,17 @@ export enum TrainingModality {
     SEMIPRESENTIAL = 'semipresential',
 }
 
+export enum TrainingType{
+    EXTRA = 'extra',
+    SCHEDULED = 'scheduled',
+}
+
 @CosmosPartitionKey('id')
 export class Training {
     id?: string;
     code: string;
     name: string;
+    type: TrainingType;
     semesterId: string;
     description?: string;
     executions: Execution[];

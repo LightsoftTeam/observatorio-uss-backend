@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsArray, IsDateString, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
-import { TrainingModality, TrainingStatus } from "../entities/training.entity";
+import { TrainingModality, TrainingStatus, TrainingType } from "../entities/training.entity";
 
 export class ExecutionRequest {
     @ApiProperty({
@@ -59,6 +59,14 @@ export class CreateTrainingDto {
     })
     @IsUUID()
     semesterId: string;
+
+    @ApiProperty({
+        description: 'The type of the training',
+        example: TrainingType.SCHEDULED,
+        enum: TrainingType
+    })
+    @IsEnum(TrainingType)
+    type: TrainingType;
 
     @ApiProperty({
         description: 'The description of the training',

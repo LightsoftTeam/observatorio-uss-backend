@@ -36,6 +36,7 @@ const BASIC_FIELDS = [
   'capacity',
   'competencyId',
   'semesterId',
+  'type',
 ];
 
 @Injectable()

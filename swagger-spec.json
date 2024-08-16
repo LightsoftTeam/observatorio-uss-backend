@@ -2653,6 +2653,15 @@
             "description": "The id of the semester",
             "example": "a1b2c3d4-1234-5678-90ab-cdef12345678"
           },
+          "type": {
+            "type": "string",
+            "description": "The type of the training",
+            "example": "scheduled",
+            "enum": [
+              "extra",
+              "scheduled"
+            ]
+          },
           "description": {
             "type": "string",
             "description": "The description of the training",
@@ -2743,6 +2752,7 @@
           "code",
           "name",
           "semesterId",
+          "type",
           "description",
           "executions",
           "place",
@@ -2775,6 +2785,15 @@
             "type": "string",
             "description": "The id of the semester",
             "example": "a1b2c3d4-1234-5678-90ab-cdef12345678"
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of the training",
+            "example": "scheduled",
+            "enum": [
+              "extra",
+              "scheduled"
+            ]
           },
           "description": {
             "type": "string",
