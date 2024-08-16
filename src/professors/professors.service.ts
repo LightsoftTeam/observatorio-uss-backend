@@ -2,7 +2,7 @@ import { BadRequestException, Inject, Injectable, NotFoundException } from '@nes
 import type { Container } from '@azure/cosmos';
 import { CreateProfessorDto } from './dto/create-professor.dto';
 import { UpdateProfessorDto } from './dto/update-professor.dto';
-import { Professor } from './entities/professor.entity';
+import { EmploymentType, Professor } from './entities/professor.entity';
 import { InjectModel } from '@nestjs/azure-database';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { SchoolsService } from 'src/schools/schools.service';
@@ -213,6 +213,46 @@ export class ProfessorsService {
       })))
         .forEach(({ resources: professorTrainingsInYear }) => professorTrainingsInYear.length > 0 ? report[year][AttendanceStatus.ATTENDED]++ : report[year][AttendanceStatus.PENDING]++);
     }
+    return report;
+  }
+
+  async getAssistanceBySemester(semesterId: string) {
+    const professors = await this.findAll();
+    const report = {
+      [AttendanceStatus.ATTENDED]: 0,
+      [AttendanceStatus.PENDING]: 0,
+    };
+    (await Promise.all(professors.map(async (professor) => {
+      const querySpec = {
+        query: `
+            SELECT TOP 1 c.foreignId, c.createdAt, p.attendanceStatus 
+            FROM c JOIN p IN c.participants 
+            WHERE p.foreignId = @id
+            AND c.semesterId = @semesterId
+            AND p.attendanceStatus = @status  
+          `,
+        parameters: [
+          { name: '@id', value: professor.id },
+          { name: '@status', value: AttendanceStatus.ATTENDED },
+          { name: '@semesterId', value: semesterId },
+        ],
+      }
+      return this.trainingContainer.items.query<{ foreignId: string, createdAt: string, attendanceStatus: AttendanceStatus }>(querySpec).fetchAll();
+    })))
+      .forEach(({ resources: professorTrainingsInYear }) => professorTrainingsInYear.length > 0 ? report[AttendanceStatus.ATTENDED]++ : report[AttendanceStatus.PENDING]++);
+    return report;
+  }
+
+  async getEmploymentTypeReport() {
+    const querySpec = {
+      query: 'SELECT COUNT(1) AS professors, c.employmentType as employmentType FROM professors c GROUP BY c.employmentType',
+    }
+    const { resources } = await this.professorsContainer.items.query(querySpec).fetchAll();
+    const employmentTypes = Object.values(EmploymentType);
+    const report = employmentTypes.reduce((acc, employmentType) => {
+      acc[employmentType] = resources.find((resource) => resource.employmentType === employmentType)?.professors || 0;
+      return acc;
+    }, {});
     return report;
   }
 }

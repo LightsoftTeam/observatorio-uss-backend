@@ -1668,6 +1668,49 @@
         ]
       }
     },
+    "/api/professors/reports/asistance-by-semester/{semesterId}": {
+      "get": {
+        "operationId": "ProfessorsController_getAssistanceBySemester",
+        "parameters": [
+          {
+            "name": "semesterId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The assistance by semester was found"
+          },
+          "404": {
+            "description": "Professor not found"
+          }
+        },
+        "tags": [
+          "Professors"
+        ]
+      }
+    },
+    "/api/professors/reports/employment-type": {
+      "get": {
+        "operationId": "ProfessorsController_getEmploymentType",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The employment type report was found"
+          },
+          "404": {
+            "description": "Professor not found"
+          }
+        },
+        "tags": [
+          "Professors"
+        ]
+      }
+    },
     "/api/professors/{id}": {
       "get": {
         "operationId": "ProfessorsController_findOne",

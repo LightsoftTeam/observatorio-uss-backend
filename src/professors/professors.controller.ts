@@ -43,6 +43,32 @@ export class ProfessorsController {
   getAssistanceByYear() {
     return this.professorsService.getAssistanceByYear();
   }
+  
+  @Get('reports/asistance-by-semester/:semesterId')
+  @ApiResponse({
+    status: 200,
+    description: 'The assistance by semester was found',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Professor not found',
+  })
+  getAssistanceBySemester(@Param('semesterId') semesterId: string) {
+    return this.professorsService.getAssistanceBySemester(semesterId);
+  }
+
+  @Get('reports/employment-type')
+  @ApiResponse({
+    status: 200,
+    description: 'The employment type report was found',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Professor not found',
+  })
+  getEmploymentType() {
+    return this.professorsService.getEmploymentTypeReport();
+  }
 
   @Get()
   @ApiResponse({
