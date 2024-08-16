@@ -2,7 +2,9 @@ import { TrainingCertificate } from "src/training/entities/training.entity";
 
 export class CertificatesHelper {
     static getBlobName(certificateId: string) {
-        return `certificates/${certificateId}.pdf`;
+        const masterFolder = process.env.AZURE_STORAGE_FOLDER || null;
+        const folder = masterFolder ? `${masterFolder}/certificates` : 'certificates';
+        return `${folder}/${certificateId}.pdf`;
     }
 
     //*
@@ -11,6 +13,7 @@ export class CertificatesHelper {
     // * @description Get the filename for the certificate with a format understandable by the user
     // */
     static getUserFilename(certificate: TrainingCertificate) {
-        return `${certificate.name}.pdf`;
+        const { name, role } = certificate;
+        return `${name}-${role}.pdf`;
     }
 }

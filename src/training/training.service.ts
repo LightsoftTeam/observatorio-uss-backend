@@ -237,22 +237,24 @@ export class TrainingService {
     }
     const zip = new AdmZip();
     const participants = training.participants
-      .filter(participant => participant.certificate?.url);
+      .filter(participant => participant.certificates.length > 0);
     if (participants.length === 0) {
       this.logger.log('No participants with certificates found');
       throw new BadRequestException(APP_ERRORS[ERROR_CODES.TRAINING_NOT_HAVE_PARTICIPANTS_WITH_CERTIFICATES]);
     }
     for (const participant of participants) {
-      const { certificate } = participant;
-      const { id: certificateId } = certificate;
-      const blobName = CertificatesHelper.getBlobName(certificateId);
-      this.logger.log(`Getting buffer ${blobName}`);
-      const buffer = await this.storageService.getBuffer({ blobName });
-      if (!buffer) {
-        this.logger.error(`Blob ${blobName} not found`);
-        continue;
+      const { certificates } = participant;
+      for (const certificate of certificates) {
+        const { id: certificateId } = certificate;
+        const blobName = CertificatesHelper.getBlobName(certificateId);
+        this.logger.log(`Getting buffer ${blobName}`);
+        const buffer = await this.storageService.getBuffer({ blobName });
+        if (!buffer) {
+          this.logger.error(`Blob ${blobName} not found`);
+          continue;
+        }
+        zip.addFile(CertificatesHelper.getUserFilename(certificate), buffer);
       }
-      zip.addFile(CertificatesHelper.getUserFilename(certificate), buffer);
     }
 
     return zip.toBuffer();

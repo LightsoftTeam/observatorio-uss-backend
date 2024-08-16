@@ -180,4 +180,5 @@ function getDateRangeLabel({from: trainingFromDate, to: trainingToDate}){
     } else {
         dateRangeLabel = `${fromDay} de ${fromMonth} de ${fromYear} al ${toDay} de ${toMonth} de ${toYear}`;
     }
+    return dateRangeLabel;
 }

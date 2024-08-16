@@ -24,6 +24,7 @@ export interface TrainingCertificate {
     trainingFromDate: string;
     trainingToDate: string;
     duration: number;
+    role: TrainingRole;
     url?: string;
 }
 
@@ -32,7 +33,7 @@ export interface TrainingParticipant {
     foreignId: string;
     roles: TrainingRole[];
     attendanceStatus: AttendanceStatus;
-    certificate?: TrainingCertificate;
+    certificates: TrainingCertificate[];
 }
 
 export enum AttendanceStatus {
