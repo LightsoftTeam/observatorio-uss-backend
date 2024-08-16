@@ -88,7 +88,6 @@ export class MailService {
                 template = `
                     <h1>Tu solicitud de nuevo post ha sido rechazada.</h1>
                     <p>Lamentablemente, tu post <b>"${title}"</b> ha sido rechazado.</p>
-                    <p>Puedes verlo <a href="${postUrl}/mis-solicitudes/342423423-asda">aquí</a></p>
                 `;
                 break;
             case ApprovalStatus.APPROVED:
