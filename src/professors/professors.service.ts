@@ -177,7 +177,7 @@ export class ProfessorsService {
     }
   }
 
-  async getAssistanceByYear() {
+  async getParticipationByYears() {
     const querySpec = {
       query: 'SELECT c.createdAt FROM c',
     }
@@ -216,7 +216,7 @@ export class ProfessorsService {
     return report;
   }
 
-  async getAssistanceBySemester(semesterId: string) {
+  async getParticipationBySemester(semesterId: string) {
     const professors = await this.findAll();
     const report = {
       [AttendanceStatus.ATTENDED]: 0,

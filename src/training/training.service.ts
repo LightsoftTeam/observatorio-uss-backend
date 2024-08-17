@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { CreateTrainingDto, ExecutionRequest } from './dto/create-training.dto';
 import { UpdateTrainingDto } from './dto/update-training.dto';
 import { InjectModel } from '@nestjs/azure-database';
-import { AttendanceStatus, Execution, Training, TrainingType } from './entities/training.entity';
+import { AttendanceStatus, Execution, Training, TrainingParticipant, TrainingType } from './entities/training.entity';
 import { isUUID } from 'class-validator';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
@@ -308,6 +308,43 @@ export class TrainingService {
     return Object.values(report);
   }
 
+  async getProfessorParticipationBySchool(semesterId: string) {
+    this.logger.log(`Getting professor participation by school for semester: ${semesterId}`);
+    const schools = await this.schoolService.findAll();
+    const report: {
+      [schoolId: string]: {
+        school: Partial<School>;
+        attended: number;
+        pending: number;
+      }
+    } = {};
+    for (const school of schools) {
+      report[school.id] = {
+        school,
+        attended: 0,
+        pending: 0,
+      };
+    }
+    const querySpec = {
+      query: `SELECT c.participants FROM c WHERE c.semesterId = @semesterId`,
+      parameters: [{ name: '@semesterId', value: semesterId }]
+    }
+    const { resources: trainings } = await this.trainingContainer.items.query<{ participants: TrainingParticipant[] }>(querySpec).fetchAll();
+    await Promise.all(trainings.map(async training => {
+      await Promise.all(training.participants.map(async participant => {
+        const professor = await this.professorsService.getById(participant.foreignId);
+        if (!professor) {
+          return;
+        }
+        console.log(participant.attendanceStatus);
+        report[professor.schoolId].attended += participant.attendanceStatus === AttendanceStatus.ATTENDED ? 1 : 0;
+        report[professor.schoolId].pending += participant.attendanceStatus === AttendanceStatus.PENDING ? 1 : 0;
+      }));
+    }));
+    console.log(report);
+    return Object.values(report);
+  }
+
   async getAsistance(id: string) {
     const training = await this.getTrainingById(id);
     if (!training) {
@@ -327,7 +364,7 @@ export class TrainingService {
     return report;
   }
 
-  async getByCompetence(semesterId: string): Promise<{count: number, competencyId: string, type: TrainingType}[]> {
+  async getByCompetence(semesterId: string): Promise<{ count: number, competencyId: string, type: TrainingType }[]> {
     const querySpec = {
       // query: `SELECT COUNT(1) FROM c WHERE c.semesterId = @semesterId`,
       query: `
