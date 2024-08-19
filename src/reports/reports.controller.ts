@@ -1,6 +1,7 @@
 import { BadRequestException, Controller, Get, Param, Query } from '@nestjs/common';
 import { ReportsService } from './reports.service';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { GetProfessorParticipationBySchoolDto } from 'src/professors/dto/get-professor-participation-by-school.dto';
 
 @ApiTags('Reports')
 @Controller('reports')
@@ -54,8 +55,7 @@ export class ReportsController {
     status: 200,
     description: 'The assistance by school was found',
   })
-  getProfessorParticipationBySchool(@Query('semesterId') semesterId: string) {
-    if(!semesterId) throw new BadRequestException('SemesterId is required');
-    return this.reportsService.getProfessorParticipationBySchool(semesterId);
+  getProfessorParticipationBySchool(@Query() getProfessorParticipationBySchoolDto: GetProfessorParticipationBySchoolDto) {
+    return this.reportsService.getProfessorParticipationBySchool(getProfessorParticipationBySchoolDto);
   }
 }

@@ -17,6 +17,8 @@ import { DocumentType } from 'src/common/types/document-type.enum';
 import { ERROR_CODES, APP_ERRORS } from '../common/constants/errors.constants';
 import { CompetenciesService } from 'src/competencies/competencies.service';
 import { SemestersService } from 'src/semesters/semesters.service';
+import { GetProfessorParticipationBySchoolDto } from 'src/professors/dto/get-professor-participation-by-school.dto';
+import { Professor } from 'src/professors/entities/professor.entity';
 const AdmZip = require("adm-zip");
 
 const DDA_ORGANIZER_ID = 'DDA';
@@ -308,14 +310,38 @@ export class TrainingService {
     return Object.values(report);
   }
 
-  async getProfessorParticipationBySchool(semesterId: string) {
-    this.logger.log(`Getting professor participation by school for semester: ${semesterId}`);
-    const schools = await this.schoolService.findAll();
+  async getProfessorParticipationBySchool(getProfessorParticipationBySchoolDto: GetProfessorParticipationBySchoolDto) {
+    this.logger.log(`Getting professor participation by school for semester: ${JSON.stringify(getProfessorParticipationBySchoolDto)}`);
+    const { trainingId, semesterId } = getProfessorParticipationBySchoolDto;
+    if (!semesterId && !trainingId) {
+      throw new BadRequestException('SemesterId or trainingId is required');
+    }
+    const querySpec = {
+      query: `SELECT c.id, c.participants FROM c WHERE c.semesterId = @semesterId or c.id = @trainingId`,
+      parameters: [
+        {
+          name: '@semesterId',
+          value: semesterId
+        },
+        {
+          name: '@trainingId',
+          value: trainingId
+        }
+      ]
+    }
+    const [{ resources: trainings }, schools, professors] = await Promise.all([
+      this.trainingContainer.items.query<{ id: string, participants: TrainingParticipant[] }>(querySpec).fetchAll(),
+      this.schoolService.findAll(),
+      this.professorsService.findAll(),
+    ]);
     const report: {
       [schoolId: string]: {
         school: Partial<School>;
         attended: number;
         pending: number;
+        professorsCount: number;
+        professorWhoAttendedIds: string[];
+        professors?: Partial<Professor>[];
       }
     } = {};
     for (const school of schools) {
@@ -323,26 +349,38 @@ export class TrainingService {
         school,
         attended: 0,
         pending: 0,
+        professorWhoAttendedIds: [],
+        professorsCount: professors.filter(professor => professor.schoolId === school.id).length,
       };
     }
-    const querySpec = {
-      query: `SELECT c.participants FROM c WHERE c.semesterId = @semesterId`,
-      parameters: [{ name: '@semesterId', value: semesterId }]
-    }
-    const { resources: trainings } = await this.trainingContainer.items.query<{ participants: TrainingParticipant[] }>(querySpec).fetchAll();
-    await Promise.all(trainings.map(async training => {
-      await Promise.all(training.participants.map(async participant => {
-        const professor = await this.professorsService.getById(participant.foreignId);
+    this.logger.debug(`Found ${trainings.length} trainings`);
+    this.logger.debug(`Found ${professors.length} professors`);
+    trainings.map(training => {
+      this.logger.debug(`Processing training ${training.id} - it has ${training.participants.length} participants`);
+      training.participants.forEach(participant => {
+        const professor = professors.find(professor => professor.id === participant.foreignId);
         if (!professor) {
+          this.logger.debug(`Professor with id ${participant.foreignId} not found`);
           return;
         }
-        console.log(participant.attendanceStatus);
-        report[professor.schoolId].attended += participant.attendanceStatus === AttendanceStatus.ATTENDED ? 1 : 0;
-        report[professor.schoolId].pending += participant.attendanceStatus === AttendanceStatus.PENDING ? 1 : 0;
-      }));
-    }));
-    console.log(report);
-    return Object.values(report);
+        const isAttended = participant.attendanceStatus === AttendanceStatus.ATTENDED;
+        this.logger.debug(`Professor ${professor.id} is ${isAttended ? 'attended' : 'pending'}`);
+        const row = report[professor.schoolId];
+        if(row.professorWhoAttendedIds.includes(professor.id) || !isAttended) {
+          return;
+        }
+        this.logger.debug(`Counting professor ${professor.id}`);
+        row.attended += 1;
+        row.professorWhoAttendedIds.push(professor.id);
+      });
+    });
+    return Object.values(report)
+      .map(row => {
+        row.pending = row.professorsCount - row.attended;
+        row.professors = row.professorWhoAttendedIds.map(professorId => professors.find(professor => professor.id === professorId));
+        delete row.professorWhoAttendedIds;
+        return row;
+      });
   }
 
   async getAsistance(id: string) {

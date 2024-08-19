@@ -276,9 +276,9 @@ export class ParticipantsService {
             }
             this.logger.log(`Training ${training.id} found`);
             const participant = training.participants.find((participant) => participant.id === participantId);
-            if (participant.attendanceStatus === AttendanceStatus.ATTENDED && participant.certificates.length > 0 && process.env.NODE_ENV === 'production') {
-                throw new BadRequestException(APP_ERRORS[ERROR_CODES.TRAINING_ALREADY_COMPLETED]);
-            }
+            // if (participant.attendanceStatus === AttendanceStatus.ATTENDED && participant.certificates.length > 0 && process.env.NODE_ENV === 'production') {
+            //     throw new BadRequestException(APP_ERRORS[ERROR_CODES.TRAINING_ALREADY_COMPLETED]);
+            // }
             participant.attendanceStatus = AttendanceStatus.ATTENDED;
             await this.trainingContainer.item(training.id, training.id).replace(training);
             const executions = training.executions;

@@ -2256,7 +2256,21 @@
             "name": "semesterId",
             "required": true,
             "in": "query",
+            "description": "The semester id",
+            "example": "123e4567-e89b-12d3-a456-426614174000",
             "schema": {
+              "nullable": true,
+              "type": "string"
+            }
+          },
+          {
+            "name": "trainingId",
+            "required": true,
+            "in": "query",
+            "description": "The training id",
+            "example": "123e4567-ed89-12d3-a456-426614174000",
+            "schema": {
+              "nullable": true,
               "type": "string"
             }
           }
