@@ -25,6 +25,7 @@ export interface TrainingCertificate {
     trainingToDate: string;
     duration: number;
     role: TrainingRole;
+    certificateOrganizer?: string;
     url?: string;
 }
 
@@ -75,12 +76,13 @@ export class Training {
     place?: string;
     floor?: number;
     building?: string;
-    organizer: 'DDA' | string | Partial<School>;
+    organizer: string | Partial<School>;
     status: TrainingStatus;
     modality: TrainingModality;
     capacity: number;
     participants: TrainingParticipant[];
     competencyId: string;
+    certificateOrganizer?: string;
     certificateBackgroundUrl?: string;
     certificateSignatureUrl?: string;
     certificateEmisionDate?: string;

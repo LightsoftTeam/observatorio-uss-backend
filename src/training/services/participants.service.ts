@@ -317,7 +317,7 @@ export class ParticipantsService {
     private async generateCertificates({ training, participant }: { training: Training, participant: TrainingParticipant }): Promise<TrainingCertificate[]> {
         this.logger.log(`Generating certificate for participant ${participant.id}`);
         const { roles } = participant;
-        const { executions, name: trainingName, certificateBackgroundUrl, certificateSignatureUrl, certificateEmisionDate } = training;
+        const { executions, name: trainingName, certificateBackgroundUrl, certificateSignatureUrl, certificateEmisionDate, certificateOrganizer } = training;
         const trainingFromDate = executions[0].from;
         const trainingToDate = executions[executions.length - 1].to;
         const durationinMiliseconds = executions.reduce((acc, execution) => {
@@ -352,6 +352,7 @@ export class ParticipantsService {
                 role,
                 trainingFromDate,
                 trainingToDate,
+                certificateOrganizer,
             }
             this.logger.log(`Certificate: ${JSON.stringify(certificate)}`)
             const html = getTrainingCertificateTemplate(data);

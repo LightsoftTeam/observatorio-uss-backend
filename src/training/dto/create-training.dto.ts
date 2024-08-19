@@ -150,6 +150,15 @@ export class CreateTrainingDto {
     competencyId: string;
 
     @ApiProperty({
+        description: 'The background url of the training',
+        example: 'https://example.com/training.png',
+        nullable: true,
+    })
+    @IsString()
+    @IsOptional()
+    certificateOrganizer: string;
+
+    @ApiProperty({
         description: 'The background url of the certificate',
         example: 'https://example.com/certificate.png',
         nullable: true,

@@ -2814,6 +2814,12 @@
             "description": "The competency of the training",
             "example": "a1b2c3d4-1234-5678-90ab-cdef12345678"
           },
+          "certificateOrganizer": {
+            "type": "string",
+            "description": "The background url of the training",
+            "example": "https://example.com/training.png",
+            "nullable": true
+          },
           "certificateBackgroundUrl": {
             "type": "string",
             "description": "The background url of the certificate",
@@ -2846,6 +2852,7 @@
           "modality",
           "capacity",
           "competencyId",
+          "certificateOrganizer",
           "certificateBackgroundUrl",
           "certificateSignatureUrl",
           "certificateEmisionDate"
@@ -2946,6 +2953,12 @@
             "type": "string",
             "description": "The competency of the training",
             "example": "a1b2c3d4-1234-5678-90ab-cdef12345678"
+          },
+          "certificateOrganizer": {
+            "type": "string",
+            "description": "The background url of the training",
+            "example": "https://example.com/training.png",
+            "nullable": true
           },
           "certificateBackgroundUrl": {
             "type": "string",
