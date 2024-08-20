@@ -12,10 +12,13 @@ import { ParticipantsService } from './services/participants.service';
 import { StorageService } from 'src/storage/storage.service';
 import { CompetenciesService } from 'src/competencies/competencies.service';
 import { Competency } from 'src/competencies/entities/competency.entity';
+import { SemestersModule } from 'src/semesters/semesters.module';
+import { SemestersService } from 'src/semesters/semesters.service';
+import { StorageModule } from 'src/storage/storage.module';
 
 @Module({
   controllers: [TrainingController],
-  providers: [TrainingService, ProfessorsService, SchoolsService, ParticipantsService, StorageService, CompetenciesService],
+  providers: [TrainingService, ProfessorsService, SchoolsService, ParticipantsService, StorageService, CompetenciesService, SemestersService],
   imports: [
     AzureCosmosDbModule.forFeature([
       {dto: Training},
@@ -24,6 +27,14 @@ import { Competency } from 'src/competencies/entities/competency.entity';
     CommonModule,
     ProfessorsModule,
     SchoolsModule,
+    SemestersModule,
+    StorageModule,
+  ],
+  exports: [
+    AzureCosmosDbModule,
+    ProfessorsModule,
+    SchoolsModule,
+    SemestersModule,
   ],
 })
 export class TrainingModule {}

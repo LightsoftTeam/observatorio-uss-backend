@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { CreateTrainingDto, ExecutionRequest } from './dto/create-training.dto';
 import { UpdateTrainingDto } from './dto/update-training.dto';
 import { InjectModel } from '@nestjs/azure-database';
-import { AttendanceStatus, Execution, Training } from './entities/training.entity';
+import { AttendanceStatus, Execution, Training, TrainingParticipant, TrainingType } from './entities/training.entity';
 import { isUUID } from 'class-validator';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
@@ -16,6 +16,9 @@ import { CertificatesHelper } from 'src/common/helpers/certificates.helper';
 import { DocumentType } from 'src/common/types/document-type.enum';
 import { ERROR_CODES, APP_ERRORS } from '../common/constants/errors.constants';
 import { CompetenciesService } from 'src/competencies/competencies.service';
+import { SemestersService } from 'src/semesters/semesters.service';
+import { GetProfessorParticipationBySchoolDto } from 'src/professors/dto/get-professor-participation-by-school.dto';
+import { Professor } from 'src/professors/entities/professor.entity';
 const AdmZip = require("adm-zip");
 
 const DDA_ORGANIZER_ID = 'DDA';
@@ -34,6 +37,8 @@ const BASIC_FIELDS = [
   'modality',
   'capacity',
   'competencyId',
+  'semesterId',
+  'type',
 ];
 
 @Injectable()
@@ -45,7 +50,8 @@ export class TrainingService {
     private readonly schoolService: SchoolsService,
     private readonly professorsService: ProfessorsService,
     private readonly storageService: StorageService,
-    private readonly competenciesService: CompetenciesService
+    private readonly competenciesService: CompetenciesService,
+    private readonly semestersService: SemestersService,
   ) {
     this.logger.setContext(TrainingService.name);
   }
@@ -237,22 +243,24 @@ export class TrainingService {
     }
     const zip = new AdmZip();
     const participants = training.participants
-      .filter(participant => participant.certificate?.url);
+      .filter(participant => participant.certificates.length > 0);
     if (participants.length === 0) {
       this.logger.log('No participants with certificates found');
       throw new BadRequestException(APP_ERRORS[ERROR_CODES.TRAINING_NOT_HAVE_PARTICIPANTS_WITH_CERTIFICATES]);
     }
     for (const participant of participants) {
-      const { certificate } = participant;
-      const { id: certificateId } = certificate;
-      const blobName = CertificatesHelper.getBlobName(certificateId);
-      this.logger.log(`Getting buffer ${blobName}`);
-      const buffer = await this.storageService.getBuffer({ blobName });
-      if (!buffer) {
-        this.logger.error(`Blob ${blobName} not found`);
-        continue;
+      const { certificates } = participant;
+      for (const certificate of certificates) {
+        const { id: certificateId } = certificate;
+        const blobName = CertificatesHelper.getBlobName(certificateId);
+        this.logger.log(`Getting buffer ${blobName}`);
+        const buffer = await this.storageService.getBuffer({ blobName });
+        if (!buffer) {
+          this.logger.error(`Blob ${blobName} not found`);
+          continue;
+        }
+        zip.addFile(CertificatesHelper.getUserFilename(certificate), buffer);
       }
-      zip.addFile(CertificatesHelper.getUserFilename(certificate), buffer);
     }
 
     return zip.toBuffer();
@@ -271,7 +279,7 @@ export class TrainingService {
     }
   }
 
-  async getAsistanceBySchool(trainingId: string){
+  async getAsistanceBySchool(trainingId: string) {
     const training = await this.getTrainingById(trainingId);
     if (!training) {
       throw new BadRequestException('Training not found');
@@ -293,7 +301,7 @@ export class TrainingService {
     }
     await Promise.all(training.participants.map(async participant => {
       const professor = await this.professorsService.getById(participant.foreignId);
-      if(!professor){
+      if (!professor) {
         return;
       }
       report[professor.schoolId].attended += participant.attendanceStatus === AttendanceStatus.ATTENDED ? 1 : 0;
@@ -302,7 +310,80 @@ export class TrainingService {
     return Object.values(report);
   }
 
-  async getAsistance(id: string){
+  async getProfessorParticipationBySchool(getProfessorParticipationBySchoolDto: GetProfessorParticipationBySchoolDto) {
+    this.logger.log(`Getting professor participation by school for semester: ${JSON.stringify(getProfessorParticipationBySchoolDto)}`);
+    const { trainingId, semesterId } = getProfessorParticipationBySchoolDto;
+    if (!semesterId && !trainingId) {
+      throw new BadRequestException('SemesterId or trainingId is required');
+    }
+    const querySpec = {
+      query: `SELECT c.id, c.participants FROM c WHERE c.semesterId = @semesterId or c.id = @trainingId`,
+      parameters: [
+        {
+          name: '@semesterId',
+          value: semesterId
+        },
+        {
+          name: '@trainingId',
+          value: trainingId
+        }
+      ]
+    }
+    const [{ resources: trainings }, schools, professors] = await Promise.all([
+      this.trainingContainer.items.query<{ id: string, participants: TrainingParticipant[] }>(querySpec).fetchAll(),
+      this.schoolService.findAll(),
+      this.professorsService.findAll(),
+    ]);
+    const report: {
+      [schoolId: string]: {
+        school: Partial<School>;
+        attended: number;
+        pending: number;
+        professorsCount: number;
+        professorWhoAttendedIds: string[];
+        professors?: Partial<Professor>[];
+      }
+    } = {};
+    for (const school of schools) {
+      report[school.id] = {
+        school,
+        attended: 0,
+        pending: 0,
+        professorWhoAttendedIds: [],
+        professorsCount: professors.filter(professor => professor.schoolId === school.id).length,
+      };
+    }
+    this.logger.debug(`Found ${trainings.length} trainings`);
+    this.logger.debug(`Found ${professors.length} professors`);
+    trainings.map(training => {
+      this.logger.debug(`Processing training ${training.id} - it has ${training.participants.length} participants`);
+      training.participants.forEach(participant => {
+        const professor = professors.find(professor => professor.id === participant.foreignId);
+        if (!professor) {
+          this.logger.debug(`Professor with id ${participant.foreignId} not found`);
+          return;
+        }
+        const isAttended = participant.attendanceStatus === AttendanceStatus.ATTENDED;
+        this.logger.debug(`Professor ${professor.id} is ${isAttended ? 'attended' : 'pending'}`);
+        const row = report[professor.schoolId];
+        if(row.professorWhoAttendedIds.includes(professor.id) || !isAttended) {
+          return;
+        }
+        this.logger.debug(`Counting professor ${professor.id}`);
+        row.attended += 1;
+        row.professorWhoAttendedIds.push(professor.id);
+      });
+    });
+    return Object.values(report)
+      .map(row => {
+        row.pending = row.professorsCount - row.attended;
+        row.professors = row.professorWhoAttendedIds.map(professorId => professors.find(professor => professor.id === professorId));
+        delete row.professorWhoAttendedIds;
+        return row;
+      });
+  }
+
+  async getAsistance(id: string) {
     const training = await this.getTrainingById(id);
     if (!training) {
       throw new NotFoundException('Training not found');
@@ -321,30 +402,43 @@ export class TrainingService {
     return report;
   }
 
+  async getByCompetence(semesterId: string): Promise<{ count: number, competencyId: string, type: TrainingType }[]> {
+    const querySpec = {
+      // query: `SELECT COUNT(1) FROM c WHERE c.semesterId = @semesterId`,
+      query: `
+        SELECT COUNT(1) AS count, c.competencyId, c.type 
+        FROM c 
+        WHERE c.semesterId = @semesterId
+        GROUP BY c.competencyId, c.type
+      `,
+      parameters: [{ name: '@semesterId', value: semesterId }]
+    }
+    const { resources } = await this.trainingContainer.items.query(querySpec).fetchAll();
+    console.log(resources);
+    return resources;
+  }
+
   private async toJson(payload: Training | Training[]): Promise<Training | Training[]> {
     //TODO: refactor this method
     const trainings = Array.isArray(payload) ? payload : [payload];
     const competenceIds = trainings.map(training => training.competencyId);
+    const semesterIds = trainings.map(training => training.semesterId);
+    const organizersIds: (string | Partial<School>)[] = trainings.map(training => training.organizer);
     this.logger.log(`Fetching competencies with ids: ${competenceIds}`);
-    const competencies = await this.competenciesService.getByIds(competenceIds);
-    let organizers: (string | Partial<School>)[] = trainings.map(training => training.organizer);
-    const schoolOrganizers = organizers.filter(organizer => isUUID(organizer));
-    const schools = schoolOrganizers.length > 0 ? await this.schoolService.getByIds(organizers as string[]) : [];
-    if (schoolOrganizers.length > 0) {
-      organizers = organizers.map(organizer => {
-        if (isUUID(organizer)) {
-          return schools.find(school => school.id === organizer)!;
-        }
-        return organizer;
-      });
-    }
+    const [competencies, semesters, schools] = await Promise.all([
+      this.competenciesService.getByIds(competenceIds),
+      this.semestersService.getByIds(semesterIds),
+      this.schoolService.getByIds(organizersIds as string[]),
+    ]);
     const formattedTrainings = trainings.map((training, index) => {
       const competency = competencies.find(competency => competency.id === training.competencyId);
-      const organizer = organizers[index];
+      const organizer = schools.find(school => school.id === training.organizer);
+      const semester = semesters.find(semester => semester.id === training.semesterId);
       return {
         ...training,
         organizer,
         competency,
+        semester
       };
     });
     return Array.isArray(payload) ? formattedTrainings : formattedTrainings[0];

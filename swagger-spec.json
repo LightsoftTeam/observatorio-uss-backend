@@ -780,21 +780,10 @@
         "parameters": [],
         "requestBody": {
           "required": true,
-          "description": "Request Body",
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "file": {
-                    "type": "string",
-                    "format": "binary"
-                  },
-                  "fileName": {
-                    "type": "string",
-                    "nullable": true
-                  }
-                }
+                "$ref": "#/components/schemas/UploadFileDto"
               }
             }
           }
@@ -802,6 +791,45 @@
         "responses": {
           "200": {
             "description": "The file has been successfully uploaded."
+          }
+        },
+        "tags": [
+          "Storage"
+        ]
+      }
+    },
+    "/api/storage": {
+      "get": {
+        "operationId": "StorageController_getAll",
+        "summary": "Get all files",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The files have been successfully retrieved."
+          }
+        },
+        "tags": [
+          "Storage"
+        ]
+      }
+    },
+    "/api/storage/{id}": {
+      "delete": {
+        "operationId": "StorageController_deleteAll",
+        "summary": "Delete all files",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The files have been successfully deleted."
           }
         },
         "tags": [
@@ -1651,23 +1679,6 @@
         ]
       }
     },
-    "/api/professors/reports/asistance-by-year": {
-      "get": {
-        "operationId": "ProfessorsController_getAssistanceByYear",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "The assistance by year was found"
-          },
-          "404": {
-            "description": "Professor not found"
-          }
-        },
-        "tags": [
-          "Professors"
-        ]
-      }
-    },
     "/api/professors/{id}": {
       "get": {
         "operationId": "ProfessorsController_findOne",
@@ -1952,6 +1963,117 @@
         ]
       }
     },
+    "/api/semesters": {
+      "post": {
+        "operationId": "SemestersController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSemesterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Semester created successfully"
+          }
+        },
+        "tags": [
+          "Semesters"
+        ]
+      },
+      "get": {
+        "operationId": "SemestersController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Semesters found successfully"
+          }
+        },
+        "tags": [
+          "Semesters"
+        ]
+      }
+    },
+    "/api/semesters/{id}": {
+      "get": {
+        "operationId": "SemestersController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Semester found successfully"
+          }
+        },
+        "tags": [
+          "Semesters"
+        ]
+      },
+      "put": {
+        "operationId": "SemestersController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSemesterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Semester updated successfully"
+          }
+        },
+        "tags": [
+          "Semesters"
+        ]
+      },
+      "delete": {
+        "operationId": "SemestersController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Semester deleted successfully"
+          }
+        },
+        "tags": [
+          "Semesters"
+        ]
+      }
+    },
     "/api/statistics/register-visit": {
       "post": {
         "operationId": "StatisticsController_registerVisit",
@@ -2074,6 +2196,120 @@
         },
         "tags": [
           "Competencies"
+        ]
+      }
+    },
+    "/api/reports/trainings-by-competency": {
+      "get": {
+        "operationId": "ReportsController_getTrainingsByCompetency",
+        "parameters": [
+          {
+            "name": "semesterId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All trainings by competency were found"
+          }
+        },
+        "tags": [
+          "Reports"
+        ]
+      }
+    },
+    "/api/reports/professor-participation-by-years": {
+      "get": {
+        "operationId": "ReportsController_getAssistanceByYear",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The assistance by year was found"
+          },
+          "404": {
+            "description": "Professor not found"
+          }
+        },
+        "tags": [
+          "Reports"
+        ]
+      }
+    },
+    "/api/reports/professor-participation": {
+      "get": {
+        "operationId": "ReportsController_getProfessorParticipationBySemester",
+        "parameters": [
+          {
+            "name": "semesterId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The assistance by semester was found"
+          }
+        },
+        "tags": [
+          "Reports"
+        ]
+      }
+    },
+    "/api/reports/professors-by-employment-type": {
+      "get": {
+        "operationId": "ReportsController_getEmploymentType",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The employment type report was found"
+          }
+        },
+        "tags": [
+          "Reports"
+        ]
+      }
+    },
+    "/api/reports/professor-participation-by-school": {
+      "get": {
+        "operationId": "ReportsController_getProfessorParticipationBySchool",
+        "parameters": [
+          {
+            "name": "semesterId",
+            "required": true,
+            "in": "query",
+            "description": "The semester id",
+            "example": "123e4567-e89b-12d3-a456-426614174000",
+            "schema": {
+              "nullable": true,
+              "type": "string"
+            }
+          },
+          {
+            "name": "trainingId",
+            "required": true,
+            "in": "query",
+            "description": "The training id",
+            "example": "123e4567-ed89-12d3-a456-426614174000",
+            "schema": {
+              "nullable": true,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The assistance by school was found"
+          }
+        },
+        "tags": [
+          "Reports"
         ]
       }
     }
@@ -2392,6 +2628,28 @@
           "verificationCode"
         ]
       },
+      "UploadFileDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the file",
+            "example": "historical-figures",
+            "nullable": true
+          },
+          "saveReference": {
+            "type": "boolean",
+            "description": "Save the reference of the file in the database",
+            "example": false,
+            "nullable": true,
+            "default": false
+          }
+        },
+        "required": [
+          "name",
+          "saveReference"
+        ]
+      },
       "CreateAuthorityDto": {
         "type": "object",
         "properties": {
@@ -2537,6 +2795,20 @@
             "description": "The name of the training",
             "example": "Training 1"
           },
+          "semesterId": {
+            "type": "string",
+            "description": "The id of the semester",
+            "example": "a1b2c3d4-1234-5678-90ab-cdef12345678"
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of the training",
+            "example": "scheduled",
+            "enum": [
+              "extra",
+              "scheduled"
+            ]
+          },
           "description": {
             "type": "string",
             "description": "The description of the training",
@@ -2605,6 +2877,12 @@
             "type": "string",
             "description": "The competency of the training",
             "example": "a1b2c3d4-1234-5678-90ab-cdef12345678"
+          },
+          "certificateOrganizer": {
+            "type": "string",
+            "description": "The background url of the training",
+            "example": "https://example.com/training.png",
+            "nullable": true
           },
           "certificateBackgroundUrl": {
             "type": "string",
@@ -2626,6 +2904,8 @@
         "required": [
           "code",
           "name",
+          "semesterId",
+          "type",
           "description",
           "executions",
           "place",
@@ -2636,6 +2916,7 @@
           "modality",
           "capacity",
           "competencyId",
+          "certificateOrganizer",
           "certificateBackgroundUrl",
           "certificateSignatureUrl",
           "certificateEmisionDate"
@@ -2653,6 +2934,20 @@
             "type": "string",
             "description": "The name of the training",
             "example": "Training 1"
+          },
+          "semesterId": {
+            "type": "string",
+            "description": "The id of the semester",
+            "example": "a1b2c3d4-1234-5678-90ab-cdef12345678"
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of the training",
+            "example": "scheduled",
+            "enum": [
+              "extra",
+              "scheduled"
+            ]
           },
           "description": {
             "type": "string",
@@ -2722,6 +3017,12 @@
             "type": "string",
             "description": "The competency of the training",
             "example": "a1b2c3d4-1234-5678-90ab-cdef12345678"
+          },
+          "certificateOrganizer": {
+            "type": "string",
+            "description": "The background url of the training",
+            "example": "https://example.com/training.png",
+            "nullable": true
           },
           "certificateBackgroundUrl": {
             "type": "string",
@@ -3058,6 +3359,15 @@
             "description": "The document number of the professor",
             "example": "12345678"
           },
+          "employmentType": {
+            "type": "string",
+            "description": "The employment type of the professor",
+            "example": "full_time",
+            "enum": [
+              "full_time",
+              "part_time"
+            ]
+          },
           "schoolId": {
             "type": "string",
             "description": "The school id of the professor",
@@ -3069,6 +3379,7 @@
           "email",
           "documentType",
           "documentNumber",
+          "employmentType",
           "schoolId"
         ]
       },
@@ -3104,6 +3415,15 @@
             "description": "The document number of the professor",
             "example": "12345678"
           },
+          "employmentType": {
+            "type": "string",
+            "description": "The employment type of the professor",
+            "example": "full_time",
+            "enum": [
+              "full_time",
+              "part_time"
+            ]
+          },
           "schoolId": {
             "type": "string",
             "description": "The school id of the professor",
@@ -3131,6 +3451,29 @@
             "type": "string",
             "description": "The name of the school",
             "example": "Ingeniería de Sistemas"
+          }
+        }
+      },
+      "CreateSemesterDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the semester",
+            "example": "2024-I"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateSemesterDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the semester",
+            "example": "2024-I"
           }
         }
       },

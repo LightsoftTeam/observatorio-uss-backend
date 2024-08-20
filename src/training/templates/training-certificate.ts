@@ -26,12 +26,13 @@ const DEFAULT_SIGNATURE_URL = 'https://cdn.shopify.com/s/files/1/0594/4639/5086/
 export interface TrainingCertificateTemplateData {
     participantId: string;
     name: string;
-    roles: TrainingRole[];
+    role: TrainingRole;
     trainingName: string;
     trainingFromDate: string;
     trainingToDate: string;
     duration: number;
     emisionDate: string;
+    certificateOrganizer?: string;
     backgroundUrl?: string;
     signatureUrl?: string;
 }
@@ -143,13 +144,13 @@ export function getTrainingCertificateTemplate(data: TrainingCertificateTemplate
 }
 
 function getCertificateBody(data: TrainingCertificateTemplateData) {
-    const { roles, trainingName, trainingFromDate, trainingToDate, duration } = data;
+    const { role, trainingName, trainingFromDate, trainingToDate, duration, certificateOrganizer = 'Vicerrectorado Académico de la Universidad Señor de Sipán' } = data;
 
     const dateRangeLabel = getDateRangeLabel({ from: trainingFromDate, to: trainingToDate });
 
     const roundedDuration = Math.round(duration);
 
-    return `Por haber participado en calidad de ${roles.map(r => TrainingRoleMap[r].toUpperCase()).join(', ')} en la capacitación docente "${trainingName}" organizada por el Vicerrectorado Académico de la Universidad Señor de Sipán, en coordinación con la Dirección de Desarrollo Académico, realizada del ${dateRangeLabel}, con una duración de ${roundedDuration} horas académicas.`;
+    return `Por haber participado en calidad de ${TrainingRoleMap[role].toUpperCase()} en la capacitación docente "${trainingName}" organizada por el ${certificateOrganizer}, en coordinación con la Dirección de Desarrollo Académico, realizada del ${dateRangeLabel}, con una duración de ${roundedDuration} horas académicas.`;
 }
 
 function getDateRangeLabel({from: trainingFromDate, to: trainingToDate}){
@@ -180,4 +181,5 @@ function getDateRangeLabel({from: trainingFromDate, to: trainingToDate}){
     } else {
         dateRangeLabel = `${fromDay} de ${fromMonth} de ${fromYear} al ${toDay} de ${toMonth} de ${toYear}`;
     }
+    return dateRangeLabel;
 }

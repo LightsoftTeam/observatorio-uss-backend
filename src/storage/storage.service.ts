@@ -1,5 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UploadedFile } from '@nestjs/common';
 import { BlobSASPermissions, BlobServiceClient, ContainerClient, SASProtocol, StorageSharedKeyCredential, generateBlobSASQueryParameters } from "@azure/storage-blob";
+import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
+import { UploadFileDto } from './dto/upload-file.dto';
+import { AzureStorageService, UploadedFileMetadata } from '@nestjs/azure-storage';
+import { InjectModel } from '@nestjs/azure-database';
+import { BlobFile } from './entities/blob-file.entity';
+import { Container } from '@azure/cosmos';
+import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
+import { query } from 'express';
 
 @Injectable()
 export class StorageService {
@@ -8,7 +16,11 @@ export class StorageService {
     containerName: string = process.env.AZURE_STORAGE_CONTAINER;
     container: ContainerClient;
 
-    constructor() {
+    constructor(
+        private readonly logger: ApplicationLoggerService,
+        @InjectModel(BlobFile)
+        private readonly blobsContainer: Container,
+    ) {
         const account = process.env.AZURE_STORAGE_ACCOUNT;
         const accountKey = process.env.AZURE_STORAGE_KEY;
         this.sharedKeyCredential = new StorageSharedKeyCredential(account, accountKey);
@@ -74,17 +86,42 @@ export class StorageService {
         }
     };
 
-    private streamToBuffer(readableStream: NodeJS.ReadableStream): Promise<Buffer> {
-        return new Promise((resolve, reject) => {
-            const chunks: Buffer[] = [];
-            readableStream.on("data", (data) => {
-                chunks.push(data instanceof Buffer ? data : Buffer.from(data));
-            });
-            readableStream.on("end", () => {
-                resolve(Buffer.concat(chunks));
-            });
-            readableStream.on("error", reject);
-        });
+    async uploadFile(file: UploadedFileMetadata, uploadFileDto: UploadFileDto, azureStorage: AzureStorageService){
+        this.logger.log('Uploading file...');
+        const { name, saveReference } = uploadFileDto;
+        try {
+            const masterFolder = process.env.AZURE_STORAGE_FOLDER ? `${process.env.AZURE_STORAGE_FOLDER}/` : '';
+            const folder = masterFolder + (saveReference ? 'multimedia/' : '');
+            const ext = file.originalname.split('.').at(-1);
+            const originalname = this.getFileFullName({name: name || file.originalname, ext, folder});
+            file = {
+                ...file,
+                originalname
+            };
+            const url = await azureStorage.upload(file);
+            if(saveReference){
+                this.logger.log('Saving reference to database...');
+                const blobFile: BlobFile = {
+                    name,
+                    path: originalname,
+                    createdAt: new Date(),
+                    url
+                }
+                const { resource } = await this.blobsContainer.items.create(blobFile);
+                this.logger.log('Reference saved to database');
+                return FormatCosmosItem.cleanDocument(resource, ['path']);
+            }
+            return {
+                url
+            };
+        } catch (error) {
+            this.logger.error(error.message);
+        }
+    }
+
+    private getFileFullName({name, ext, folder = ''}: {name: string, ext: string, folder?: string}): string {
+        const formattedName = name.replace(/\s/g, '_').toLowerCase();
+        return `${folder}${new Date().getTime()}_${formattedName + '.' + ext}`;
     }
 
     private getSasQueryParameters(blobName: string): string {
@@ -101,5 +138,23 @@ export class StorageService {
         }, this.sharedKeyCredential).toString();
 
         return sasQueryParameters;
+    }
+
+    async getAll(){
+        const querySpec = {
+            query: 'SELECT * FROM c WHERE NOT IS_DEFINED(c.deletedAt)'
+        }
+        const { resources } = await this.blobsContainer.items.query(querySpec).fetchAll();
+        return resources.map(resource => FormatCosmosItem.cleanDocument(resource, ['path']));
+    }
+
+    async remove(id: string){
+        const {resource} = await this.blobsContainer.item(id, id).read();
+        const updatedItem = {
+            ...resource,
+            deletedAt: new Date()
+        };
+        this.blobsContainer.item(id, id).replace(updatedItem);
+        return null;
     }
 }

@@ -16,7 +16,7 @@ export class CompetenciesService {
     private readonly competenciesContainer: Container,
     // @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly logger: ApplicationLoggerService,
-  ) {}
+  ) { }
 
   async create(createCompetencyDto: CreateCompetencyDto) {
     this.logger.log(`Creating a new competency with name: ${createCompetencyDto.name}`);
@@ -29,10 +29,10 @@ export class CompetenciesService {
     return FormatCosmosItem.cleanDocument(createdCompetency);
   }
 
-  async findAll() {
+  async findAll(): Promise<Partial<Competency>[]> {
     this.logger.log('Fetching all competencies');
     const querySpec = {
-      query : 'SELECT * from c where NOT IS_DEFINED(c.deletedAt)',
+      query: 'SELECT * from c where NOT IS_DEFINED(c.deletedAt)',
     }
     const { resources: competencies } = await this.competenciesContainer.items.query(querySpec).fetchAll();
     return competencies.map(c => FormatCosmosItem.cleanDocument(c));
@@ -58,7 +58,7 @@ export class CompetenciesService {
   async getByIds(ids: string[]) {
     this.logger.log('Fetching competencies with ids');
     const querySpec = {
-      query : 'SELECT * from c where ARRAY_CONTAINS(@ids, c.id)',
+      query: 'SELECT * from c where ARRAY_CONTAINS(@ids, c.id)',
       parameters: [
         { name: '@ids', value: ids },
       ],

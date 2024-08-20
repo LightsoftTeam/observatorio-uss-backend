@@ -12,7 +12,6 @@ import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { Generator } from 'src/common/helpers/generator.helper';
 import { MailService } from 'src/common/services/mail.service';
 import { DocumentType } from 'src/common/types/document-type.enum';
-import { AttendanceStatus, Training } from 'src/training/entities/training.entity';
 import { APP_ERRORS, ERROR_CODES } from 'src/common/constants/errors.constants';
 
 const EXPIRATION_PRELOAD_PROFESSOR = 1000 * 60 * 10;//10 minutes
@@ -23,8 +22,6 @@ export class ProfessorsService {
   constructor(
     @InjectModel(Professor)
     private readonly professorsContainer: Container,
-    @InjectModel(Training)
-    private readonly trainingContainer: Container,
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
     private readonly schoolService: SchoolsService,
@@ -175,44 +172,5 @@ export class ProfessorsService {
     } catch (error) {
       return null;
     }
-  }
-
-  async getAssistanceByYear() {
-    const querySpec = {
-      query: 'SELECT c.createdAt FROM c',
-    }
-    const { resources: createdAtDates } = await this.trainingContainer.items.query(querySpec).fetchAll();
-    const professors = await this.findAll();
-    const dates = createdAtDates.map((resource) => new Date(resource.createdAt));
-    const distinctYears = [...new Set(dates.map((date) => date.getFullYear()))];
-    this.logger.debug(`Distinct years: ${distinctYears}`);
-    const report = {};
-    for (const year of distinctYears) {
-      report[year] = {
-        [AttendanceStatus.ATTENDED]: 0,
-        [AttendanceStatus.PENDING]: 0,
-      };
-      (await Promise.all(professors.map(async (professor) => {
-        const querySpec = {
-          query: `
-            SELECT TOP 1 c.foreignId, c.createdAt, p.attendanceStatus 
-            FROM c JOIN p IN c.participants 
-            WHERE p.foreignId = @id
-            AND c.createdAt >= @startDate
-            AND c.createdAt <= @endDate
-            AND p.attendanceStatus = @status  
-          `,
-          parameters: [
-            { name: '@id', value: professor.id },
-            { name: '@startDate', value: `${year}-01-01T00:00:00.000Z` },
-            { name: '@endDate', value: `${year}-12-31T23:59:59.999Z` },
-            { name: '@status', value: AttendanceStatus.ATTENDED },
-          ],
-        }
-        return this.trainingContainer.items.query<{ foreignId: string, createdAt: string, attendanceStatus: AttendanceStatus }>(querySpec).fetchAll();
-      })))
-        .forEach(({ resources: professorTrainingsInYear }) => professorTrainingsInYear.length > 0 ? report[year][AttendanceStatus.ATTENDED]++ : report[year][AttendanceStatus.PENDING]++);
-    }
-    return report;
   }
 }

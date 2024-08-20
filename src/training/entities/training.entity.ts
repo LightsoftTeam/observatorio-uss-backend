@@ -24,6 +24,8 @@ export interface TrainingCertificate {
     trainingFromDate: string;
     trainingToDate: string;
     duration: number;
+    role: TrainingRole;
+    certificateOrganizer?: string;
     url?: string;
 }
 
@@ -32,7 +34,7 @@ export interface TrainingParticipant {
     foreignId: string;
     roles: TrainingRole[];
     attendanceStatus: AttendanceStatus;
-    certificate?: TrainingCertificate;
+    certificates: TrainingCertificate[];
 }
 
 export enum AttendanceStatus {
@@ -57,22 +59,30 @@ export enum TrainingModality {
     SEMIPRESENTIAL = 'semipresential',
 }
 
+export enum TrainingType{
+    EXTRA = 'extra',
+    SCHEDULED = 'scheduled',
+}
+
 @CosmosPartitionKey('id')
 export class Training {
     id?: string;
     code: string;
     name: string;
+    type: TrainingType;
+    semesterId: string;
     description?: string;
     executions: Execution[];
     place?: string;
     floor?: number;
     building?: string;
-    organizer: 'DDA' | string | Partial<School>;
+    organizer: string | Partial<School>;
     status: TrainingStatus;
     modality: TrainingModality;
     capacity: number;
     participants: TrainingParticipant[];
     competencyId: string;
+    certificateOrganizer?: string;
     certificateBackgroundUrl?: string;
     certificateSignatureUrl?: string;
     certificateEmisionDate?: string;

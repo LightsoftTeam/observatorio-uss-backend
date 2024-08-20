@@ -18,8 +18,6 @@ import { CertificatesHelper } from 'src/common/helpers/certificates.helper';
 import { ERROR_CODES, APP_ERRORS } from '../../common/constants/errors.constants';
 const HTML_TO_PDF = require('html-pdf-node');
 
-
-
 @Injectable()
 export class ParticipantsService {
 
@@ -85,12 +83,13 @@ export class ParticipantsService {
                     foreignId: professorId,
                     roles,
                     attendanceStatus: AttendanceStatus.PENDING,
+                    certificates: [],
                 });
                 const { resource: trainingUpdated } = await this.trainingContainer.item(trainingId, trainingId).replace(training);
                 const newParticipant = trainingUpdated.participants.find((participant) => participant.foreignId === professorId);
                 return this.fillParticipant(newParticipant);
             }
-            if(participant.roles.length === roles.length && participant.roles.every((role) => roles.includes(role))) {
+            if (participant.roles.length === roles.length && participant.roles.every((role) => roles.includes(role))) {
                 this.logger.log(`Participant ${participant.id} already exists in training ${trainingId} and has the same roles`);
                 return this.fillParticipant(participant);
             }
@@ -138,7 +137,7 @@ export class ParticipantsService {
             throw error;
         }
     }
-    
+
     private validateMultipleRoles(roles: TrainingRole[]) {
         if (roles.length > 1 && !roles.includes(TrainingRole.ORGANIZER)) {
             throw new BadRequestException(APP_ERRORS[ERROR_CODES.MULTIPLE_ROLES_NOT_ALLOWED]);
@@ -277,20 +276,20 @@ export class ParticipantsService {
             }
             this.logger.log(`Training ${training.id} found`);
             const participant = training.participants.find((participant) => participant.id === participantId);
-            if(participant.attendanceStatus === AttendanceStatus.ATTENDED && participant.certificate && process.env.NODE_ENV === 'production') {
-                throw new BadRequestException(APP_ERRORS[ERROR_CODES.TRAINING_ALREADY_COMPLETED]);
-            } 
+            // if (participant.attendanceStatus === AttendanceStatus.ATTENDED && participant.certificates.length > 0 && process.env.NODE_ENV === 'production') {
+            //     throw new BadRequestException(APP_ERRORS[ERROR_CODES.TRAINING_ALREADY_COMPLETED]);
+            // }
             participant.attendanceStatus = AttendanceStatus.ATTENDED;
             await this.trainingContainer.item(training.id, training.id).replace(training);
             const executions = training.executions;
             if (executions.length === 0) {
                 throw new BadRequestException(APP_ERRORS[ERROR_CODES.TRAINING_NOT_HAVE_EXECUTIONS]);
             }
-            const certificate = await this.generateCertificate({
+            const certificates = await this.generateCertificates({
                 training,
                 participant,
             });
-            participant.certificate = certificate;
+            participant.certificates = certificates;
             await this.trainingContainer.item(training.id, training.id).replace(training);
             return participant;
         } catch (error) {
@@ -303,7 +302,7 @@ export class ParticipantsService {
         const data: TrainingCertificateTemplateData = {
             participantId: '123456',
             name: 'Renatto Farid Perleche Alvitez',
-            roles: [TrainingRole.ASSISTANT],
+            role: TrainingRole.ASSISTANT,
             trainingName: 'Training Name',
             emisionDate: new Date().toISOString(),
             trainingFromDate: new Date().toISOString(),
@@ -315,12 +314,12 @@ export class ParticipantsService {
         return buffer;
     }
 
-    private async generateCertificate({ training, participant }: { training: Training, participant: TrainingParticipant }) {
+    private async generateCertificates({ training, participant }: { training: Training, participant: TrainingParticipant }): Promise<TrainingCertificate[]> {
         this.logger.log(`Generating certificate for participant ${participant.id}`);
-        const { executions, name: trainingName, certificateBackgroundUrl, certificateSignatureUrl } = training;
+        const { roles } = participant;
+        const { executions, name: trainingName, certificateBackgroundUrl, certificateSignatureUrl, certificateEmisionDate, certificateOrganizer } = training;
         const trainingFromDate = executions[0].from;
         const trainingToDate = executions[executions.length - 1].to;
-        const emisionDate = new Date().toISOString();
         const durationinMiliseconds = executions.reduce((acc, execution) => {
             const from = new Date(execution.from);
             const to = new Date(execution.to);
@@ -329,40 +328,46 @@ export class ParticipantsService {
         }, 0);
         const durationInHours = Math.round((durationinMiliseconds / 1000 / 60 / 60) * 100) / 100;
         const filledParticipant = await this.fillParticipant(participant);
-        const { id, professor, roles } = filledParticipant;
+        const { id, professor } = filledParticipant;
         const { name } = professor;
-        const data: TrainingCertificateTemplateData = {
-            participantId: id,
-            name,
-            roles,
-            trainingName,
-            emisionDate,
-            trainingFromDate,
-            trainingToDate,
-            duration: durationInHours,
-            backgroundUrl: certificateBackgroundUrl,
-            signatureUrl: certificateSignatureUrl,
-        };
-        const certificate: TrainingCertificate = {
-            id: uuidv4(),
-            name,
-            trainingName,
-            duration: durationInHours,
-            emisionDate,
-            trainingFromDate,
-            trainingToDate,
-        }
-        this.logger.log(`Certificate: ${JSON.stringify(certificate)}`)
-        const html = getTrainingCertificateTemplate(data);
-        const buffer: Buffer = await this.getPdfBuffer(html);
-        this.logger.log(`Buffer ${buffer.length}`)
-        const { blobUrl } = await this.storageService.uploadMessageMedia({
-            buffer,
-            blobName: CertificatesHelper.getBlobName(certificate.id),
-            contentType: 'application/pdf',
-        });
-        certificate.url = blobUrl;
-        return certificate;
+        const certificates: TrainingCertificate[] = await Promise.all(roles.map(async (role) => {
+            const certificate: TrainingCertificate = {
+                id: uuidv4(),
+                name,
+                trainingName,
+                duration: durationInHours,
+                emisionDate: certificateEmisionDate,
+                role,
+                trainingFromDate,
+                trainingToDate,
+                certificateOrganizer,
+            }
+            const data: TrainingCertificateTemplateData = {
+                participantId: id,
+                name,
+                role,
+                trainingName,
+                emisionDate: certificateEmisionDate,
+                trainingFromDate,
+                trainingToDate,
+                duration: durationInHours,
+                backgroundUrl: certificateBackgroundUrl,
+                signatureUrl: certificateSignatureUrl,
+                certificateOrganizer
+            };
+            this.logger.log(`Certificate: ${JSON.stringify(certificate)}`)
+            const html = getTrainingCertificateTemplate(data);
+            const buffer: Buffer = await this.getPdfBuffer(html);
+            this.logger.log(`Buffer ${buffer.length}`)
+            const { blobUrl } = await this.storageService.uploadMessageMedia({
+                buffer,
+                blobName: CertificatesHelper.getBlobName(certificate.id),
+                contentType: 'application/pdf',
+            });
+            certificate.url = blobUrl;
+            return certificate;
+        }));
+        return certificates;
     }
 
     async getCertificate(participantId: string) {
@@ -431,24 +436,8 @@ export class ParticipantsService {
     }
 
     async getPdfBuffer(html: string): Promise<Buffer> {
-        return new Promise((resolve, reject) => {
-            const logger = this.logger;
-            // pdf.create(html).toBuffer(function (err: any, buffer: Buffer) {
-            //     if(err){
-            //         logger.error(`getPdfBuffer ${err.message}`);
-            //         reject(err);
-            //     }
-            //     logger.log(`Buffer ${buffer.length}`)
-            //     resolve(buffer);
-            // });
-            let options = { format: 'A4' };
-            // Example of options with args //
-            // let options = { format: 'A4', args: ['--no-sandbox', '--disable-setuid-sandbox'] };
-
-            let file = { content: html };
-            HTML_TO_PDF.generatePdf(file, options).then(pdfBuffer => {
-                resolve(pdfBuffer);
-            });
-        });
+        const options = { format: 'A4' };
+        const file = { content: html };
+        return HTML_TO_PDF.generatePdf(file, options);
     }
 }

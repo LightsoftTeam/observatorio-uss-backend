@@ -303,4 +303,14 @@ export class TrainingController {
   getAssistanceBySchool(@Param('id') id: string) {
     return this.trainingService.getAsistanceBySchool(id);
   }
+  
+  // @Get('reports/by-competency')
+  // @ApiOperation({ summary: 'Get trainings by competency' })
+  // @ApiResponse({
+  //   status: 200,
+  //   description: 'The trainings by competency were found',
+  // })
+  // getByCompetency(@Query('semesterId') semesterId: string) {
+  //   return this.trainingService.getByCompetency();
+  // }
 }
