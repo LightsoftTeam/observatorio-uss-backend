@@ -780,21 +780,10 @@
         "parameters": [],
         "requestBody": {
           "required": true,
-          "description": "Request Body",
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "file": {
-                    "type": "string",
-                    "format": "binary"
-                  },
-                  "fileName": {
-                    "type": "string",
-                    "nullable": true
-                  }
-                }
+                "$ref": "#/components/schemas/UploadFileDto"
               }
             }
           }
@@ -802,6 +791,45 @@
         "responses": {
           "200": {
             "description": "The file has been successfully uploaded."
+          }
+        },
+        "tags": [
+          "Storage"
+        ]
+      }
+    },
+    "/api/storage": {
+      "get": {
+        "operationId": "StorageController_getAll",
+        "summary": "Get all files",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The files have been successfully retrieved."
+          }
+        },
+        "tags": [
+          "Storage"
+        ]
+      }
+    },
+    "/api/storage/{id}": {
+      "delete": {
+        "operationId": "StorageController_deleteAll",
+        "summary": "Delete all files",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The files have been successfully deleted."
           }
         },
         "tags": [
@@ -2598,6 +2626,28 @@
         "required": [
           "user",
           "verificationCode"
+        ]
+      },
+      "UploadFileDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the file",
+            "example": "historical-figures",
+            "nullable": true
+          },
+          "saveReference": {
+            "type": "boolean",
+            "description": "Save the reference of the file in the database",
+            "example": false,
+            "nullable": true,
+            "default": false
+          }
+        },
+        "required": [
+          "name",
+          "saveReference"
         ]
       },
       "CreateAuthorityDto": {

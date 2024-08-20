@@ -5,5 +5,5 @@ export const TrainingRoleMap: {
 } = {
     [TrainingRole.ASSISTANT]: 'Asistente',
     [TrainingRole.ORGANIZER]: 'Organizador',
-    [TrainingRole.SPEAKER]: 'Orador',
+    [TrainingRole.SPEAKER]: 'Ponente',
 };

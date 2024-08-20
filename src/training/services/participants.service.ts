@@ -302,7 +302,7 @@ export class ParticipantsService {
         const data: TrainingCertificateTemplateData = {
             participantId: '123456',
             name: 'Renatto Farid Perleche Alvitez',
-            roles: [TrainingRole.ASSISTANT],
+            role: TrainingRole.ASSISTANT,
             trainingName: 'Training Name',
             emisionDate: new Date().toISOString(),
             trainingFromDate: new Date().toISOString(),
@@ -330,18 +330,6 @@ export class ParticipantsService {
         const filledParticipant = await this.fillParticipant(participant);
         const { id, professor } = filledParticipant;
         const { name } = professor;
-        const data: TrainingCertificateTemplateData = {
-            participantId: id,
-            name,
-            roles,
-            trainingName,
-            emisionDate: certificateEmisionDate,
-            trainingFromDate,
-            trainingToDate,
-            duration: durationInHours,
-            backgroundUrl: certificateBackgroundUrl,
-            signatureUrl: certificateSignatureUrl,
-        };
         const certificates: TrainingCertificate[] = await Promise.all(roles.map(async (role) => {
             const certificate: TrainingCertificate = {
                 id: uuidv4(),
@@ -354,6 +342,19 @@ export class ParticipantsService {
                 trainingToDate,
                 certificateOrganizer,
             }
+            const data: TrainingCertificateTemplateData = {
+                participantId: id,
+                name,
+                role,
+                trainingName,
+                emisionDate: certificateEmisionDate,
+                trainingFromDate,
+                trainingToDate,
+                duration: durationInHours,
+                backgroundUrl: certificateBackgroundUrl,
+                signatureUrl: certificateSignatureUrl,
+                certificateOrganizer
+            };
             this.logger.log(`Certificate: ${JSON.stringify(certificate)}`)
             const html = getTrainingCertificateTemplate(data);
             const buffer: Buffer = await this.getPdfBuffer(html);

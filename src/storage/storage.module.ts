@@ -4,6 +4,8 @@ import { StorageService } from './storage.service';
 import { AzureStorageModule } from '@nestjs/azure-storage';
 import { ConfigService } from '@nestjs/config';
 import { CommonModule } from 'src/common/common.module';
+import { AzureCosmosDbModule } from '@nestjs/azure-database';
+import { BlobFile } from './entities/blob-file.entity';
 
 @Module({
   controllers: [StorageController],
@@ -18,6 +20,14 @@ import { CommonModule } from 'src/common/common.module';
       inject: [ConfigService],
     }),
     CommonModule,
-  ]
+    AzureCosmosDbModule.forFeature([
+      {
+        dto: BlobFile,
+      }
+    ]),
+  ],
+  exports: [
+    AzureCosmosDbModule
+  ],
 })
 export class StorageModule {}

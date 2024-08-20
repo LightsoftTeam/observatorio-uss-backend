@@ -15,6 +15,7 @@ import { SchoolsModule } from 'src/schools/schools.module';
 import { UsersService } from 'src/users/users.service';
 import { UsersModule } from 'src/users/users.module';
 import { ProfessorsService } from 'src/professors/professors.service';
+import { StorageModule } from 'src/storage/storage.module';
 
 @Module({
   controllers: [ReportsController],
@@ -26,6 +27,7 @@ import { ProfessorsService } from 'src/professors/professors.service';
     ProfessorsModule,
     SchoolsModule,
     UsersModule,
+    StorageModule,
   ]
 })
 export class ReportsModule {}

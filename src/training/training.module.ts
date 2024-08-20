@@ -14,6 +14,7 @@ import { CompetenciesService } from 'src/competencies/competencies.service';
 import { Competency } from 'src/competencies/entities/competency.entity';
 import { SemestersModule } from 'src/semesters/semesters.module';
 import { SemestersService } from 'src/semesters/semesters.service';
+import { StorageModule } from 'src/storage/storage.module';
 
 @Module({
   controllers: [TrainingController],
@@ -27,6 +28,7 @@ import { SemestersService } from 'src/semesters/semesters.service';
     ProfessorsModule,
     SchoolsModule,
     SemestersModule,
+    StorageModule,
   ],
   exports: [
     AzureCosmosDbModule,
