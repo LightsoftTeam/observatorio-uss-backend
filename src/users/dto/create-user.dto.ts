@@ -42,4 +42,13 @@ export class CreateUserDto {
     @IsEnum(Role)
     @IsOptional()
     role: Role;
+
+    @ApiProperty({
+        description: 'The country code of the user',
+        example: 'US',
+        nullable: true,
+    })
+    @IsString()
+    @IsOptional()
+    countryCode: string;
 }

@@ -25,7 +25,7 @@ export class SchoolsService {
       createdAt: new Date(),
     };
     const { resource } = await this.schoolsContainer.items.create(school);
-    return FormatCosmosItem.cleanDocument<School>(resource);
+    return resource;
   }
 
   async findAll() {
@@ -71,6 +71,21 @@ export class SchoolsService {
     };
     const { resources } = await this.schoolsContainer.items.query(querySpec).fetchAll();
     return resources.map((school) => FormatCosmosItem.cleanDocument<School>(school));
+  }
+
+  async getByName(name: string): Promise<School | null> {
+    this.logger.log(`Getting school with name ${name}`);
+    const querySpec = {
+      query: 'SELECT * from c where c.name = @name',
+      parameters: [
+        {
+          name: '@name',
+          value: name,
+        },
+      ],
+    };
+    const { resources } = await this.schoolsContainer.items.query(querySpec).fetchAll();
+    return resources.at(0) ?? null;
   }
 
   async update(id: string, updateSchoolDto: UpdateSchoolDto) {

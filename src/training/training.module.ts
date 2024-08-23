@@ -15,10 +15,11 @@ import { Competency } from 'src/competencies/entities/competency.entity';
 import { SemestersModule } from 'src/semesters/semesters.module';
 import { SemestersService } from 'src/semesters/semesters.service';
 import { StorageModule } from 'src/storage/storage.module';
+import { MigrationService } from './services/migration.service';
 
 @Module({
   controllers: [TrainingController],
-  providers: [TrainingService, ProfessorsService, SchoolsService, ParticipantsService, StorageService, CompetenciesService, SemestersService],
+  providers: [TrainingService, ProfessorsService, SchoolsService, ParticipantsService, StorageService, CompetenciesService, SemestersService, MigrationService],
   imports: [
     AzureCosmosDbModule.forFeature([
       {dto: Training},

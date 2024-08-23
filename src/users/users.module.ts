@@ -4,6 +4,7 @@ import { UsersController } from './users.controller';
 import { User } from './entities/user.entity';
 import { AzureCosmosDbModule } from '@nestjs/azure-database';
 import { CommonModule } from 'src/common/common.module';
+import { CountriesService } from 'src/common/services/countries.service';
 
 @Module({
   imports: [

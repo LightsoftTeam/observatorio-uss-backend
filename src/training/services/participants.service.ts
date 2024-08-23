@@ -314,7 +314,7 @@ export class ParticipantsService {
         return buffer;
     }
 
-    private async generateCertificates({ training, participant }: { training: Training, participant: TrainingParticipant }): Promise<TrainingCertificate[]> {
+    async generateCertificates({ training, participant }: { training: Training, participant: TrainingParticipant }): Promise<TrainingCertificate[]> {
         this.logger.log(`Generating certificate for participant ${participant.id}`);
         const { roles } = participant;
         const { executions, name: trainingName, certificateBackgroundUrl, certificateSignatureUrl, certificateEmisionDate, certificateOrganizer } = training;
@@ -359,7 +359,7 @@ export class ParticipantsService {
             const html = getTrainingCertificateTemplate(data);
             const buffer: Buffer = await this.getPdfBuffer(html);
             this.logger.log(`Buffer ${buffer.length}`)
-            const { blobUrl } = await this.storageService.uploadMessageMedia({
+            const { blobUrl } = await this.storageService.uploadBuffer({
                 buffer,
                 blobName: CertificatesHelper.getBlobName(certificate.id),
                 contentType: 'application/pdf',
