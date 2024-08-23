@@ -1,11 +1,14 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { readFile } from 'fs';
+import { CountriesService } from './common/services/countries.service';
 
 @ApiTags('v1')
 @Controller()
 export class AppController {
-  constructor() {}
+  constructor(
+    private countriesService: CountriesService,
+  ) {}
 
   @Get('/swagger')
   getSwagger() {
@@ -17,5 +20,10 @@ export class AppController {
         resolve(JSON.parse(data));
       });
     });
+  }
+
+  @Get('countries')
+  getCountries(){
+    return this.countriesService.findAll();
   }
 }

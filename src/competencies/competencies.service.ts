@@ -26,7 +26,7 @@ export class CompetenciesService {
     };
     const { resource: createdCompetency } = await this.competenciesContainer.items.create(competency);
     this.logger.log(`Created a new competency with name: ${createdCompetency.name}`);
-    return FormatCosmosItem.cleanDocument(createdCompetency);
+    return createdCompetency;
   }
 
   async findAll(): Promise<Partial<Competency>[]> {
@@ -53,6 +53,18 @@ export class CompetenciesService {
     } catch (error) {
       return null;
     }
+  }
+
+  async getByName(name: string): Promise<Competency | null> {
+    this.logger.log(`Getting competency by name: ${name}`);
+    const querySpec = {
+      query: `SELECT * from c where c.name = @name`,
+      parameters: [
+        { name: '@name', value: name },
+      ],
+    };
+    const { resources: competencies } = await this.competenciesContainer.items.query(querySpec).fetchAll();
+    return competencies.at(0) ?? null;
   }
 
   async getByIds(ids: string[]) {

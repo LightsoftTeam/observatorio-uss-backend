@@ -7,7 +7,6 @@ import { InjectModel } from '@nestjs/azure-database';
 import { BlobFile } from './entities/blob-file.entity';
 import { Container } from '@azure/cosmos';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
-import { query } from 'express';
 
 @Injectable()
 export class StorageService {
@@ -31,7 +30,7 @@ export class StorageService {
         this.container = this.client.getContainerClient(this.containerName);
     }
 
-    async uploadMessageMedia({
+    async uploadBuffer({
         buffer,
         blobName,
         contentType,
@@ -94,6 +93,7 @@ export class StorageService {
             const folder = masterFolder + (saveReference ? 'multimedia/' : '');
             const ext = file.originalname.split('.').at(-1);
             const originalname = this.getFileFullName({name: name || file.originalname, ext, folder});
+            console.log(originalname);
             file = {
                 ...file,
                 originalname

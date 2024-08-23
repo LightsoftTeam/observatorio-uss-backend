@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, HttpCode, Res, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, HttpCode, Res, Query, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { TrainingService } from './training.service';
 import { CreateTrainingDto } from './dto/create-training.dto';
 import { UpdateTrainingDto } from './dto/update-training.dto';
@@ -12,6 +12,8 @@ import { Readable } from 'stream';
 import { DocumentType } from 'src/common/types/document-type.enum';
 import { TrainingBadRequestDto } from './dto/bad-response-dto';
 import { VerifyParticipantSuccessResponseDto } from './dto/verify-participant-response.dto';
+import { MigrationService } from './services/migration.service';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Training')
 @Controller('training')
@@ -24,6 +26,7 @@ export class TrainingController {
   constructor(
     private readonly trainingService: TrainingService,
     private readonly participantsService: ParticipantsService,
+    private readonly migrationService: MigrationService,
   ) { }
 
   @Post()
@@ -304,13 +307,18 @@ export class TrainingController {
     return this.trainingService.getAsistanceBySchool(id);
   }
   
-  // @Get('reports/by-competency')
-  // @ApiOperation({ summary: 'Get trainings by competency' })
-  // @ApiResponse({
-  //   status: 200,
-  //   description: 'The trainings by competency were found',
-  // })
-  // getByCompetency(@Query('semesterId') semesterId: string) {
-  //   return this.trainingService.getByCompetency();
-  // }
+  @Post('migrate')
+  @ApiOperation({ summary: 'Migrate data from an excel' })
+  @ApiResponse({
+    status: 200,
+    description: 'The data has been successfully migrated',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request',
+  })
+  @UseInterceptors(FileInterceptor('file'))
+  async migrateFromExcel(@UploadedFile() file: Express.Multer.File) {
+    return this.migrationService.migrateFromExcel(file);
+  }
 }

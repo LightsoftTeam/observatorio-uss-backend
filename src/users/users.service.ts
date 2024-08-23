@@ -12,6 +12,8 @@ import { REQUEST } from '@nestjs/core';
 import { generateUniqueSlug } from 'src/posts/helpers/generate-slug.helper';
 import { FindUsersDto } from './dto/find-users.dto';
 import { APP_ERRORS, ERROR_CODES } from 'src/common/constants/errors.constants';
+import { COUNTRIES_MAP } from 'src/common/constants/countries';
+import { CountriesService } from 'src/common/services/countries.service';
 
 const PASSWORD_SALT_ROUNDS = 5;
 const USER_LIST_CACHE_KEY = 'users';
@@ -22,6 +24,7 @@ const LONG_CACHE_TIME = 1000 * 60 * 60 * 5;//5 hours
 export class UsersService {
 
   constructor(
+    private readonly countriesService: CountriesService,
     @InjectModel(User)
     private readonly usersContainer: Container,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -53,7 +56,7 @@ export class UsersService {
     const startAt = new Date();
     const { resources } = await this.usersContainer.items.query<User>(querySpec).fetchAll();
     this.logger.log(`query time findAll users ${(new Date().getTime() - startAt.getTime())}`);
-    return resources.map(user => FormatCosmosItem.cleanDocument(user, ['password']));
+    return resources.map(user => this.toJson(user));
   }
 
   async toggleActiveState(id: string) {
@@ -67,7 +70,7 @@ export class UsersService {
       if (!user) {
         throw new NotFoundException('User not found');
       }
-      return user;
+      return this.toJson(user);
     } catch (error) {
       this.logger.log(error.message);
       throw error;
@@ -94,7 +97,7 @@ export class UsersService {
       ],
     };
     const { resources } = await this.usersContainer.items.query<User>(querySpec).fetchAll();
-    return resources.map(user => FormatCosmosItem.cleanDocument(user, ['password']));
+    return resources.map(user => this.toJson(user));
   }
 
   async findBySlug(slug: string) {
@@ -111,7 +114,7 @@ export class UsersService {
     if (resources.length === 0) {
       throw new NotFoundException('User not found');
     }
-    return FormatCosmosItem.cleanDocument(resources[0], ['password']);
+    return this.toJson(resources[0]);
   }
 
   async findByIds(ids: string[]) {
@@ -125,7 +128,7 @@ export class UsersService {
       ],
     };
     const { resources } = await this.usersContainer.items.query<User>(querySpec).fetchAll();
-    return resources;
+    return resources.map(user => this.toJson(user));
   }
 
   async findByEmail(email: string): Promise<User | null> {
@@ -148,6 +151,11 @@ export class UsersService {
   async create(createUserDto: CreateUserDto) {
     const hashedPassword = bcrypt.hashSync(createUserDto.password, PASSWORD_SALT_ROUNDS);
     const slug = generateUniqueSlug({ title: createUserDto.name, slugs: await this.getSlugs() });
+    const { countryCode } = createUserDto;
+    const country = COUNTRIES_MAP[countryCode];
+    if(countryCode && !country){
+      throw new BadRequestException('Invalid country code');
+    }
     const user = {
       ...createUserDto,
       slug,
@@ -161,9 +169,8 @@ export class UsersService {
       throw new BadRequestException(APP_ERRORS[ERROR_CODES.USER_ALREADY_EXISTS]);
     }
     const { resource } = await this.usersContainer.items.create<User>(user);
-    const newUser = FormatCosmosItem.cleanDocument(resource, ['password']);
     this.cacheManager.del(USER_LIST_CACHE_KEY);
-    return newUser;
+    return this.toJson(resource);
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
@@ -182,9 +189,8 @@ export class UsersService {
       updatedUser.password = bcrypt.hashSync(updateUserDto.password, PASSWORD_SALT_ROUNDS);
     }
     const { resource } = await this.usersContainer.item(user.id).replace(updatedUser);
-    const newUser = FormatCosmosItem.cleanDocument(resource, ['password']);
     this.cacheManager.del(USER_LIST_CACHE_KEY);
-    return newUser;
+    return this.toJson(resource as User);
   }
 
   // async remove(id: string) {
@@ -205,14 +211,13 @@ export class UsersService {
       isActive,
     };
     const { resource } = await this.usersContainer.item(user.id).replace(updatedUser);
-    const newUser = FormatCosmosItem.cleanDocument(resource, ['password']);
     this.cacheManager.del(USER_LIST_CACHE_KEY);
-    return newUser;
+    return this.toJson(resource as User);
   }
 
-  getLoggedUser(): User | null {
+  getLoggedUser() {
     const loggedUser = this.request['loggedUser'];
-    return loggedUser ?? null;
+    return this.toJson(loggedUser) ?? null;
   }
 
   isAdmin() {
@@ -248,5 +253,10 @@ export class UsersService {
       this.usersContainer.item(user.id).replace(user);
     }
     return 'ok';
+  }
+
+  toJson(user: User) {
+    user.country = this.countriesService.getCountry(user.countryCode);
+    return FormatCosmosItem.cleanDocument(user, ['password']);
   }
 }

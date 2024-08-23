@@ -7,6 +7,7 @@ import { MailService } from './services/mail.service';
 import { CommonService } from './common.service';
 import { OtpService } from './services/otp.service';
 import { CacheModule } from '@nestjs/cache-manager';
+import { CountriesService } from './services/countries.service';
 
 @Module({
   providers: [
@@ -23,8 +24,9 @@ import { CacheModule } from '@nestjs/cache-manager';
     MailService,
     CommonService,
     OtpService,
+    CountriesService
   ],
   controllers: [CommonController],
-  exports: [AlgoliaService, ApplicationLoggerService, MailService]
+  exports: [AlgoliaService, ApplicationLoggerService, MailService, CountriesService]
 })
 export class CommonModule { }

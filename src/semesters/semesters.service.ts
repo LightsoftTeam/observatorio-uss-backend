@@ -44,6 +44,21 @@ export class SemestersService {
     }
   }
 
+  async getByName(name: string): Promise<Semester | null> {
+    this.logger.debug(`Getting semester by name: ${name}`);
+    const querySpec = {
+      query: `SELECT * FROM c WHERE c.name = @name`,
+      parameters: [
+        {
+          name: '@name',
+          value: name,
+        },
+      ],
+    };
+    const { resources } = await this.semestersContainer.items.query(querySpec).fetchAll();
+    return resources.at(0) ?? null;
+  }
+
   async getByIds(ids: string[]) {
     this.logger.debug(`Getting semesters by ids: ${ids}`);
     const querySpec = {
