@@ -105,7 +105,7 @@ export class TrainingService {
       })
       .fetchAll();
     this.logger.log(`Found ${resources.length} trainings with code: ${code}`);
-    return resources.at(0);
+    return resources.at(0) ?? null;
   }
 
   async findByDocument(documentType: DocumentType, documentNumber: string) {

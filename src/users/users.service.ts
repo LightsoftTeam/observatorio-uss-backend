@@ -217,7 +217,7 @@ export class UsersService {
 
   getLoggedUser() {
     const loggedUser = this.request['loggedUser'];
-    return this.toJson(loggedUser) ?? null;
+    return loggedUser ? this.toJson(loggedUser) : null;
   }
 
   isAdmin() {
