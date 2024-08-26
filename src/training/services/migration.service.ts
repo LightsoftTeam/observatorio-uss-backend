@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
-import * as XLSX from 'xlsx';
-import { BooleanResponse, MigrationDocumentType, MigrationEmploymentType, MigrationTrainingRole, MigrationTrainingType, ParticipantRow, TrainingRow } from '../types/training-migration.types';
-import { AttendanceStatus, Training, TrainingModality, TrainingRole, TrainingStatus, TrainingType } from '../entities/training.entity';
-import { DateTime } from 'luxon';
+import { BooleanResponse, ParticipantRow, TrainingRow } from '../types/training-migration.types';
+import { AttendanceStatus, Training, TrainingStatus } from '../entities/training.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { SemestersService } from 'src/semesters/semesters.service';
 import { CompetenciesService } from '../../competencies/competencies.service';
@@ -11,13 +9,15 @@ import { SchoolsService } from 'src/schools/schools.service';
 import { InjectModel } from '@nestjs/azure-database';
 import type { Container } from '@azure/cosmos';
 import { ProfessorsService } from 'src/professors/professors.service';
-import { DocumentType } from 'src/common/types/document-type.enum';
-import { EmploymentType, Professor } from 'src/professors/entities/professor.entity';
+import { Professor } from 'src/professors/entities/professor.entity';
 import { ParticipantsService } from './participants.service';
 import { validateTrainingRow } from '../helpers/validate-training-row.helper';
 import { TrainingService } from '../training.service';
 import { validateParticipantRow } from '../helpers/validate-participant-row.helper';
 import { getIsoDateFromMigrationDate } from '../helpers/get-iso-date-from-migration-date.helper';
+import { getDocumentType, getEmploymentType, getModality, getRoles, getTrainingType } from '../mappers/migration.mappers';
+import { getFileInfo, getSheetRows } from '../helpers/sheets.helpers';
+import { TrainingMigrationEvent, TrainingMigrationTrace } from '../entities/training-migration-event.entity';
 
 @Injectable()
 export class MigrationService {
@@ -34,59 +34,57 @@ export class MigrationService {
     private readonly trainingContainer: Container,
     @InjectModel(Professor)
     private readonly professorsContainer: Container,
+    @InjectModel(TrainingMigrationEvent)
+    private readonly trainingMigrationContainer: Container,
   ) { }
 
-  async migrateFromExcel(file: Express.Multer.File) {
-    const trace: { ok: boolean, message: string }[] = [];
-    this.logger.debug('Migrating training data from excel file');
-    const workbook = XLSX.read(file.buffer, { type: 'buffer' });
-    this.logger.debug('Getting sheets');
-    const [trainingDataSheetName, ...participantsSheetNames] = workbook.SheetNames;
-    const trainingSheet = workbook.Sheets[trainingDataSheetName];
-    const trainingData: TrainingRow[] = XLSX.utils.sheet_to_json(trainingSheet);
+  async migrateFromExcel() {
+    const trace: TrainingMigrationTrace[] = [];
+    const { sheets, spreadsheetId, sheetNames } = await getFileInfo();
+    const [trainingSheetName, ...participantsSheetNames] = sheetNames;
+    const trainingRows = await getSheetRows<TrainingRow>({ sheets, spreadsheetId, sheetName: trainingSheetName });
     this.logger.debug('Initializing migration');
-    for (const trainingDataRow of trainingData) {
+    for (const trainingDataRow of trainingRows) {
       this.logger.debug(`Initializing training migration`);
       let training: Training;
       try {
         training = await this.importTraining(trainingDataRow);
         trace.push({
-          ok: true,
+          isSuccessful: true,
           message: `Capacitación ${trainingDataRow.codigo} importada satisfactoriamente`,
         });
       } catch (error) {
         trace.push({
-          ok: false,
+          isSuccessful: false,
           message: error.message,
         })
         continue;
       }
       this.logger.debug(`Searching participants sheet for training ${trainingDataRow.codigo}`);
-      const participantsSheetName = participantsSheetNames.find(name => name.includes(trainingDataRow.codigo));
-      if (!participantsSheetName) {
-        this.logger.debug(`No participants sheet found for training ${trainingDataRow.codigo}`);
-        continue;
-      }
-      const participantsSheet = workbook.Sheets[participantsSheetName];
-      const participantRows: ParticipantRow[] = XLSX.utils.sheet_to_json(participantsSheet);
+      const participantRows: ParticipantRow[] = await getSheetRows<ParticipantRow>({ sheets, spreadsheetId, sheetName: participantsSheetNames.find(name => name.includes(trainingDataRow.codigo)) });
       this.logger.debug(`Adding participants to training - ${participantRows.length} participants`);
       for (const participantRow of participantRows) {
         try {
           await this.addParticipantToTraining({ training, participantRow });
           trace.push({
-            ok: true,
-            message: `Participante ${participantRow.nombre} importado satisfactoriamente`,
+            isSuccessful: true,
+            message: `Participante ${participantRow.nombre} importado satisfactoriamente en capacitación ${trainingDataRow.codigo}`,
           });
         } catch (error) {
           trace.push({
-            ok: false,
-            message: `Participante ${participantRow.nombre} no importado: ${error.message}`,
+            isSuccessful: false,
+            message: `Participante ${participantRow.nombre} no importado: ${error.message} en capacitación ${trainingDataRow.codigo}`,
           });
           continue;
         }
       }
     }
-
+    const resume: TrainingMigrationEvent = {
+      sheetNames,
+      trace,
+      createdAt: new Date(),
+    }
+    this.trainingMigrationContainer.items.create(resume);
     return { trace };
   }
 
@@ -115,18 +113,10 @@ export class MigrationService {
       if (existingTraining) {
         throw new Error(`La capacitación ya existe`);
       }
-      let formattedType: TrainingType;
       this.logger.debug(`Formatting training type`);
-      switch (type) {
-        case MigrationTrainingType.EXTRA:
-          formattedType = TrainingType.EXTRA;
-          break;
-        case MigrationTrainingType.PROGRAMADO:
-          formattedType = TrainingType.SCHEDULED;
-          break;
-        default:
-          throw new Error('Tipo de capacitación inválido');
-      }
+      let formattedType = getTrainingType(type);
+      this.logger.debug(`Formatting training modality`);
+      let formattedModality = getModality(modality);
       this.logger.debug(`Parsing capacity`);
       const capacity = parseInt(capacityString);
       const certificateEmisionDate = certificateEmisionDatePeru ? getIsoDateFromMigrationDate(certificateEmisionDatePeru) : undefined;
@@ -150,13 +140,13 @@ export class MigrationService {
       }
       const trainingPayload: Training = {
         code,
-        modality: TrainingModality[modality],
+        modality: formattedModality,
         name,
         organizer: school.id,
         participants: [],
         semesterId: semester.id,
         status: TrainingStatus.ACTIVE,
-        type: TrainingType[type],
+        type: formattedType,
         executions: [{
           id: uuidv4(),
           attendance: [],
@@ -193,33 +183,8 @@ export class MigrationService {
         asistencia: isAttended,
         roles: rolesInput,
       } = data;
-      const roles = rolesInput.split(',').map(role => role.trim().toUpperCase())
-        .filter(role => Object.keys(MigrationTrainingRole).includes(role.toUpperCase()))
-        .map(role => {
-          switch (role.toUpperCase()) {
-            case MigrationTrainingRole.ASISTENTE:
-              return TrainingRole.ASSISTANT;
-            case MigrationTrainingRole.PONENTE:
-              return TrainingRole.SPEAKER;
-            case MigrationTrainingRole.ORGANIZADOR:
-              return TrainingRole.ORGANIZER;
-          }
-        });
-      if (roles.length === 0) roles.push(TrainingRole.ASSISTANT);
-      let formattedDocumentType: DocumentType;
-      switch (documentType) {
-        case MigrationDocumentType.DNI:
-          formattedDocumentType = DocumentType.DNI;
-          break;
-        case MigrationDocumentType.CE:
-          formattedDocumentType = DocumentType.CARNET_EXTRANJERIA;
-          break;
-        case MigrationDocumentType.PASAPORTE:
-          formattedDocumentType = DocumentType.PASAPORTE;
-          break;
-        default:
-          throw new Error('Tipo de documento inválido');
-      }
+      const roles = getRoles(rolesInput);
+      let formattedDocumentType = getDocumentType(documentType);
       let professor = await this.professorsService.getByDocument({ documentNumber, documentType: formattedDocumentType });
       const attendanceStatus = isAttended.toUpperCase().trim() === BooleanResponse.SI ? AttendanceStatus.ATTENDED : AttendanceStatus.PENDING;
       if (!professor) {
@@ -229,17 +194,7 @@ export class MigrationService {
           this.logger.debug(`School with name ${schoolName} not found. Creating new school`);
           school = await this.schoolsService.create({ name: schoolName });
         }
-        let formattedEmploymentType: EmploymentType;
-        switch (employmentType) {
-          case MigrationEmploymentType.PARTTIME:
-            formattedEmploymentType = EmploymentType.PART_TIME;
-            break;
-          case MigrationEmploymentType.FULLTIME:
-            formattedEmploymentType = EmploymentType.FULL_TIME;
-            break;
-          default:
-            throw new Error('Tipo de empleo inválido');
-        }
+        let formattedEmploymentType = getEmploymentType(employmentType);
         const professorPayload: Professor = {
           name,
           email,
