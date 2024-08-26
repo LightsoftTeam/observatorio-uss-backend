@@ -1,4 +1,4 @@
-import { ParticipantRow, MigrationDocumentType, MigrationEmploymentType } from '../types/training-migration.types';
+import { ParticipantRow, MigrationDocumentType, MigrationEmploymentType, BooleanResponse } from '../types/training-migration.types';
 
 export function validateParticipantRow(participantRow: ParticipantRow) {
     const {
@@ -12,7 +12,7 @@ export function validateParticipantRow(participantRow: ParticipantRow) {
         "tipo de empleo": employmentType,
     } = participantRow;
 
-    if (!Object.keys(Boolean).includes(asistencia)) {
+    if (!Object.keys(BooleanResponse).includes(asistencia)) {
         throw new Error('El campo "asistencia" tiene un valor inválido');
     }
     if (!email) {

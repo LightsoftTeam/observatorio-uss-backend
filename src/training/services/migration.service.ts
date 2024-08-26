@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
 import * as XLSX from 'xlsx';
-import { BooleanResponse, MigrationDocumentType, MigrationEmploymentType, MigrationTrainingRole, ParticipantRow, TrainingRow } from '../types/training-migration.types';
+import { BooleanResponse, MigrationDocumentType, MigrationEmploymentType, MigrationTrainingRole, MigrationTrainingType, ParticipantRow, TrainingRow } from '../types/training-migration.types';
 import { AttendanceStatus, Training, TrainingModality, TrainingRole, TrainingStatus, TrainingType } from '../entities/training.entity';
 import { DateTime } from 'luxon';
 import { v4 as uuidv4 } from 'uuid';
@@ -17,6 +17,7 @@ import { ParticipantsService } from './participants.service';
 import { validateTrainingRow } from '../helpers/validate-training-row.helper';
 import { TrainingService } from '../training.service';
 import { validateParticipantRow } from '../helpers/validate-participant-row.helper';
+import { getIsoDateFromMigrationDate } from '../helpers/get-iso-date-from-migration-date.helper';
 
 @Injectable()
 export class MigrationService {
@@ -79,14 +80,12 @@ export class MigrationService {
         } catch (error) {
           trace.push({
             ok: false,
-            message: error.message,
+            message: `Participante ${participantRow.nombre} no importado: ${error.message}`,
           });
           continue;
         }
       }
     }
-
-    console.log(trainingData);
 
     return { trace };
   }
@@ -116,8 +115,21 @@ export class MigrationService {
       if (existingTraining) {
         throw new Error(`La capacitación ya existe`);
       }
+      let formattedType: TrainingType;
+      this.logger.debug(`Formatting training type`);
+      switch (type) {
+        case MigrationTrainingType.EXTRA:
+          formattedType = TrainingType.EXTRA;
+          break;
+        case MigrationTrainingType.PROGRAMADO:
+          formattedType = TrainingType.SCHEDULED;
+          break;
+        default:
+          throw new Error('Tipo de capacitación inválido');
+      }
+      this.logger.debug(`Parsing capacity`);
       const capacity = parseInt(capacityString);
-      const certificateEmisionDate = certificateEmisionDatePeru ? DateTime.fromFormat(data['fecha de emision'], 'dd/MM/yyyy HH:mm:ss').plus({ hours: 5 }).toISODate() : undefined;
+      const certificateEmisionDate = certificateEmisionDatePeru ? getIsoDateFromMigrationDate(certificateEmisionDatePeru) : undefined;
       this.logger.debug(`Searching foreigns`);
       let [semester, competency, school] = await Promise.all([
         this.semestersService.getByName(semesterName),
@@ -148,8 +160,8 @@ export class MigrationService {
         executions: [{
           id: uuidv4(),
           attendance: [],
-          from: fromDate,
-          to: toDate,
+          from: getIsoDateFromMigrationDate(fromDate),
+          to: getIsoDateFromMigrationDate(toDate),
         }],
         competencyId: competency.id,
         description,
@@ -164,7 +176,7 @@ export class MigrationService {
       return training;
     } catch (error) {
       this.logger.error(`Error importing training ${trainingRow.codigo}: ${error.message}`);
-      throw new Error(`Ocurrió un error inesperado`);
+      throw error;
     }
   }
 
@@ -249,8 +261,15 @@ export class MigrationService {
       };
       if (attendanceStatus === AttendanceStatus.ATTENDED) {
         participant.certificates = await this.participantsService.generateCertificates({ training, participant });
+        training.executions[0].attendance.push({
+          id: uuidv4(),
+          participantId: participant.id,
+          status: AttendanceStatus.ATTENDED,
+          createdAt: new Date().toISOString(),
+        });
       }
       training.participants.push(participant);
+      await this.trainingContainer.item(training.id, training.id).replace(training);
     } catch (error) {
       this.logger.error(`Error adding participant ${participantRow.nombre} to training ${training.code}: ${error.message}`);
       throw new Error(`Ocurrió un error inesperado`);

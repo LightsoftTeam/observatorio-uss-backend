@@ -2,18 +2,18 @@ export interface TrainingRow{
     "codigo": string;
     "nombre": string;
     semestre: string;
-    tipo: string;
     "descripcion": string;
+    tipo: string;
     "organizador": string;
     "modalidad": MigrationTrainingModality;
     "capacidad": string;
     "competencia": string;
     "fondo de certificado": string;
     "firma de certificado": string;
-    "fecha de emision": string;
+    "fecha de emision": number;
     "organizador en certificado": string;
-    "desde": string;
-    "hasta": string;
+    "desde": number;
+    "hasta": number;
 }
 
 export enum MigrationTrainingModality {
