@@ -217,7 +217,17 @@
       "get": {
         "operationId": "PostsController_getPostRequests",
         "summary": "Get post requests",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "nullable": true,
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "The post requests has been successfully retrieved."
@@ -2511,6 +2521,11 @@
               "approved",
               "rejected"
             ]
+          },
+          "rejectionReason": {
+            "type": "string",
+            "description": "The reason for rejecting the post",
+            "example": "The post is not relevant"
           }
         },
         "required": [

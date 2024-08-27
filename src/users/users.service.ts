@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, NotFoundException, Scope, forwardRef } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException, Scope } from '@nestjs/common';
 import type { Container } from '@azure/cosmos';
 import { Role, User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -16,8 +16,6 @@ import { COUNTRIES_MAP } from 'src/common/constants/countries';
 import { CountriesService } from 'src/common/services/countries.service';
 
 const PASSWORD_SALT_ROUNDS = 5;
-const USER_LIST_CACHE_KEY = 'users';
-const LONG_CACHE_TIME = 1000 * 60 * 60 * 5;//5 hours
 
 
 @Injectable({ scope: Scope.REQUEST })
@@ -27,7 +25,7 @@ export class UsersService {
     private readonly countriesService: CountriesService,
     @InjectModel(User)
     private readonly usersContainer: Container,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    // @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly logger: ApplicationLoggerService,
     @Inject(REQUEST) private request: Request,
   ) { }
@@ -153,7 +151,7 @@ export class UsersService {
     const slug = generateUniqueSlug({ title: createUserDto.name, slugs: await this.getSlugs() });
     const { countryCode } = createUserDto;
     const country = COUNTRIES_MAP[countryCode];
-    if(countryCode && !country){
+    if (countryCode && !country) {
       throw new BadRequestException('Invalid country code');
     }
     const user = {
@@ -169,7 +167,6 @@ export class UsersService {
       throw new BadRequestException(APP_ERRORS[ERROR_CODES.USER_ALREADY_EXISTS]);
     }
     const { resource } = await this.usersContainer.items.create<User>(user);
-    this.cacheManager.del(USER_LIST_CACHE_KEY);
     return this.toJson(resource);
   }
 
@@ -189,7 +186,6 @@ export class UsersService {
       updatedUser.password = bcrypt.hashSync(updateUserDto.password, PASSWORD_SALT_ROUNDS);
     }
     const { resource } = await this.usersContainer.item(user.id).replace(updatedUser);
-    this.cacheManager.del(USER_LIST_CACHE_KEY);
     return this.toJson(resource as User);
   }
 
@@ -211,7 +207,6 @@ export class UsersService {
       isActive,
     };
     const { resource } = await this.usersContainer.item(user.id).replace(updatedUser);
-    this.cacheManager.del(USER_LIST_CACHE_KEY);
     return this.toJson(resource as User);
   }
 
@@ -227,6 +222,14 @@ export class UsersService {
 
   revokeWhenIsNotAdmin() {
     if (!this.isAdmin()) {
+      throw new NotFoundException('Unauthorized');
+    }
+  }
+
+  revokeWhenIsNotAdminOrOwner(id: string) {
+    const loggedUser = this.getLoggedUser();
+    this.logger.debug(`revokeWhenIsNotAdminOrOwner - validate ${id} against logged user ${loggedUser?.id}`);
+    if (!this.isAdmin() && loggedUser?.id !== id) {
       throw new NotFoundException('Unauthorized');
     }
   }

@@ -73,7 +73,8 @@ export class MailService {
     async sendPostRequestNotification({ to, post, approvalStatus }: { to: string, post: Partial<Post>, approvalStatus: ApprovalStatus }) {
         const { title, slug, category } = post;
         //TODO: change this syntax to config file
-        const postUrl = `${(process.env.OBSERVATORY_APP_URL || 'http://localhost:5173')}/${category}/${slug}`;
+        const postUrl = `${process.env.OBSERVATORY_APP_URL}/${category}/${slug}`;
+        const requestsUrl = `${process.env.OBSERVATORY_APP_URL}/mis-solicitudes`;
         let template = ``;
         
         switch(approvalStatus) {
@@ -82,12 +83,14 @@ export class MailService {
                     <h1>Tu solicitud ha sido aceptada.</h1>
                     <p>Tu post <b>"${title}"</b> ha sido recibido y está pendiente de aprobación.</p>
                     <p>Te notificaremos cuando haya sido revisado.</p>
+                    <p>Puedes ver tus solicitudes <a href="${requestsUrl}">aquí</a></p>
                 `;
                 break;
             case ApprovalStatus.REJECTED:
                 template = `
                     <h1>Tu solicitud de nuevo post ha sido rechazada.</h1>
                     <p>Lamentablemente, tu post <b>"${title}"</b> ha sido rechazado.</p>
+                    <p>Por favor, revisa los motivos de rechazo <a href="${requestsUrl}>aquí</a>.</p>
                 `;
                 break;
             case ApprovalStatus.APPROVED:
