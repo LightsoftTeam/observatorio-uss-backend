@@ -2392,14 +2392,14 @@
           },
           "videoUrl": {
             "type": "string",
-            "description": "",
-            "example": "",
+            "description": "The URL of the video",
+            "example": "https://www.youtube.com/watch?v=videoId",
             "nullable": true
           },
           "podcastUrl": {
             "type": "string",
-            "description": "",
-            "example": "",
+            "description": "The URL of the podcast",
+            "example": "https://www.podcast.com/podcastId",
             "nullable": true
           },
           "content": {
@@ -2509,6 +2509,77 @@
           "action"
         ]
       },
+      "NewDataDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "The title of the post",
+            "example": "The title of the post"
+          },
+          "category": {
+            "type": "string",
+            "description": "Category of the post",
+            "example": "edu-news"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the post",
+            "example": "This is a description of the post",
+            "nullable": true
+          },
+          "videoUrl": {
+            "type": "string",
+            "description": "The URL of the video",
+            "example": "https://www.youtube.com/watch?v=videoId",
+            "nullable": true
+          },
+          "podcastUrl": {
+            "type": "string",
+            "description": "The URL of the podcast",
+            "example": "https://www.podcast.com/podcastId",
+            "nullable": true
+          },
+          "content": {
+            "type": "string",
+            "description": "",
+            "example": "",
+            "nullable": true
+          },
+          "imageUrl": {
+            "type": "string",
+            "description": "",
+            "example": "",
+            "nullable": true
+          },
+          "imageDescription": {
+            "type": "string",
+            "description": "",
+            "example": "",
+            "nullable": true
+          },
+          "attachments": {
+            "description": "",
+            "example": "",
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "title",
+          "category",
+          "description",
+          "videoUrl",
+          "podcastUrl",
+          "content",
+          "imageUrl",
+          "imageDescription",
+          "attachments"
+        ]
+      },
       "UpdatePostRequestDto": {
         "type": "object",
         "properties": {
@@ -2526,10 +2597,34 @@
             "type": "string",
             "description": "The reason for rejecting the post",
             "example": "The post is not relevant"
+          },
+          "newData": {
+            "description": "The new data of the post",
+            "example": {
+              "title": "The title of the post",
+              "category": "edu-news",
+              "description": "This is a description of the post",
+              "videoUrl": "https://www.youtube.com/watch?v=videoId",
+              "podcastUrl": "https://www.podcast.com/podcastId",
+              "content": "The content of the post",
+              "imageUrl": "https://www.image.com/imageId",
+              "imageDescription": "The description of the image",
+              "attachments": [
+                "attachment1",
+                "attachment2"
+              ]
+            },
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/NewDataDto"
+              }
+            ]
           }
         },
         "required": [
-          "approvalStatus"
+          "approvalStatus",
+          "newData"
         ]
       },
       "CreatePostCommentDto": {

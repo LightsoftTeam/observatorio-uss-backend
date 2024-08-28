@@ -1,7 +1,90 @@
 
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEnum, IsOptional, IsString } from "class-validator";
-import { ApprovalStatus } from "../entities/post.entity";
+import { IsArray, IsEnum, IsNotEmpty, IsOptional, IsString, ValidateNested } from "class-validator";
+import { ApprovalStatus, Category } from "../entities/post.entity";
+import { Type } from "class-transformer";
+
+export class NewDataDto {
+    @ApiProperty({
+        description: 'The title of the post',
+        example: 'The title of the post',
+    })
+    @IsString()
+    @IsNotEmpty()
+    @IsOptional()
+    title: string;
+
+    @ApiProperty({
+        description: 'Category of the post',
+        example: Category.NEWS,
+    })
+    @IsEnum(Category)
+    @IsOptional()
+    category: string;
+
+    @ApiProperty({
+        description: 'Description of the post',
+        example: 'This is a description of the post',
+        nullable: true,
+    })
+    @IsString()
+    @IsOptional()
+    description: string;
+
+    @ApiProperty({
+        description: 'The URL of the video',
+        example: 'https://www.youtube.com/watch?v=videoId',
+        nullable: true,
+    })
+    @IsString()
+    @IsOptional()
+    videoUrl: string;
+
+    @ApiProperty({
+        description: 'The URL of the podcast',
+        example: 'https://www.podcast.com/podcastId',
+        nullable: true,
+    })
+    @IsString()
+    @IsOptional()
+    podcastUrl: string;
+
+    @ApiProperty({
+        description: '',
+        example: '',
+        nullable: true,
+    })
+    @IsString()
+    @IsOptional()
+    content: string;
+
+    @ApiProperty({
+        description: '',
+        example: '',
+        nullable: true,
+    })
+    @IsString()
+    @IsOptional()
+    imageUrl: string;
+
+    @ApiProperty({
+        description: '',
+        example: '',
+        nullable: true,
+    })
+    @IsString()
+    @IsOptional()
+    imageDescription: string;
+
+    @ApiProperty({
+        description: '',
+        example: '',
+        nullable: true
+    })
+    @IsArray()
+    @IsOptional()
+    attachments: string[];
+}
 
 export class UpdatePostRequestDto {
     @ApiProperty({
@@ -19,4 +102,24 @@ export class UpdatePostRequestDto {
     @IsString()
     @IsOptional()
     rejectionReason?: string;
+
+    @ApiProperty({
+        description: 'The new data of the post',
+        example: {
+            title: 'The title of the post',
+            category: Category.NEWS,
+            description: 'This is a description of the post',
+            videoUrl: 'https://www.youtube.com/watch?v=videoId',
+            podcastUrl: 'https://www.podcast.com/podcastId',
+            content: 'The content of the post',
+            imageUrl: 'https://www.image.com/imageId',
+            imageDescription: 'The description of the image',
+            attachments: ['attachment1', 'attachment2'],
+        },
+        nullable: true,
+    })
+    @IsOptional()
+    @ValidateNested({ each: true })
+    @Type(() => NewDataDto)
+    newData?: NewDataDto;
 }

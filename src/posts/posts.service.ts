@@ -117,11 +117,7 @@ export class PostsService {
     const { title } = updatePostDto;
     let newSlug = null;
     if (title) {
-      const slugsQuerySpec = {
-        query: 'SELECT c.slug FROM c'
-      }
-      const { resources } = await this.postsContainer.items.query<{ slug: string }>(slugsQuerySpec).fetchAll();
-      const slugs = resources.map(r => r.slug);
+      const slugs = await this.getSlugs();
       newSlug = generateUniqueSlug({ title, slugs });
     }
     const updatedPost: Post = {
@@ -136,6 +132,15 @@ export class PostsService {
     this.cacheManager.del(HOME_POSTS_KEY);
     this.cacheManager.del(TAGS_KEY);
     return FormatCosmosItem.cleanDocument(resource, ['content']);
+  }
+
+  async getSlugs(){
+    const slugsQuerySpec = {
+      query: 'SELECT c.slug FROM c'
+    }
+    const { resources } = await this.postsContainer.items.query<{ slug: string }>(slugsQuerySpec).fetchAll();
+    const slugs = resources.map(r => r.slug);
+    return slugs;
   }
 
   async findAll({
