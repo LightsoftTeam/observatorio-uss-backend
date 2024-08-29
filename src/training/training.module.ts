@@ -16,6 +16,7 @@ import { SemestersModule } from 'src/semesters/semesters.module';
 import { SemestersService } from 'src/semesters/semesters.service';
 import { StorageModule } from 'src/storage/storage.module';
 import { MigrationService } from './services/migration.service';
+import { TrainingMigrationEvent } from './entities/training-migration-event.entity';
 
 @Module({
   controllers: [TrainingController],
@@ -24,6 +25,7 @@ import { MigrationService } from './services/migration.service';
     AzureCosmosDbModule.forFeature([
       {dto: Training},
       {dto: Competency},
+      {dto: TrainingMigrationEvent},
     ]),
     CommonModule,
     ProfessorsModule,

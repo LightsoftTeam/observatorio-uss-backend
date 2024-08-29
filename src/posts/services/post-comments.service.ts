@@ -23,7 +23,8 @@ export class PostCommentsService {
     }
 
     async findByPostId(postId: string) {
-        this.logger.log(`Finding post comments by post id: ${postId}`);
+        try {
+            this.logger.log(`Finding post comments by post id: ${postId}`);
         const querySpec = {
             query: 'SELECT * FROM c WHERE c.postId = @postId AND NOT IS_DEFINED(c.deletedAt) order by c.createdAt asc',
             parameters: [{ name: '@postId', value: postId }],
@@ -50,6 +51,10 @@ export class PostCommentsService {
             .filter(comment => !comment.parentId)
             .map(comment => this.fill({ comment, users }))
             .sort((a, b) => b.createdAt > a.createdAt ? 1 : -1);
+        } catch (error) {
+            this.logger.debug('Error in findByPostId');
+            this.logger.error(`${error.message}`);
+        }
     }
 
     async create(postId: string, createPostCommentDto: CreatePostCommentDto) {

@@ -2,8 +2,8 @@ export interface TrainingRow{
     "codigo": string;
     "nombre": string;
     semestre: string;
-    tipo: string;
     "descripcion": string;
+    tipo: MigrationTrainingType;
     "organizador": string;
     "modalidad": MigrationTrainingModality;
     "capacidad": string;

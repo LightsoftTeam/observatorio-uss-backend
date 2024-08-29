@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsBoolean, IsEnum, IsNotEmpty, IsObject, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsArray, IsEnum, IsNotEmpty, IsObject, IsOptional, IsString, IsUUID } from "class-validator";
 import { ApprovalStatus, Category, Reference } from "../entities/post.entity";
 
 export class CreatePostDto {
@@ -28,8 +28,8 @@ export class CreatePostDto {
     category: Category;
     
     @ApiProperty({
-        description: '',
-        example: '',
+        description: 'The URL of the video',
+        example: 'https://www.youtube.com/watch?v=videoId',
         nullable: true,
     })
     @IsString()
@@ -37,8 +37,8 @@ export class CreatePostDto {
     videoUrl: string;
     
     @ApiProperty({
-        description: '',
-        example: '',
+        description: 'The URL of the podcast',
+        example: 'https://www.podcast.com/podcastId',
         nullable: true,
     })
     @IsString()

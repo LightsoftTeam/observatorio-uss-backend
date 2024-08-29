@@ -18,10 +18,8 @@ import { ApplicationLoggerService } from 'src/common/services/application-logger
 import { Role } from 'src/users/entities/user.entity';
 import { scrapedPosts } from 'src/scrap/outputs/posts';
 import { PostsRepository } from './repositories/post.repository';
-import { MailService } from 'src/common/services/mail.service';
 import { APP_ERRORS, ERROR_CODES } from 'src/common/constants/errors.constants';
 import { PostComment } from './entities/post-comment.entity';
-import { UpdatePostRequestDto } from './dto/update-post-request.dto';
 
 const BASIC_KEYS_LIST = [
   'id',
@@ -39,6 +37,7 @@ const BASIC_KEYS_LIST = [
   'tags',
   'createdAt',
   'approvalStatus',
+  'rejectionReasons',
 ]
 
 export const BASIC_KEYS = BASIC_KEYS_LIST.map(f => `c.${f}`).join(', ')
@@ -60,21 +59,13 @@ export class PostsService {
     private readonly algoliaService: AlgoliaService,
     private readonly logger: ApplicationLoggerService,
     private readonly postsRepository: PostsRepository,
-    private readonly mailService: MailService,
   ) {
     this.logger.setContext(PostsService.name);
   }
 
-  async findPostRequests() {
-    this.logger.log('retrieving posts from db');
-    const postRequests = await this.postsRepository.find({
-      approvalStatuses: [ApprovalStatus.PENDING, ApprovalStatus.REJECTED]
-    });
-    return this.getPostsWithAuthor(postRequests);
-  }
-
   async create(createPostDto: CreatePostDto) {
     this.logger.log(`Creating post - ${JSON.stringify(createPostDto)}`);
+    this.usersService.revokeWhenIsNotAdminOrOwner(createPostDto.userId);
     const { title, category, content, imageUrl, videoUrl, podcastUrl, description, attachments, imageDescription, tags, reference, userId, approvalStatus } = createPostDto;
     if (userId && reference) {
       throw new BadRequestException(APP_ERRORS[ERROR_CODES.INVALID_AUTHOR]);
@@ -126,11 +117,7 @@ export class PostsService {
     const { title } = updatePostDto;
     let newSlug = null;
     if (title) {
-      const slugsQuerySpec = {
-        query: 'SELECT c.slug FROM c'
-      }
-      const { resources } = await this.postsContainer.items.query<{ slug: string }>(slugsQuerySpec).fetchAll();
-      const slugs = resources.map(r => r.slug);
+      const slugs = await this.getSlugs();
       newSlug = generateUniqueSlug({ title, slugs });
     }
     const updatedPost: Post = {
@@ -147,6 +134,15 @@ export class PostsService {
     return FormatCosmosItem.cleanDocument(resource, ['content']);
   }
 
+  async getSlugs(){
+    const slugsQuerySpec = {
+      query: 'SELECT c.slug FROM c'
+    }
+    const { resources } = await this.postsContainer.items.query<{ slug: string }>(slugsQuerySpec).fetchAll();
+    const slugs = resources.map(r => r.slug);
+    return slugs;
+  }
+
   async findAll({
     category,
     userId,
@@ -158,24 +154,6 @@ export class PostsService {
       userId,
     });
     return this.getPostsWithAuthor(posts);
-  }
-
-  async updatePostRequest(id: string, updatePostRequestDto: UpdatePostRequestDto) {
-    this.logger.log(`updating post request - ${id}`);
-    const { approvalStatus } = updatePostRequestDto;
-    const post = await this.findOne(id);
-    const updatedPost: Post = {
-      ...post,
-      approvalStatus
-    }
-    const user = await this.usersService.findOne(post.userId);
-    this.mailService.sendPostRequestNotification({
-      to: user.email,
-      post: updatedPost,
-      approvalStatus
-    });
-    const { resource } = await this.postsContainer.item(post.id).replace(updatedPost);
-    return FormatCosmosItem.cleanDocument(resource);
   }
 
   async findOne(id: string) {
@@ -442,7 +420,7 @@ export class PostsService {
     return true;
   }
 
-  private async getPostsWithAuthor(posts: Post[]) {
+  async getPostsWithAuthor(posts: Partial<Post>[]) {
     const userIds = [];
     posts.forEach(post => {
       if (post.userId) {

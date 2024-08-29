@@ -11,6 +11,7 @@ import { UsersService } from 'src/users/users.service';
 import { UsersModule } from 'src/users/users.module';
 import { PostComment } from './entities/post-comment.entity';
 import { PostCommentsService } from './services/post-comments.service';
+import { PostRequestsService } from './services/post-requests.service';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { PostCommentsService } from './services/post-comments.service';
     UsersModule,
   ],
   controllers: [PostsController],
-  providers: [PostsService, AlgoliaService, PostsRepository, UsersService, PostCommentsService],
+  providers: [PostsService, AlgoliaService, PostsRepository, UsersService, PostCommentsService, PostRequestsService],
   exports: [PostsService, AzureCosmosDbModule, PostsRepository]
 })
 export class PostsModule {}

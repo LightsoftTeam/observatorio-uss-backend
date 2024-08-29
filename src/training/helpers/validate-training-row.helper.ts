@@ -1,5 +1,4 @@
 import { MigrationTrainingModality, MigrationTrainingType, TrainingRow } from "../types/training-migration.types";
-import { getIsoDateFromMigrationDate } from "./get-iso-date-from-migration-date.helper";
 
 export function validateTrainingRow(trainingDataRow: TrainingRow) {
     const {
@@ -32,8 +31,12 @@ export function validateTrainingRow(trainingDataRow: TrainingRow) {
     if (!competencia) {
         throw new Error('El campo "competencia" es requerido');
     }
-    trainingDataRow.desde = getIsoDateFromMigrationDate(desde);
-    trainingDataRow.hasta = getIsoDateFromMigrationDate(hasta);
+    if(!desde){
+        throw new Error('El campo "desde" es requerido');
+    }
+    if(!hasta){
+        throw new Error('El campo "hasta" es requerido');
+    }
     if (!modalidad) {
         throw new Error('El campo "modalidad" es requerido');
     }

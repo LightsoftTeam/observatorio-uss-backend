@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, HttpCode, Res, Query, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, HttpCode, Res, Query, UseGuards, HttpStatus } from '@nestjs/common';
 import { TrainingService } from './training.service';
 import { CreateTrainingDto } from './dto/create-training.dto';
 import { UpdateTrainingDto } from './dto/update-training.dto';
@@ -13,7 +13,7 @@ import { DocumentType } from 'src/common/types/document-type.enum';
 import { TrainingBadRequestDto } from './dto/bad-response-dto';
 import { VerifyParticipantSuccessResponseDto } from './dto/verify-participant-response.dto';
 import { MigrationService } from './services/migration.service';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
 
 @ApiTags('Training')
 @Controller('training')
@@ -307,7 +307,9 @@ export class TrainingController {
     return this.trainingService.getAsistanceBySchool(id);
   }
   
+  @UseGuards(AuthGuard)
   @Post('migrate')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Migrate data from an excel' })
   @ApiResponse({
     status: 200,
@@ -317,8 +319,7 @@ export class TrainingController {
     status: 400,
     description: 'Bad Request',
   })
-  @UseInterceptors(FileInterceptor('file'))
-  async migrateFromExcel(@UploadedFile() file: Express.Multer.File) {
-    return this.migrationService.migrateFromExcel(file);
+  async migrateFromExcel() {
+    return this.migrationService.migrateFromExcel();
   }
 }

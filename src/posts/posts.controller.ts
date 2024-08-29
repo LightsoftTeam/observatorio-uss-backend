@@ -11,12 +11,15 @@ import { PostCommentsService } from './services/post-comments.service';
 import { CreatePostCommentDto } from './dto/create-post-comment.dto';
 import { ApprovalStatus } from './entities/post.entity';
 import { UpdatePostRequestDto } from './dto/update-post-request.dto';
+import { PostRequestsService } from './services/post-requests.service';
+import { GetPostRequestsDto } from './dto/get-post-requests.dto';
 @ApiTags('Posts')
 @Controller('posts')
 export class PostsController {
   constructor(
     private postsService: PostsService,
     private postCommentsService: PostCommentsService,
+    private postRequestsService: PostRequestsService,
   ) {}
 
   @ApiResponse({
@@ -66,11 +69,12 @@ export class PostsController {
     return this.postsService.getHomePosts();
   }
 
+  @UseGuards(AuthGuard)
   @Get('find/requests')
   @ApiOperation({ summary: 'Get post requests' })
   @ApiResponse({ status: 200, description: 'The post requests has been successfully retrieved.'})
-  getPostRequests(@Query('') _: string) {
-    return this.postsService.findPostRequests();
+  getPostRequests(@Query() getPostRequestsDto: GetPostRequestsDto) {
+    return this.postRequestsService.findPostRequests(getPostRequestsDto);
   }
 
   @ApiOperation({ summary: 'Get a post by slug' })
@@ -116,11 +120,13 @@ export class PostsController {
     return this.postsService.updateSlugs();
   }
 
+  @UseGuards(AuthGuard)
   @Post('seed')
   seed() {
     return this.postsService.seed();
   } 
 
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Create a post request' })
   @ApiResponse({ status: 201, description: 'The post request has been successfully created.'})
   @Post('create-request')
@@ -137,7 +143,7 @@ export class PostsController {
   @ApiResponse({ status: 200, description: 'The post request has been successfully accepted.'})
   @Post('update-request/:id')
   updatePostRequest(@Param('id') id: string, @Body() updatePostRequestDto: UpdatePostRequestDto) {
-    return this.postsService.updatePostRequest(id, updatePostRequestDto);
+    return this.postRequestsService.updatePostRequest(id, updatePostRequestDto);
   }
 
   @Get(':id/comments')

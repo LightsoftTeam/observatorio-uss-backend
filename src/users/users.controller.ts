@@ -56,7 +56,6 @@ export class UsersController {
   @ApiResponse({ status: 400, description: 'Bad Request' })
   @Put('/:id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto){
-    this.userService.revokeWhenIsNotAdmin();
     return this.userService.update(id, updateUserDto);
   }
 

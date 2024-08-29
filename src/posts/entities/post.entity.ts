@@ -29,6 +29,12 @@ export interface Reference{
     author: string;
     url: string;
 }
+
+export interface RejectionReason{
+    id: string;
+    reason: string;
+    createdAt: Date;
+}
 @CosmosPartitionKey('category')
 export class Post {
     id?: string;
@@ -50,5 +56,6 @@ export class Post {
     isActive: boolean;
     reference?: Reference;
     approvalStatus?: ApprovalStatus;
+    rejectionReasons?: RejectionReason[];
     @CosmosDateTime() createdAt: Date;
 }

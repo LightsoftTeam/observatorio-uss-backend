@@ -38,3 +38,4 @@ lerna-debug.log*
 /trash
 
 local.settings.json
+/localdata
