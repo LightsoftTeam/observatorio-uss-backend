@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsBoolean, IsEnum, IsNotEmpty, IsObject, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsArray, IsEnum, IsNotEmpty, IsObject, IsOptional, IsString, IsUUID } from "class-validator";
 import { ApprovalStatus, Category, Reference } from "../entities/post.entity";
 
 export class CreatePostDto {

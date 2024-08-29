@@ -31,52 +31,63 @@ export class PostRequestsService {
     async findPostRequests({
         userId
     }: GetPostRequestsDto) {
-        this.usersService.revokeWhenIsNotAdminOrOwner(userId);
-        const postRequests = await this.postsRepository.find({
-            approvalStatuses: [ApprovalStatus.PENDING, ApprovalStatus.REJECTED],
-            userId
-        });
-        return this.postsService.getPostsWithAuthor(postRequests);
+        try {
+            this.usersService.revokeWhenIsNotAdminOrOwner(userId);
+            const postRequests = await this.postsRepository.find({
+                approvalStatuses: [ApprovalStatus.PENDING, ApprovalStatus.REJECTED],
+                userId
+            });
+            return this.postsService.getPostsWithAuthor(postRequests);
+        } catch (error) {
+            this.logger.error(error.message);
+            throw error;
+        }
     }
 
     async updatePostRequest(id: string, updatePostRequestDto: UpdatePostRequestDto) {
-        this.logger.log(`updating post request - ${id}`);
-        const { approvalStatus, rejectionReason, newData } = updatePostRequestDto;
-        const post = await this.postsService.findOne(id);
-        this.usersService.revokeWhenIsNotAdminOrOwner(post.userId);
-        const rejectionReasons = post.rejectionReasons ?? [];
-        if (approvalStatus === ApprovalStatus.REJECTED && rejectionReason) {
-            rejectionReasons.push({
-                id: uuidv4(),
-                reason: rejectionReason,
-                createdAt: new Date()
+        try {
+            this.logger.log(`updating post request - ${id}`);
+            this.logger.debug(`updatePostRequestDto - ${JSON.stringify(updatePostRequestDto)}`);
+            const { approvalStatus, rejectionReason, newData } = updatePostRequestDto;
+            const post = await this.postsService.findOne(id);
+            this.usersService.revokeWhenIsNotAdminOrOwner(post.userId);
+            const rejectionReasons = post.rejectionReasons ?? [];
+            if (approvalStatus === ApprovalStatus.REJECTED && rejectionReason) {
+                rejectionReasons.push({
+                    id: uuidv4(),
+                    reason: rejectionReason,
+                    createdAt: new Date()
+                });
+            }
+            let updatedPost: Post = {
+                ...post,
+                rejectionReasons,
+                approvalStatus
+            }
+            if (newData && approvalStatus === ApprovalStatus.PENDING) {
+                const slugs = await this.postsService.getSlugs();
+                updatedPost = {
+                    ...updatedPost,
+                    ...newData,
+                }
+                if (newData.title) {
+                    updatedPost.slug = generateUniqueSlug({ title: newData.title, slugs });
+                }
+                if (newData.content) {
+                    updatedPost.readingTime = calculateReadTime(newData.content);
+                }
+            }
+            const user = await this.usersService.findOne(post.userId);
+            this.mailService.sendPostRequestNotification({
+                to: user.email,
+                post: updatedPost,
+                approvalStatus
             });
+            const { resource } = await this.postsContainer.item(post.id, post.category).replace(updatedPost);
+            return (await this.postsService.getPostsWithAuthor([FormatCosmosItem.cleanDocument(resource, ['content'])])).at(0);
+        } catch (error) {
+            this.logger.error(error.message);
+            throw error;
         }
-        let updatedPost: Post = {
-            ...post,
-            rejectionReasons,
-            approvalStatus
-        }
-        if(newData && approvalStatus === ApprovalStatus.PENDING){
-            const slugs = await this.postsService.getSlugs();
-            updatedPost = {
-                ...updatedPost,
-                ...newData,
-            }
-            if(newData.title){
-                updatedPost.slug = generateUniqueSlug({ title: newData.title, slugs });
-            }
-            if(newData.content){
-                updatedPost.readingTime = calculateReadTime(newData.content);
-            }
-        }
-        const user = await this.usersService.findOne(post.userId);
-        this.mailService.sendPostRequestNotification({
-            to: user.email,
-            post: updatedPost,
-            approvalStatus
-        });
-        const { resource } = await this.postsContainer.item(post.id).replace(updatedPost);
-        return (await this.postsService.getPostsWithAuthor([FormatCosmosItem.cleanDocument(resource, ['content'])])).at(0);
     }
 }
