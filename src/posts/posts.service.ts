@@ -420,7 +420,7 @@ export class PostsService {
     return true;
   }
 
-  async getPostsWithAuthor(posts: Post[]) {
+  async getPostsWithAuthor(posts: Partial<Post>[]) {
     const userIds = [];
     posts.forEach(post => {
       if (post.userId) {
