@@ -77,6 +77,6 @@ export class PostRequestsService {
             approvalStatus
         });
         const { resource } = await this.postsContainer.item(post.id).replace(updatedPost);
-        return FormatCosmosItem.cleanDocument(resource);
+        return (await this.postsService.getPostsWithAuthor([resource])).at(0);
     }
 }
