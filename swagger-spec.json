@@ -2566,6 +2566,18 @@
             "items": {
               "type": "string"
             }
+          },
+          "tags": {
+            "description": "The tags of the post",
+            "example": [
+              "tag1",
+              "tag2"
+            ],
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -2577,7 +2589,8 @@
           "content",
           "imageUrl",
           "imageDescription",
-          "attachments"
+          "attachments",
+          "tags"
         ]
       },
       "UpdatePostRequestDto": {

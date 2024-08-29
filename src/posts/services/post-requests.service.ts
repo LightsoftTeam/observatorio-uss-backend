@@ -83,7 +83,14 @@ export class PostRequestsService {
                 post: updatedPost,
                 approvalStatus
             });
-            const { resource } = await this.postsContainer.item(post.id, post.category).replace(updatedPost);
+            if(updatedPost.category === post.category){
+                this.logger.debug(`replacing post - ${post.id}`);
+                const { resource } = await this.postsContainer.item(post.id, post.category).replace(updatedPost);
+                return (await this.postsService.getPostsWithAuthor([FormatCosmosItem.cleanDocument(resource, ['content'])])).at(0);
+            }
+            this.logger.debug(`deleting post - ${post.id}`);
+            await this.postsContainer.item(post.id, post.category).delete();
+            const { resource } = await this.postsContainer.items.create(updatedPost);
             return (await this.postsService.getPostsWithAuthor([FormatCosmosItem.cleanDocument(resource, ['content'])])).at(0);
         } catch (error) {
             this.logger.error(error.message);

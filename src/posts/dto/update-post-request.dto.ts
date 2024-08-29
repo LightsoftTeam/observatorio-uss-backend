@@ -84,6 +84,16 @@ export class NewDataDto {
     @IsArray()
     @IsOptional()
     attachments: string[];
+
+
+    @ApiProperty({
+        description: 'The tags of the post',
+        example: ['tag1', 'tag2'],
+        nullable: true,
+    })
+    @IsArray()
+    @IsOptional()
+    tags: string[];
 }
 
 export class UpdatePostRequestDto {
