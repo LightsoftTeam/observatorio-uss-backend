@@ -28,18 +28,19 @@ export class PostsRepository {
         approvalStatuses = [ApprovalStatus.APPROVED],
         userId,
     }: PostFilters) {
+        const approvedIsIncluded = approvalStatuses.includes(ApprovalStatus.APPROVED);
         const querySpec: SqlQuerySpec = {
             query: `
                 SELECT ${BASIC_KEYS} FROM c
-                WHERE c.isActive = true AND ARRAY_CONTAINS(@approvalStatuses, c.approvalStatus)
+                WHERE c.isActive = true AND ${approvedIsIncluded ? '(' : ''}ARRAY_CONTAINS(@approvalStatuses, c.approvalStatus)
             `,
             parameters: [{
                 name: '@approvalStatuses',
                 value: approvalStatuses
             }]
         }
-        if (approvalStatuses.includes(ApprovalStatus.APPROVED)) {
-            querySpec.query += 'OR NOT IS_DEFINED(c.approvalStatus)';
+        if (approvedIsIncluded) {
+            querySpec.query += 'OR NOT IS_DEFINED(c.approvalStatus))';
         }
         if (userId) {
             querySpec.query += ' AND c.userId = @userId';
