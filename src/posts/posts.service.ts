@@ -127,11 +127,19 @@ export class PostsService {
     if (newSlug) {
       updatedPost.slug = newSlug;
     }
-    const { resource } = await this.postsContainer.item(post.id).replace(updatedPost);
+    let newPost: Partial<Post>;
+    if(updatePostDto.category !== post.category){
+      await this.postsContainer.item(post.id, post.category).delete();
+      const { resource } = await this.postsContainer.items.create(updatedPost);
+      newPost = FormatCosmosItem.cleanDocument(resource, ['content']);
+    } else {
+      const { resource } = await this.postsContainer.item(post.id).replace(updatedPost);
+      newPost = FormatCosmosItem.cleanDocument(resource, ['content']);
+    }
     this.algoliaService.updateObject(this.transformPostToAlgoliaRecord(updatedPost));
     this.cacheManager.del(HOME_POSTS_KEY);
     this.cacheManager.del(TAGS_KEY);
-    return FormatCosmosItem.cleanDocument(resource, ['content']);
+    return newPost;
   }
 
   async getSlugs(){
