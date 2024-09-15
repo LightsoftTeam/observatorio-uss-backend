@@ -530,6 +530,30 @@
         ]
       }
     },
+    "/api/posts/{id}/audio": {
+      "get": {
+        "operationId": "PostsController_getAudio",
+        "summary": "Get audio of a post",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The audio has been successfully retrieved."
+          }
+        },
+        "tags": [
+          "Posts"
+        ]
+      }
+    },
     "/api/common/sync-algolia": {
       "post": {
         "operationId": "CommonController_syncAlgolia",
@@ -729,6 +753,70 @@
         ]
       }
     },
+    "/api/storage/upload": {
+      "post": {
+        "operationId": "StorageController_upload",
+        "summary": "Upload a file",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadFileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The file has been successfully uploaded."
+          }
+        },
+        "tags": [
+          "Storage"
+        ]
+      }
+    },
+    "/api/storage": {
+      "get": {
+        "operationId": "StorageController_getAll",
+        "summary": "Get all files",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The files have been successfully retrieved."
+          }
+        },
+        "tags": [
+          "Storage"
+        ]
+      }
+    },
+    "/api/storage/{id}": {
+      "delete": {
+        "operationId": "StorageController_deleteAll",
+        "summary": "Delete all files",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The files have been successfully deleted."
+          }
+        },
+        "tags": [
+          "Storage"
+        ]
+      }
+    },
     "/api/auth/login": {
       "post": {
         "operationId": "AuthController_signIn",
@@ -794,70 +882,6 @@
         },
         "tags": [
           "Auth"
-        ]
-      }
-    },
-    "/api/storage/upload": {
-      "post": {
-        "operationId": "StorageController_upload",
-        "summary": "Upload a file",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UploadFileDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The file has been successfully uploaded."
-          }
-        },
-        "tags": [
-          "Storage"
-        ]
-      }
-    },
-    "/api/storage": {
-      "get": {
-        "operationId": "StorageController_getAll",
-        "summary": "Get all files",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "The files have been successfully retrieved."
-          }
-        },
-        "tags": [
-          "Storage"
-        ]
-      }
-    },
-    "/api/storage/{id}": {
-      "delete": {
-        "operationId": "StorageController_deleteAll",
-        "summary": "Delete all files",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The files have been successfully deleted."
-          }
-        },
-        "tags": [
-          "Storage"
         ]
       }
     },
@@ -2755,6 +2779,28 @@
           }
         }
       },
+      "UploadFileDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the file",
+            "example": "historical-figures",
+            "nullable": true
+          },
+          "saveReference": {
+            "type": "boolean",
+            "description": "Save the reference of the file in the database",
+            "example": false,
+            "nullable": true,
+            "default": false
+          }
+        },
+        "required": [
+          "name",
+          "saveReference"
+        ]
+      },
       "SignInDto": {
         "type": "object",
         "properties": {
@@ -2794,28 +2840,6 @@
         "required": [
           "user",
           "verificationCode"
-        ]
-      },
-      "UploadFileDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "The name of the file",
-            "example": "historical-figures",
-            "nullable": true
-          },
-          "saveReference": {
-            "type": "boolean",
-            "description": "Save the reference of the file in the database",
-            "example": false,
-            "nullable": true,
-            "default": false
-          }
-        },
-        "required": [
-          "name",
-          "saveReference"
         ]
       },
       "CreateAuthorityDto": {
@@ -2936,7 +2960,8 @@
               "POST_IS_NOT_PENDING_APPROVAL",
               "PROFESSOR_ALREADY_EXISTS",
               "USER_ALREADY_EXISTS",
-              "NESTED_COMMENT_NOT_ALLOWED"
+              "NESTED_COMMENT_NOT_ALLOWED",
+              "POST_DOES_NOT_HAVE_CONTENT"
             ]
           },
           "message": {

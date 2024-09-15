@@ -12,6 +12,10 @@ import { UsersModule } from 'src/users/users.module';
 import { PostComment } from './entities/post-comment.entity';
 import { PostCommentsService } from './services/post-comments.service';
 import { PostRequestsService } from './services/post-requests.service';
+import { OpenaiModule } from '../openai/openai.module';
+import { OpenaiService } from 'src/openai/openai.service';
+import { StorageService } from 'src/storage/storage.service';
+import { StorageModule } from 'src/storage/storage.module';
 
 @Module({
   imports: [
@@ -22,9 +26,11 @@ import { PostRequestsService } from './services/post-requests.service';
     ]),
     CommonModule,
     UsersModule,
+    OpenaiModule,
+    StorageModule,
   ],
   controllers: [PostsController],
-  providers: [PostsService, AlgoliaService, PostsRepository, UsersService, PostCommentsService, PostRequestsService],
-  exports: [PostsService, AzureCosmosDbModule, PostsRepository]
+  providers: [PostsService, AlgoliaService, PostsRepository, UsersService, PostCommentsService, PostRequestsService, OpenaiService, StorageService],
+  exports: [PostsService, AzureCosmosDbModule, PostsRepository, OpenaiService, StorageService]
 })
 export class PostsModule {}

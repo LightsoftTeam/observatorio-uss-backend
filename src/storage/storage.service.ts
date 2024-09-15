@@ -40,10 +40,12 @@ export class StorageService {
         contentType: string
     }) {
         try {
+            const startDate = new Date();
             const blockBlobClient = this.container.getBlockBlobClient(blobName);
             const options = { blobHTTPHeaders: { blobContentType: contentType } };
             // await blockBlobClient.uploadStream(stream, contentLength, 5, options);
             await blockBlobClient.uploadData(buffer, options);
+            this.logger.debug(`Blob uploaded in ${new Date().getTime() - startDate.getTime()}ms`);
             const sasQueryParameters = this.getSasQueryParameters(blobName);
             const blobUrlWithSas = `${blockBlobClient.url}?${sasQueryParameters}`;
             return { blobUrl: blobUrlWithSas, contentType };
