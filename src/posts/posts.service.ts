@@ -119,18 +119,19 @@ export class PostsService {
     if (updatePostDto.tags?.length > 0) {
       updatePostDto.tags = updatePostDto.tags.map(t => t.trim().toLowerCase());
     }
-    const { title } = updatePostDto;
-    let newSlug = null;
-    if (title) {
-      const slugs = await this.getSlugs();
-      newSlug = generateUniqueSlug({ title, slugs });
-    }
+    const { title, content } = updatePostDto;
     const updatedPost: Post = {
       ...post,
       ...updatePostDto
     }
-    if (newSlug) {
-      updatedPost.slug = newSlug;
+    if(content && content !== post.content){
+      const readingTime = content ? calculateReadTime(content) : null;
+      updatedPost.readingTime = readingTime;
+      delete updatedPost.contentAudioUrl;
+    }
+    if (title && title !== post.title) {
+      const slugs = await this.getSlugs();
+      updatedPost.slug = generateUniqueSlug({ title, slugs });
     }
     let newPost: Partial<Post>;
     if(updatePostDto.category !== post.category){
@@ -252,6 +253,7 @@ export class PostsService {
     await this.checkPostReferences(id);//throws error if post is being referenced
     this.algoliaService.deleteObject(id);
     await this.postsContainer.item(id, post.category).delete();
+    //TODO: remove audio from storage if exists
     return null;
   }
 
@@ -478,7 +480,7 @@ export class PostsService {
     });
     const { blobUrl } = await this.storageService.uploadBuffer({
       buffer,
-      blobName: `${id}.mp3`,
+      blobName: this.getAudioBlobName(id),
       contentType: 'audio/mpeg'
     });
     post.contentAudioUrl = blobUrl;
@@ -487,4 +489,10 @@ export class PostsService {
       contentAudioUrl: blobUrl
     };
   }
+
+  private getAudioBlobName(id: string) {
+    const masterFolder = process.env.AZURE_STORAGE_FOLDER || null;
+    const folder = masterFolder ? `${masterFolder}/post-audios` : 'post-audios';
+    return `${folder}/${id}.mp3`;
+}
 }
