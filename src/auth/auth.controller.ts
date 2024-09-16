@@ -5,6 +5,8 @@ import { SignInDto } from './dto/sign-in.dto';
 import { AuthGuard, LoggedUser } from './guards/auth.guard';
 import { UsersService } from 'src/users/users.service';
 import { RegisterDto } from './entities/register.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { SendResetPasswordOtpDto } from './dto/send-reset-password-otp.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -49,5 +51,25 @@ export class AuthController {
   @Get('authenticate')
   async getAuthenticatedUser(@Request() req: any) {
     return this.authService.getAuthenticatedUser(req);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @ApiResponse({
+    status: 200,
+    description: 'Send reset password OTP.',
+  })
+  @Post('send-reset-password-otp')
+  sendResetPasswordOtp(@Body() sendResetPasswordOtpDto: SendResetPasswordOtpDto) {
+    return this.authService.sendResetPasswordOtp(sendResetPasswordOtpDto.email);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @ApiResponse({
+    status: 200,
+    description: 'Reset password.',
+  })
+  @Post('reset-password')
+  resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.authService.resetPassword(resetPasswordDto);
   }
 }

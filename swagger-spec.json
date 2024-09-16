@@ -885,6 +885,54 @@
         ]
       }
     },
+    "/api/auth/send-reset-password-otp": {
+      "post": {
+        "operationId": "AuthController_sendResetPasswordOtp",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendResetPasswordOtpDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Send reset password OTP."
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/auth/reset-password": {
+      "post": {
+        "operationId": "AuthController_resetPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reset password."
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
     "/api/authorities": {
       "post": {
         "operationId": "AuthoritiesController_create",
@@ -2378,6 +2426,102 @@
           "Reports"
         ]
       }
+    },
+    "/api/conversations": {
+      "post": {
+        "operationId": "ConversationsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateConversationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      },
+      "get": {
+        "operationId": "ConversationsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/conversations/{id}": {
+      "get": {
+        "operationId": "ConversationsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "patch": {
+        "operationId": "ConversationsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateConversationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "operationId": "ConversationsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        }
+      }
     }
   },
   "info": {
@@ -2840,6 +2984,38 @@
         "required": [
           "user",
           "verificationCode"
+        ]
+      },
+      "SendResetPasswordOtpDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "The user email",
+            "example": "test@test.com"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "ResetPasswordDto": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string",
+            "description": "The new password",
+            "example": "password"
+          },
+          "token": {
+            "type": "string",
+            "description": "The token sent to the user",
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          }
+        },
+        "required": [
+          "password",
+          "token"
         ]
       },
       "CreateAuthorityDto": {
@@ -3692,6 +3868,14 @@
             "example": "Software Development"
           }
         }
+      },
+      "CreateConversationDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateConversationDto": {
+        "type": "object",
+        "properties": {}
       }
     }
   }
