@@ -14,6 +14,7 @@ export enum ERROR_CODES {
     PROFESSOR_ALREADY_EXISTS = 'PROFESSOR_ALREADY_EXISTS',
     USER_ALREADY_EXISTS = 'USER_ALREADY_EXISTS',
     NESTED_COMMENT_NOT_ALLOWED = 'NESTED_COMMENT_NOT_ALLOWED',
+    POST_DOES_NOT_HAVE_CONTENT = 'POST_DOES_NOT_HAVE_CONTENT',
 }
 
 export const APP_ERRORS = {
@@ -76,5 +77,9 @@ export const APP_ERRORS = {
     [ERROR_CODES.NESTED_COMMENT_NOT_ALLOWED]: {
         code: ERROR_CODES.NESTED_COMMENT_NOT_ALLOWED,
         message: 'Nested comments only allowed one level deep'
+    },
+    [ERROR_CODES.POST_DOES_NOT_HAVE_CONTENT]: {
+        code: ERROR_CODES.POST_DOES_NOT_HAVE_CONTENT,
+        message: 'Post does not have content'
     },
 }

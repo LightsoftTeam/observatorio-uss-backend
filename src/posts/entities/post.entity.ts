@@ -47,6 +47,7 @@ export class Post {
     videoUrl?: string;
     podcastUrl?: string;
     content?: string;
+    contentAudioUrl?: string;
     imageUrl?: string;
     imageDescription?: string;
     likes: number;

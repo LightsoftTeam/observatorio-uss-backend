@@ -6,7 +6,6 @@ import * as bcrypt from 'bcrypt';
 import { InjectModel } from '@nestjs/azure-database';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
 import { REQUEST } from '@nestjs/core';
 import { generateUniqueSlug } from 'src/posts/helpers/generate-slug.helper';
@@ -25,7 +24,6 @@ export class UsersService {
     private readonly countriesService: CountriesService,
     @InjectModel(User)
     private readonly usersContainer: Container,
-    // @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly logger: ApplicationLoggerService,
     @Inject(REQUEST) private request: Request,
   ) { }
@@ -177,7 +175,10 @@ export class UsersService {
     if (!isAdmin && loggedUser?.id !== id) {
       throw new NotFoundException('Unauthorized');
     }
-    const user = await this.findOne(id);//throw not found exception if not found
+    const user = await this.getById(id);
+    if(!user){
+      throw new NotFoundException('User not found');
+    }
     const updatedUser = {
       ...user,
       ...updateUserDto,
@@ -186,6 +187,17 @@ export class UsersService {
       updatedUser.password = bcrypt.hashSync(updateUserDto.password, PASSWORD_SALT_ROUNDS);
     }
     const { resource } = await this.usersContainer.item(user.id).replace(updatedUser);
+    return this.toJson(resource as User);
+  }
+
+  async resetPassword(id: string, password: string) {
+    this.logger.debug(`reset password for user ${id}`);
+    const user = await this.getById(id);
+    if(!user){
+      throw new NotFoundException('User not found');
+    }
+    user.password = bcrypt.hashSync(password, PASSWORD_SALT_ROUNDS);
+    const { resource } = await this.usersContainer.item(user.id).replace(user);
     return this.toJson(resource as User);
   }
 

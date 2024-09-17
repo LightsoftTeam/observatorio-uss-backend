@@ -38,7 +38,6 @@ export class OtpService {
                 code,
             });
             this.logger.log(`storing OTP ${code} ${email} in cache for ${OTP_EXPIRATION_TIME} seconds`);
-            // const resp = await this.redisClient.set(code, email, OTP_EXPIRATION_TIME);
             OTP_CACHE[code] = email;
             return {
                 email,

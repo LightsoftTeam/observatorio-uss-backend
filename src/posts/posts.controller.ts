@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Query, Put, Delete, HttpCode, HttpStatus, UseGuards, UnauthorizedException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Put, Delete, HttpCode, HttpStatus, UseGuards, Response } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -177,5 +177,12 @@ export class PostsController {
   @Delete(':postId/comments/:postCommentId')
   async deleteComment(@Param('postId') postId: string, @Param('postCommentId') postCommentId: string) {
     return this.postCommentsService.remove(postCommentId, postId);
+  }
+
+  @Get(':id/audio')
+  @ApiOperation({ summary: 'Get audio of a post' })
+  @ApiResponse({ status: 200, description: 'The audio has been successfully retrieved.'})
+  getAudio(@Param('id') id: string) {
+    return this.postsService.getAudio(id);
   }
 }

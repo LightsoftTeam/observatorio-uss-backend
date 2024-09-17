@@ -20,6 +20,9 @@ import { scrapedPosts } from 'src/scrap/outputs/posts';
 import { PostsRepository } from './repositories/post.repository';
 import { APP_ERRORS, ERROR_CODES } from 'src/common/constants/errors.constants';
 import { PostComment } from './entities/post-comment.entity';
+import { OpenaiService } from 'src/openai/openai.service';
+import { getTextFromHtml } from 'src/common/helpers/get-text-from-html.helper';
+import { StorageService } from 'src/storage/storage.service';
 
 const BASIC_KEYS_LIST = [
   'id',
@@ -59,6 +62,8 @@ export class PostsService {
     private readonly algoliaService: AlgoliaService,
     private readonly logger: ApplicationLoggerService,
     private readonly postsRepository: PostsRepository,
+    private readonly openaiService: OpenaiService,
+    private readonly storageService: StorageService,
   ) {
     this.logger.setContext(PostsService.name);
   }
@@ -114,18 +119,19 @@ export class PostsService {
     if (updatePostDto.tags?.length > 0) {
       updatePostDto.tags = updatePostDto.tags.map(t => t.trim().toLowerCase());
     }
-    const { title } = updatePostDto;
-    let newSlug = null;
-    if (title) {
-      const slugs = await this.getSlugs();
-      newSlug = generateUniqueSlug({ title, slugs });
-    }
+    const { title, content } = updatePostDto;
     const updatedPost: Post = {
       ...post,
       ...updatePostDto
     }
-    if (newSlug) {
-      updatedPost.slug = newSlug;
+    if(content && content !== post.content){
+      const readingTime = content ? calculateReadTime(content) : null;
+      updatedPost.readingTime = readingTime;
+      delete updatedPost.contentAudioUrl;
+    }
+    if (title && title !== post.title) {
+      const slugs = await this.getSlugs();
+      updatedPost.slug = generateUniqueSlug({ title, slugs });
     }
     let newPost: Partial<Post>;
     if(updatePostDto.category !== post.category){
@@ -165,6 +171,7 @@ export class PostsService {
   }
 
   async findOne(id: string) {
+    this.logger.debug(`Finding post by id - ${id}`);
     const querySpec = {
       query: 'SELECT * FROM c WHERE c.id = @id',
       parameters: [
@@ -246,6 +253,7 @@ export class PostsService {
     await this.checkPostReferences(id);//throws error if post is being referenced
     this.algoliaService.deleteObject(id);
     await this.postsContainer.item(id, post.category).delete();
+    //TODO: remove audio from storage if exists
     return null;
   }
 
@@ -445,4 +453,46 @@ export class PostsService {
     });
     return postsWithAuthor;
   }
+
+  async getAudio(id: string): Promise<{
+    contentAudioUrl: string
+  }>{
+    this.logger.debug(`Getting audio for post - ${id}`);
+    const post = await this.findOne(id);
+    const {content, contentAudioUrl} = post;
+    if(!content){
+      throw new BadRequestException('Post has no content');
+    }
+    if(contentAudioUrl){
+      this.logger.debug(`Post already has audio - ${id}`);
+      return {
+        contentAudioUrl
+      };
+    }
+    const input = getTextFromHtml(content);
+    this.logger.debug(`Getting audio for post - ${id} - ${input.length} characters`);
+    if(input.length > 4096){
+      throw new BadRequestException('Post content 4096 characteres yet to be implemented');
+    }
+    this.logger.debug(`Getting audio from openai`);
+    const buffer = await this.openaiService.getAudioFromText({
+      input,
+    });
+    const { blobUrl } = await this.storageService.uploadBuffer({
+      buffer,
+      blobName: this.getAudioBlobName(id),
+      contentType: 'audio/mpeg'
+    });
+    post.contentAudioUrl = blobUrl;
+    this.postsContainer.item(post.id).replace(post);
+    return {
+      contentAudioUrl: blobUrl
+    };
+  }
+
+  private getAudioBlobName(id: string) {
+    const masterFolder = process.env.AZURE_STORAGE_FOLDER || null;
+    const folder = masterFolder ? `${masterFolder}/post-audios` : 'post-audios';
+    return `${folder}/${id}.mp3`;
+}
 }

@@ -9,11 +9,13 @@ import { CommonModule } from 'src/common/common.module';
 import { PostsModule } from 'src/posts/posts.module';
 import { AuthGuard } from './guards/auth.guard';
 import { OtpService } from 'src/common/services/otp.service';
+import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
+import { UserTokensService } from './services/user-tokens.service';
 
 @Global()
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, JwtService, ConfigService, UsersService, OtpService, AuthGuard],
+  providers: [AuthService, JwtService, ConfigService, UsersService, OtpService, AuthGuard, UserTokensService],
   imports: [
     UsersModule,
     ConfigModule,

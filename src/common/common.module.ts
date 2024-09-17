@@ -6,8 +6,9 @@ import { ApplicationLoggerService } from './services/application-logger.service'
 import { MailService } from './services/mail.service';
 import { CommonService } from './common.service';
 import { OtpService } from './services/otp.service';
-import { CacheModule } from '@nestjs/cache-manager';
 import { CountriesService } from './services/countries.service';
+import { AzureCosmosDbModule } from '@nestjs/azure-database';
+import { UserToken } from './entities/user-token.entity';
 
 @Module({
   providers: [
@@ -27,6 +28,11 @@ import { CountriesService } from './services/countries.service';
     CountriesService
   ],
   controllers: [CommonController],
-  exports: [AlgoliaService, ApplicationLoggerService, MailService, CountriesService]
+  imports: [
+    AzureCosmosDbModule.forFeature([
+      {dto: UserToken}
+    ])
+  ],
+  exports: [AlgoliaService, ApplicationLoggerService, MailService, CountriesService, AzureCosmosDbModule],
 })
 export class CommonModule { }
