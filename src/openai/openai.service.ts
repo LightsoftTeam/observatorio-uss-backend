@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import OpenAI from 'openai';
+import { ChatCompletionMessageParam } from 'openai/resources';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
 
 interface Options {
@@ -45,4 +46,19 @@ export class OpenaiService {
         const buffer = Buffer.from(await response.arrayBuffer());
         return buffer;
     };
+
+    async getCompletion(messages: ChatCompletionMessageParam[]){
+        const response = await this.openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+                { role: "system", content: "You are a helpful assistant." },
+                ...messages
+            ]
+        });
+        const { choices, usage } = response;
+        const choice = choices[0];
+        console.log({choice});
+        this.logger.debug(JSON.stringify(usage));
+        return choice;
+    }
 }

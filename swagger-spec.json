@@ -3876,7 +3876,16 @@
       },
       "CreateConversationDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "body": {
+            "type": "string",
+            "description": "The content of the initial message",
+            "example": "How to create a NestJS application?"
+          }
+        },
+        "required": [
+          "body"
+        ]
       },
       "CreateMessageDto": {
         "type": "object",

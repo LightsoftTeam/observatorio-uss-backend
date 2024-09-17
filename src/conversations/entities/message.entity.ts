@@ -1,15 +1,11 @@
 import { CosmosDateTime, CosmosPartitionKey } from "@nestjs/azure-database";
-
-export enum AuthorType {
-    SYSTEM = 'system',
-    USER = 'user',
-}
+import { ChatCompletionRole } from "openai/resources";
 
 @CosmosPartitionKey('conversationId')
 export class Message {
     id?: string;
     conversationId: string;
-    authorType: AuthorType;
+    role: ChatCompletionRole;
     body: string;
     @CosmosDateTime() createdAt: Date;
     @CosmosDateTime() updatedAt?: Date;
