@@ -3,6 +3,8 @@ import { ConversationsService } from './conversations.service';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { UpdateConversationDto } from './dto/update-conversation.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { CreateMessageDto } from './dto/create-message.dto';
+import { ApiResponse } from '@nestjs/swagger';
 
 @Controller('conversations')
 export class ConversationsController {
@@ -20,14 +22,17 @@ export class ConversationsController {
     return this.conversationsService.findAll();
   }
 
-  @Get(':id')
+  @Get(':id/messages')
   findOne(@Param('id') id: string) {
-    return this.conversationsService.findOne(+id);
+    return this.conversationsService.getMessages(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateConversationDto: UpdateConversationDto) {
-    return this.conversationsService.update(+id, updateConversationDto);
+  @UseGuards(AuthGuard)
+  @ApiResponse({ status: 201, description: 'The message has been successfully created.' })
+  @ApiResponse({ status: 404, description: 'The conversation was not found.' })
+  @Post(':id/messages')
+  createMessage(@Param('id') id: string, @Body() createMessageDto: CreateMessageDto) {
+    return this.conversationsService.createMessage(id, createMessageDto);
   }
 
   @UseGuards(AuthGuard)

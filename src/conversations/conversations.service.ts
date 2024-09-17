@@ -7,6 +7,7 @@ import { Container } from '@azure/cosmos';
 import { AuthorType, Message } from './entities/message.entity';
 import { query } from 'express';
 import { UsersService } from 'src/users/users.service';
+import { CreateMessageDto } from './dto/create-message.dto';
 
 @Injectable()
 export class ConversationsService {
@@ -41,10 +42,6 @@ export class ConversationsService {
     }
     const { resources } = await this.conversationsContainer.items.query<Conversation>(querySpec).fetchAll();
     return resources;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} conversation`;
   }
 
   async getById(id: string): Promise<Conversation | null>{
@@ -92,17 +89,24 @@ export class ConversationsService {
     return resources;
   }
 
-  async createMessage(conversationId: string, createMessageDto: any) {
+  async createMessage(conversationId: string, createMessageDto: CreateMessageDto) {
     const { body } = createMessageDto;
     const conversation = await this.getById(conversationId);
     if (!conversation) {
       throw new NotFoundException('Conversation not found');
     }
+    const messages = await this.getMessages(conversationId);
+    const isFirstMessage = messages.length === 0;
     const message: Message = {
       conversationId,
       body,
       authorType: AuthorType.USER,
       createdAt: new Date(),
+    }
+    if(isFirstMessage){
+      const slice = body.slice(0, 20);
+      const title = slice.charAt(0).toUpperCase() + slice.slice(1);
+      conversation.title = title.length > 20 ? title.slice(0, 20) + '...' : title;
     }
     conversation.lastMessageAt = message.createdAt;
     conversation.updatedAt = message.createdAt;

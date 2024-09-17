@@ -1,10 +1,5 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
-import * as bcrypt from 'bcrypt';
-import { OtpService } from 'src/common/services/otp.service';
-import { Role, User } from 'src/users/entities/user.entity';
-import { CreateUserDto } from 'src/users/dto/create-user.dto';
-import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
 import { v4 as uuidv4 } from 'uuid';
 import { TokenReason, UserToken } from 'src/common/entities/user-token.entity';
@@ -13,13 +8,13 @@ import { Container } from '@azure/cosmos';
 import { MailService } from 'src/common/services/mail.service';
 import { getResetPasswordTemplate } from '../templates/reset-password.template';
 import { APP_ERRORS, ERROR_CODES } from 'src/common/constants/errors.constants';
-import { errors } from 'playwright';
+
+const EXPIRATION_TIME_IN_SECONDS = process.env.OTP_EXPIRATION_TIME_IN_SECONDS ? Number(process.env.OTP_EXPIRATION_TIME_IN_SECONDS) : 300;
 
 @Injectable()
 export class UserTokensService {
     constructor(
         private readonly userService: UsersService,
-        private readonly otpService: OtpService,
         private readonly mailService: MailService,
         private readonly logger: ApplicationLoggerService,
         @InjectModel(UserToken)
@@ -39,7 +34,7 @@ export class UserTokensService {
             userId: user.id,
             token,
             reason: TokenReason.PASSWORD_RESET,
-            expiresAt: new Date(now.getTime() + 1000 * 60 * 5),
+            expiresAt: new Date(now.getTime() + 1000 * EXPIRATION_TIME_IN_SECONDS),
         }
         this.mailService.sendMail({
             subject: 'Recuperación de contraseña',

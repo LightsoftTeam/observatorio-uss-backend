@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, HttpCode, HttpStatus, UseGuards, Request }
 import { AuthService } from './auth.service';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SignInDto } from './dto/sign-in.dto';
-import { AuthGuard, LoggedUser } from './guards/auth.guard';
+import { AuthGuard } from './guards/auth.guard';
 import { UsersService } from 'src/users/users.service';
 import { RegisterDto } from './entities/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
