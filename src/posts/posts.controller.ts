@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Query, Put, Delete, HttpCode, HttpStatus, UseGuards, Response } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Put, Delete, HttpCode, HttpStatus, UseGuards, Response, Request, Res } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -13,6 +13,8 @@ import { ApprovalStatus } from './entities/post.entity';
 import { UpdatePostRequestDto } from './dto/update-post-request.dto';
 import { PostRequestsService } from './services/post-requests.service';
 import { GetPostRequestsDto } from './dto/get-post-requests.dto';
+import { AskPostDto } from './dto/ask-post.dto';
+import { responseSSE } from 'src/common/helpers/sse.helper';
 @ApiTags('Posts')
 @Controller('posts')
 export class PostsController {
@@ -20,7 +22,7 @@ export class PostsController {
     private postsService: PostsService,
     private postCommentsService: PostCommentsService,
     private postRequestsService: PostRequestsService,
-  ) {}
+  ) { }
 
   @ApiResponse({
     status: 401,
@@ -28,15 +30,15 @@ export class PostsController {
   })
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Create a post' })
-  @ApiResponse({ status: 201, description: 'The post has been successfully created.'})
+  @ApiResponse({ status: 201, description: 'The post has been successfully created.' })
   @Post()
   create(@Body() createPostDto: CreatePostDto) {
-    return this.postsService.create({...createPostDto});
+    return this.postsService.create({ ...createPostDto });
   }
 
   @UseGuards(AuthGuard)
   @Post("/update-home-post/:id")
-  updateHomePosts(@Param('id') id: string, @Body() updateHomePostsDto: UpdateHomePostDto){
+  updateHomePosts(@Param('id') id: string, @Body() updateHomePostsDto: UpdateHomePostDto) {
     return this.postsService.updateHomePosts(id, updateHomePostsDto);
   }
 
@@ -46,9 +48,9 @@ export class PostsController {
     description: 'Unauthorized.',
   })
   @ApiOperation({ summary: 'Update a post' })
-  @ApiResponse({ status: 200, description: 'The post has been successfully updated.'})
-  @ApiResponse({ status: 404, description: 'Post not found.'})
-  @ApiResponse({ status: 400, description: 'Bad request.'})
+  @ApiResponse({ status: 200, description: 'The post has been successfully updated.' })
+  @ApiResponse({ status: 404, description: 'Post not found.' })
+  @ApiResponse({ status: 400, description: 'Bad request.' })
   @Put(':id')
   update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
     return this.postsService.update(id, updatePostDto);
@@ -56,7 +58,7 @@ export class PostsController {
 
   @Get()
   @ApiOperation({ summary: 'Get all posts' })
-  @ApiResponse({ status: 200, description: 'The posts has been successfully retrieved.'})
+  @ApiResponse({ status: 200, description: 'The posts has been successfully retrieved.' })
   findAll(@Query() query: GetPostsDto) {
     //TODO: validate query
     return this.postsService.findAll(query);
@@ -64,7 +66,7 @@ export class PostsController {
 
   @Get('find/home')
   @ApiOperation({ summary: 'Get home posts' })
-  @ApiResponse({ status: 200, description: 'The home posts has been successfully retrieved.'})
+  @ApiResponse({ status: 200, description: 'The home posts has been successfully retrieved.' })
   getHomePosts(@Query('') _: string) {
     return this.postsService.getHomePosts();
   }
@@ -72,13 +74,13 @@ export class PostsController {
   @UseGuards(AuthGuard)
   @Get('find/requests')
   @ApiOperation({ summary: 'Get post requests' })
-  @ApiResponse({ status: 200, description: 'The post requests has been successfully retrieved.'})
+  @ApiResponse({ status: 200, description: 'The post requests has been successfully retrieved.' })
   getPostRequests(@Query() getPostRequestsDto: GetPostRequestsDto) {
     return this.postRequestsService.findPostRequests(getPostRequestsDto);
   }
 
   @ApiOperation({ summary: 'Get a post by slug' })
-  @ApiResponse({ status: 200, description: 'The post has been successfully retrieved.'})
+  @ApiResponse({ status: 200, description: 'The post has been successfully retrieved.' })
   @Get(':slug')
   findOne(@Param('slug') slug: string) {
     return this.postsService.findBySlug(slug);
@@ -86,8 +88,8 @@ export class PostsController {
 
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Toggle state of a post' })
-  @ApiResponse({ status: 200, description: 'The post has been successfully toggled.'})
-  @ApiResponse({ status: 401, description: 'Unauthorized.'})
+  @ApiResponse({ status: 200, description: 'The post has been successfully toggled.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @Post(':id/toggle-active-state')
   toggleActiveState(@Param('id') id: string) {
     return this.postsService.toggleActiveState(id);
@@ -99,7 +101,7 @@ export class PostsController {
     description: 'Unauthorized.',
   })
   @ApiOperation({ summary: 'Delete a post' })
-  @ApiResponse({ status: 204, description: 'The post has been successfully deleted.'})
+  @ApiResponse({ status: 204, description: 'The post has been successfully deleted.' })
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
   async delete(@Param('id') id: string) {
@@ -107,7 +109,7 @@ export class PostsController {
   }
 
   @ApiOperation({ summary: 'Like a post' })
-  @ApiResponse({ status: 200, description: 'The post has been successfully liked.'})
+  @ApiResponse({ status: 200, description: 'The post has been successfully liked.' })
   @HttpCode(HttpStatus.OK)
   @Post(':id/likes')
   like(@Param('id') id: string, @Body() updateLikesDto: UpdateLikesDto) {
@@ -124,11 +126,11 @@ export class PostsController {
   @Post('seed')
   seed() {
     return this.postsService.seed();
-  } 
+  }
 
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Create a post request' })
-  @ApiResponse({ status: 201, description: 'The post request has been successfully created.'})
+  @ApiResponse({ status: 201, description: 'The post request has been successfully created.' })
   @Post('create-request')
   createRequest(@Body() createPostDto: CreatePostDto) {
     return this.postsService.create({
@@ -140,7 +142,7 @@ export class PostsController {
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Accept a post request' })
-  @ApiResponse({ status: 200, description: 'The post request has been successfully accepted.'})
+  @ApiResponse({ status: 200, description: 'The post request has been successfully accepted.' })
   @Post('update-request/:id')
   updatePostRequest(@Param('id') id: string, @Body() updatePostRequestDto: UpdatePostRequestDto) {
     return this.postRequestsService.updatePostRequest(id, updatePostRequestDto);
@@ -148,7 +150,7 @@ export class PostsController {
 
   @Get(':id/comments')
   @ApiOperation({ summary: 'Get comments of a post' })
-  @ApiResponse({ status: 200, description: 'The comments has been successfully retrieved.'})
+  @ApiResponse({ status: 200, description: 'The comments has been successfully retrieved.' })
   getComments(@Param('id') id: string) {
     return this.postCommentsService.findByPostId(id);
   }
@@ -156,14 +158,14 @@ export class PostsController {
   @UseGuards(AuthGuard)
   @Post(':id/comments')
   @ApiOperation({ summary: 'Create a comment' })
-  @ApiResponse({ status: 201, description: 'The comment has been successfully created.'})
+  @ApiResponse({ status: 201, description: 'The comment has been successfully created.' })
   createComment(@Param('id') id: string, @Body() createPostCommentDto: CreatePostCommentDto) {
     return this.postCommentsService.create(id, createPostCommentDto);
   }
 
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Like a comment' })
-  @ApiResponse({ status: 200, description: 'The comment has been successfully liked.'})
+  @ApiResponse({ status: 200, description: 'The comment has been successfully liked.' })
   @HttpCode(HttpStatus.OK)
   @Post('/:postId/comments/:postCommentId/likes')
   likeComment(@Param('postId') postId: string, @Param('postCommentId') postCommentId: string) {
@@ -172,7 +174,7 @@ export class PostsController {
 
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Delete a comment' })
-  @ApiResponse({ status: 204, description: 'The comment has been successfully deleted.'})
+  @ApiResponse({ status: 204, description: 'The comment has been successfully deleted.' })
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':postId/comments/:postCommentId')
   async deleteComment(@Param('postId') postId: string, @Param('postCommentId') postCommentId: string) {
@@ -181,8 +183,28 @@ export class PostsController {
 
   @Get(':id/audio')
   @ApiOperation({ summary: 'Get audio of a post' })
-  @ApiResponse({ status: 200, description: 'The audio has been successfully retrieved.'})
+  @ApiResponse({ status: 200, description: 'The audio has been successfully retrieved.' })
   getAudio(@Param('id') id: string) {
     return this.postsService.getAudio(id);
   }
+
+  // @Get(':id/ask')
+  // @ApiOperation({ summary: 'Ask a question' })
+  // @ApiResponse({ status: 200, description: 'The question has been successfully asked.' })
+  // async ask(@Param('id') id: string, @Query() askPostDto: AskPostDto, @Request() request: Request, @Res() response: any) {
+  //   const resp = await this.postsService.ask(id, askPostDto);
+  //   const body = responseSSE({ request }, async (sendEvent) => {
+  //     for await (const part of resp) {
+  //       sendEvent(part.choices[0].delta.content)
+  //     }
+
+  //     sendEvent('__END__')
+  //   }, response);
+  //   response.writeHead(200, {
+  //     'Content-Type': 'text/event-stream',
+  //     'Cache-Control': 'no-cache',
+  //     'Connection': 'keep-alive'
+  //   });
+  //   body.pipe(response);
+  // }
 }

@@ -5,7 +5,6 @@ import { InjectModel } from '@nestjs/azure-database';
 import { Conversation } from './entities/conversation.entity';
 import { Container } from '@azure/cosmos';
 import { Message } from './entities/message.entity';
-import { query } from 'express';
 import { UsersService } from 'src/users/users.service';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { v4 as uuidv4 } from 'uuid';

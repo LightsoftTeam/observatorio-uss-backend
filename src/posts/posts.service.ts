@@ -23,6 +23,7 @@ import { PostComment } from './entities/post-comment.entity';
 import { OpenaiService } from 'src/openai/openai.service';
 import { getTextFromHtml } from 'src/common/helpers/get-text-from-html.helper';
 import { StorageService } from 'src/storage/storage.service';
+import { AskPostDto } from './dto/ask-post.dto';
 
 const BASIC_KEYS_LIST = [
   'id',
@@ -124,7 +125,7 @@ export class PostsService {
       ...post,
       ...updatePostDto
     }
-    if(content && content !== post.content){
+    if (content && content !== post.content) {
       const readingTime = content ? calculateReadTime(content) : null;
       updatedPost.readingTime = readingTime;
       delete updatedPost.contentAudioUrl;
@@ -134,7 +135,7 @@ export class PostsService {
       updatedPost.slug = generateUniqueSlug({ title, slugs });
     }
     let newPost: Partial<Post>;
-    if(updatePostDto.category !== post.category){
+    if (updatePostDto.category !== post.category) {
       await this.postsContainer.item(post.id, post.category).delete();
       const { resource } = await this.postsContainer.items.create(updatedPost);
       newPost = FormatCosmosItem.cleanDocument(resource, ['content']);
@@ -148,7 +149,7 @@ export class PostsService {
     return newPost;
   }
 
-  async getSlugs(){
+  async getSlugs() {
     const slugsQuerySpec = {
       query: 'SELECT c.slug FROM c'
     }
@@ -264,7 +265,7 @@ export class PostsService {
 
   async updateLikes(id: string, action: LikeAction = LikeAction.INCREMENT) {
     const post = await this.findOne(id);
-    if(action === LikeAction.DECREMENT && post.likes === 0){
+    if (action === LikeAction.DECREMENT && post.likes === 0) {
       return 0;
     }
     const likes = action === LikeAction.INCREMENT ? post.likes + 1 : post.likes - 1;
@@ -456,14 +457,14 @@ export class PostsService {
 
   async getAudio(id: string): Promise<{
     contentAudioUrl: string
-  }>{
+  }> {
     this.logger.debug(`Getting audio for post - ${id}`);
     const post = await this.findOne(id);
-    const {content, contentAudioUrl} = post;
-    if(!content){
+    const { content, contentAudioUrl } = post;
+    if (!content) {
       throw new BadRequestException('Post has no content');
     }
-    if(contentAudioUrl){
+    if (contentAudioUrl) {
       this.logger.debug(`Post already has audio - ${id}`);
       return {
         contentAudioUrl
@@ -471,7 +472,7 @@ export class PostsService {
     }
     const input = getTextFromHtml(content);
     this.logger.debug(`Getting audio for post - ${id} - ${input.length} characters`);
-    if(input.length > 4096){
+    if (input.length > 4096) {
       throw new BadRequestException('Post content 4096 characteres yet to be implemented');
     }
     this.logger.debug(`Getting audio from openai`);
@@ -494,5 +495,26 @@ export class PostsService {
     const masterFolder = process.env.AZURE_STORAGE_FOLDER || null;
     const folder = masterFolder ? `${masterFolder}/post-audios` : 'post-audios';
     return `${folder}/${id}.mp3`;
-}
+  }
+
+  async ask(id: string, askPostDto: AskPostDto) {
+    const { question } = askPostDto;
+    const post = await this.findOne(id);
+    const { content } = post;
+
+    //   return responseSSE({ request }, async (sendEvent) => {
+    //     const response = await 
+
+    //     for await (const part of response) {
+    //       sendEvent(part.choices[0].delta.content)
+    //     }
+
+    //     sendEvent('__END__')
+    // }
+    this.logger.debug({question});
+    return this.openaiService.askAbout({
+      context: getTextFromHtml(content),
+      question,
+    });
+  }
 }
