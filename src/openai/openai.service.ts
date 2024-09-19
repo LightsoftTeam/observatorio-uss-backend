@@ -16,7 +16,7 @@ export class OpenaiService {
     constructor(
         private readonly logger: ApplicationLoggerService,
     ) {
-        console.log(this.apiKey);
+        this.logger.debug(this.apiKey);
         this.openai = new OpenAI({
             apiKey: this.apiKey,
         });

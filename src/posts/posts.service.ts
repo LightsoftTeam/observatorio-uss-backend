@@ -20,7 +20,7 @@ import { scrapedPosts } from 'src/scrap/outputs/posts';
 import { PostsRepository } from './repositories/post.repository';
 import { APP_ERRORS, ERROR_CODES } from 'src/common/constants/errors.constants';
 import { PostComment } from './entities/post-comment.entity';
-import { OpenaiService } from 'src/openai/openai.service';
+// import { OpenaiService } from 'src/openai/openai.service';
 import { getTextFromHtml } from 'src/common/helpers/get-text-from-html.helper';
 import { StorageService } from 'src/storage/storage.service';
 
@@ -62,7 +62,7 @@ export class PostsService {
     private readonly algoliaService: AlgoliaService,
     private readonly logger: ApplicationLoggerService,
     private readonly postsRepository: PostsRepository,
-    private readonly openaiService: OpenaiService,
+    // private readonly openaiService: OpenaiService,
     private readonly storageService: StorageService,
   ) {
     this.logger.setContext(PostsService.name);
@@ -459,34 +459,35 @@ export class PostsService {
   }>{
     this.logger.debug(`Getting audio for post - ${id}`);
     const post = await this.findOne(id);
-    const {content, contentAudioUrl} = post;
-    if(!content){
-      throw new BadRequestException('Post has no content');
-    }
-    if(contentAudioUrl){
-      this.logger.debug(`Post already has audio - ${id}`);
-      return {
-        contentAudioUrl
-      };
-    }
-    const input = getTextFromHtml(content);
-    this.logger.debug(`Getting audio for post - ${id} - ${input.length} characters`);
-    if(input.length > 4096){
-      throw new BadRequestException('Post content 4096 characteres yet to be implemented');
-    }
-    this.logger.debug(`Getting audio from openai`);
-    const buffer = await this.openaiService.getAudioFromText({
-      input,
-    });
-    const { blobUrl } = await this.storageService.uploadBuffer({
-      buffer,
-      blobName: this.getAudioBlobName(id),
-      contentType: 'audio/mpeg'
-    });
-    post.contentAudioUrl = blobUrl;
-    this.postsContainer.item(post.id).replace(post);
+    // const {content, contentAudioUrl} = post;
+    // if(!content){
+    //   throw new BadRequestException('Post has no content');
+    // }
+    // if(contentAudioUrl){
+    //   this.logger.debug(`Post already has audio - ${id}`);
+    //   return {
+    //     contentAudioUrl
+    //   };
+    // }
+    // const input = getTextFromHtml(content);
+    // this.logger.debug(`Getting audio for post - ${id} - ${input.length} characters`);
+    // if(input.length > 4096){
+    //   throw new BadRequestException('Post content 4096 characteres yet to be implemented');
+    // }
+    // this.logger.debug(`Getting audio from openai`);
+    // const buffer = await this.openaiService.getAudioFromText({
+    //   input,
+    // });
+    // const { blobUrl } = await this.storageService.uploadBuffer({
+    //   buffer,
+    //   blobName: this.getAudioBlobName(id),
+    //   contentType: 'audio/mpeg'
+    // });
+    // post.contentAudioUrl = blobUrl;
+    // this.postsContainer.item(post.id).replace(post);
     return {
-      contentAudioUrl: blobUrl
+      // contentAudioUrl: blobUrl
+      contentAudioUrl: post.contentAudioUrl ?? ''
     };
   }
 
