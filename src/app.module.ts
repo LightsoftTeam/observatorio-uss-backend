@@ -19,7 +19,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { CompetenciesModule } from './competencies/competencies.module';
 import { SemestersModule } from './semesters/semesters.module';
 import { ReportsModule } from './reports/reports.module';
-import { OpenaiModule } from './openai/openai.module';
+// import { OpenaiModule } from './openai/openai.module';
 // import { ConversationsModule } from './conversations/conversations.module';
 
 @Module({
@@ -54,7 +54,7 @@ import { OpenaiModule } from './openai/openai.module';
     CompetenciesModule,
     SemestersModule,
     ReportsModule,
-    OpenaiModule,
+    // OpenaiModule,
     // ConversationsModule,
   ],
   controllers: [AppController],
