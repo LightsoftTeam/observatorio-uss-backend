@@ -21,6 +21,7 @@ export class OpenaiService {
             this.openai = new OpenAI({
                 apiKey: this.apiKey,
             });
+            this.logger.debug('Openai service initialized');
         } catch (error) {
             this.logger.error(`Error initializing openai service ${error.message}`);
             throw error;
