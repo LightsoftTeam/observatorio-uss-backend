@@ -11,6 +11,7 @@ async function bootstrap() {
     forbidNonWhitelisted: true,
   }));
   app.setGlobalPrefix('api');
+  app.enableCors();
   const config = new DocumentBuilder()
     .setTitle('Observatorio USS')
     // .setDescription('The cats API description')

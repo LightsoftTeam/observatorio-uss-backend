@@ -11,6 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { OpenaiService } from 'src/openai/openai.service';
 import { ChatCompletionMessageParam } from 'openai/resources';
+import { map } from 'rxjs';
 
 @Injectable()
 export class ConversationsService {
@@ -24,7 +25,7 @@ export class ConversationsService {
     private readonly openaiService: OpenaiService,
   ) { }
 
-  async create(createConversationDto: CreateConversationDto) {
+  create(createConversationDto: CreateConversationDto) {
     const { body } = createConversationDto;
     const slice = body.length > 20 ? body.slice(0, 20) + '...' : body;
     const title = slice.charAt(0).toUpperCase() + slice.slice(1);
@@ -36,24 +37,40 @@ export class ConversationsService {
       role: 'user',
       createdAt: now,
     }
-    const systemMessage = await this.getSystemMessage({messages: [userMessage], conversationId});
-    const conversation: Conversation = {
-      id: conversationId,
-      title,
-      userId: this.usersService.getLoggedUser().id,
-      createdAt: now,
-      lastMessageAt: systemMessage.createdAt,
-    }
-    this.conversationsContainer.items.create(conversation);
     this.storeMessage(userMessage);
-    this.storeMessage(systemMessage);
-    return {
-      conversation,
-      messages: [
-        userMessage, 
-        systemMessage,
-      ],
-    };
+    return this.openaiService.getCompletion([{ role: 'user', content: body }])
+      .pipe(
+        map(({ data, type }) => {
+          const { content, role } = data;
+          if (type === 'END') {
+            const systemMessage: Message = {
+              id: uuidv4(),
+              conversationId,
+              body: content,
+              role,
+              createdAt: now,
+            };
+            const conversation: Conversation = {
+              id: conversationId,
+              title,
+              userId: this.usersService.getLoggedUser().id,
+              createdAt: now,
+              lastMessageAt: systemMessage.createdAt,
+            }
+            this.conversationsContainer.items.create(conversation);
+            this.messagesContainer.items.create(systemMessage);
+            return {
+              type,
+              data: {
+                conversation,
+                content,
+                role
+              }
+            }
+          }
+          return { type, data: { content, role } };
+        }),
+      );
   }
 
   async findAll() {
@@ -117,47 +134,34 @@ export class ConversationsService {
   }
 
   async createMessage(conversationId: string, createMessageDto: CreateMessageDto) {
-    const { body } = createMessageDto;
-    const conversation = await this.getById(conversationId);
-    if (!conversation) {
-      throw new NotFoundException('Conversation not found');
-    }
-    const messages = await this.getMessages(conversationId);
-    const message: Message = {
-      conversationId,
-      body,
-      role: 'user',
-      createdAt: new Date(),
-    }
-    messages.push(message);
-    this.storeMessage(message);
-    conversation.lastMessageAt = message.createdAt;
-    conversation.updatedAt = message.createdAt;
-    this.conversationsContainer.item(conversationId, conversation.userId).replace(conversation);
-    const systemMessage = await this.getSystemMessage({messages, conversationId});
-    this.messagesContainer.items.create(systemMessage);
-    return [
-      message,
-      systemMessage,
-    ];
+    return 1;
+    // const { body } = createMessageDto;
+    // const conversation = await this.getById(conversationId);
+    // if (!conversation) {
+    //   throw new NotFoundException('Conversation not found');
+    // }
+    // const messages = await this.getMessages(conversationId);
+    // const message: Message = {
+    //   conversationId,
+    //   body,
+    //   role: 'user',
+    //   createdAt: new Date(),
+    // }
+    // messages.push(message);
+    // this.storeMessage(message);
+    // conversation.lastMessageAt = message.createdAt;
+    // conversation.updatedAt = message.createdAt;
+    // this.conversationsContainer.item(conversationId, conversation.userId).replace(conversation);
+    // const systemMessage = await this.getSystemMessage({ messages, conversationId });
+    // this.messagesContainer.items.create(systemMessage);
+    // return [
+    //   message,
+    //   systemMessage,
+    // ];
   }
 
   async storeMessage(message: Message) {
     const { resource: createdMessage } = await this.messagesContainer.items.create(message);
     return FormatCosmosItem.cleanDocument(createdMessage);
-  }
-
-  async getSystemMessage({messages, conversationId}: {messages: Partial<Message>[], conversationId: string}) {
-    const completionMessages: ChatCompletionMessageParam[] = messages.map(({body, role}) => ({role, content: body} as ChatCompletionMessageParam));
-    const { message } = await this.openaiService.getCompletion(completionMessages);
-    const { content, role } = message;
-    const systemMessage: Message = {
-      id: uuidv4(),
-      conversationId,
-      body: content,
-      role,
-      createdAt: new Date(),
-    }
-    return systemMessage;
   }
 }

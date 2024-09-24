@@ -556,8 +556,7 @@
     },
     "/api/posts/{id}/ask": {
       "get": {
-        "operationId": "PostsController_ask",
-        "summary": "Ask a question",
+        "operationId": "PostsController_getChatStreamsOpenai",
         "parameters": [
           {
             "name": "id",
@@ -579,7 +578,7 @@
         ],
         "responses": {
           "200": {
-            "description": "The question has been successfully asked."
+            "description": ""
           }
         },
         "tags": [

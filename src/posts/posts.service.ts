@@ -24,6 +24,7 @@ import { OpenaiService } from 'src/openai/openai.service';
 import { getTextFromHtml } from 'src/common/helpers/get-text-from-html.helper';
 import { StorageService } from 'src/storage/storage.service';
 import { AskPostDto } from './dto/ask-post.dto';
+import { from, interval, map, switchMap } from 'rxjs';
 
 const BASIC_KEYS_LIST = [
   'id',
@@ -498,24 +499,21 @@ export class PostsService {
     return `${folder}/${id}.mp3`;
   }
 
-  async ask(id: string, askPostDto: AskPostDto) {
+  ask(id: string, askPostDto: AskPostDto) {
+    console.log('AskPostDto', askPostDto);
     const { question } = askPostDto;
-    const post = await this.findOne(id);
-    const { content } = post;
-
-    //   return responseSSE({ request }, async (sendEvent) => {
-    //     const response = await 
-
-    //     for await (const part of response) {
-    //       sendEvent(part.choices[0].delta.content)
-    //     }
-
-    //     sendEvent('__END__')
-    // }
-    this.logger.debug({question});
-    return this.openaiService.askAbout({
-      context: getTextFromHtml(content),
-      question,
-    });
+    return from(this.findOne(id))
+    .pipe(
+      switchMap(post => {
+        if(!post){
+          throw new NotFoundException('Post not found');
+        }
+        const { content } = post;
+        return this.openaiService.askAbout({
+          context: getTextFromHtml(content),
+          question,
+        });
+      })
+    );
   }
 }

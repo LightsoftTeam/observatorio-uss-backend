@@ -1,7 +1,15 @@
 import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import OpenAI from 'openai';
-import { ChatCompletionMessageParam } from 'openai/resources';
+import { Stream } from 'openai/streaming';
+import { ChatCompletionMessageParam, ChatCompletionRole } from 'openai/resources';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
+import { interval, map, Observable } from 'rxjs';
+
+export enum EventSourceType {
+    PARTIAL_CONTENT = 'partial-content',
+    END = 'end',
+}
 
 interface Options {
     voice?: string;
@@ -17,6 +25,7 @@ export class OpenaiService {
 
     constructor(
         private readonly logger: ApplicationLoggerService,
+        private eventEmitterService: EventEmitter2,
     ) {
         try {
             this.logger.debug(this.apiKey);
@@ -55,41 +64,81 @@ export class OpenaiService {
         return buffer;
     };
 
-    async getCompletion(messages: ChatCompletionMessageParam[]) {
-        const response = await this.openai.chat.completions.create({
-            model: "gpt-3.5-turbo-16k",
-            messages: [
-                { role: "system", content: "You are a helpful assistant." },
-                ...messages
-            ]
+    getCompletion(messages: ChatCompletionMessageParam[]): Observable<{ type?: string, data?: { content: string, role: ChatCompletionRole } }> {
+        return new Observable((subscriber) => {
+            this.openai.chat.completions.create({
+                model: "gpt-3.5-turbo-16k",
+                messages: [
+                    { role: "system", content: "You are a helpful assistant." },
+                    ...messages
+                ],
+                stream: true
+            })
+                .then(async (response) => {
+                    for await (const chunk of response as Stream<OpenAI.ChatCompletionChunk>) {
+                        console.log({ tokens: chunk.usage?.total_tokens });
+                        if (chunk.choices[0].finish_reason === 'stop') {
+                            subscriber.next({ type: EventSourceType.END });
+                            subscriber.complete();
+                            return;
+                        }
+                        const content = chunk.choices[0].delta.content;
+                        const role = chunk.choices[0].delta.role;
+                        subscriber.next({ type: EventSourceType.PARTIAL_CONTENT, data: { content, role } });
+                    }
+                });
         });
-        const { choices, usage } = response;
-        const choice = choices[0];
-        console.log({ choice });
-        this.logger.debug(JSON.stringify(usage));
-        return choice;
     }
 
-    async askAbout({
+    cont = 1;
+    askAbout({
         context,
         question,
     }: {
         context: string,
         question: string,
     }) {
-        return this.openai.chat.completions.create({
-            model: 'gpt-3.5-turbo-16k',
-            stream: true,
-            messages: [
-                {
-                    role: 'system',
-                    content: SYSTEM_EXPERT_PROMPT
-                },
-                {
-                    role: 'user',
-                    content: `<context>${context}</context><question>${question}</question>`
+        return new Observable((subscriber) => {
+            this.openai.chat.completions.create({
+                model: 'gpt-3.5-turbo-0125',
+                stream: true,
+                messages: [
+                    {
+                        role: 'system',
+                        content: SYSTEM_EXPERT_PROMPT
+                    },
+                    {
+                        role: 'user',
+                        content: `<context>${context}</context><question>${question}</question>`
+                    }
+                ]
+            })
+                .then(async (response) => {
+                    for await (const chunk of response as Stream<OpenAI.ChatCompletionChunk>) {
+                        console.log('emitiendo ', chunk.choices[0].delta.content);
+                        if (chunk.choices[0].finish_reason === 'stop') {
+                            subscriber.next({ data: '___END___' });
+                            subscriber.complete();
+                            return;
+                        }
+                        subscriber.next({ data: chunk.choices[0].delta.content });
+                    }
+                });
+        });
+    }
+
+    getStreamMessages(): Observable<OpenAI.ChatCompletionChunk> {
+        return new Observable((subscribe) => {
+            const listener = (message: OpenAI.ChatCompletionChunk) => {
+                if (message.choices[0].finish_reason === 'stop') {
+                    subscribe.next(message); // sent the last message event
+                    return subscribe.complete(); // close the connection
                 }
-            ]
+                console.log('next observable')
+                subscribe.next(message);
+            };
+            this.eventEmitterService.on('streamMessage', listener);
+            return () => this.eventEmitterService.off('streamMessage', listener);
         });
     }
 }
