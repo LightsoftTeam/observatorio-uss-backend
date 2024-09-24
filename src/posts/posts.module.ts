@@ -20,9 +20,9 @@ import { StorageModule } from 'src/storage/storage.module';
 @Module({
   imports: [
     AzureCosmosDbModule.forFeature([
-      {dto: Post},
-      {dto: HomePost},
-      {dto: PostComment},
+      { dto: Post },
+      { dto: HomePost },
+      { dto: PostComment },
     ]),
     CommonModule,
     UsersModule,
@@ -30,7 +30,22 @@ import { StorageModule } from 'src/storage/storage.module';
     StorageModule,
   ],
   controllers: [PostsController],
-  providers: [PostsService, AlgoliaService, PostsRepository, UsersService, PostCommentsService, PostRequestsService, OpenaiService, StorageService],
-  exports: [PostsService, AzureCosmosDbModule, PostsRepository, OpenaiService, StorageService]
+  providers: [
+    PostsService,
+    AlgoliaService,
+    PostsRepository,
+    UsersService,
+    PostCommentsService,
+    PostRequestsService,
+    OpenaiService,
+    StorageService
+  ],
+  exports: [
+    PostsService,
+    AzureCosmosDbModule,
+    PostsRepository,
+    OpenaiService, 
+    StorageService
+  ]
 })
-export class PostsModule {}
+export class PostsModule { }

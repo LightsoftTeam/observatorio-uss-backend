@@ -18,10 +18,16 @@ export class OpenaiService {
     constructor(
         private readonly logger: ApplicationLoggerService,
     ) {
-        console.log(this.apiKey);
-        this.openai = new OpenAI({
-            apiKey: this.apiKey,
-        });
+        try {
+            this.logger.debug(this.apiKey);
+            this.openai = new OpenAI({
+                apiKey: this.apiKey,
+            });
+            this.logger.debug('Openai service initialized');
+        } catch (error) {
+            this.logger.error(`Error initializing openai service ${error.message}`);
+            throw error;
+        }
     }
 
     async getAudioFromText(
@@ -51,7 +57,7 @@ export class OpenaiService {
 
     async getCompletion(messages: ChatCompletionMessageParam[]) {
         const response = await this.openai.chat.completions.create({
-            model: "gpt-4o-mini",
+            model: "gpt-3.5-turbo-16k",
             messages: [
                 { role: "system", content: "You are a helpful assistant." },
                 ...messages
