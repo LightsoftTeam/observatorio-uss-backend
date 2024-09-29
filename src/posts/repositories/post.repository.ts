@@ -57,7 +57,6 @@ export class PostsRepository {
             });
         }
         querySpec.query += ' ORDER BY c.createdAt DESC';
-        console.log(querySpec);
         const { resources: posts } = await this.postsContainer.items.query<Post>(querySpec).fetchAll();
         const users = await this.usersService.findByIds(posts.map(p => p.userId));
         let postsWithAuthor = posts.map(post => {

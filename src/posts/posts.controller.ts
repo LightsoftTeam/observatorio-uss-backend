@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Query, Put, Delete, HttpCode, HttpStatus, UseGuards, Response, Request, Res, Sse } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Put, Delete, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -13,11 +13,6 @@ import { ApprovalStatus } from './entities/post.entity';
 import { UpdatePostRequestDto } from './dto/update-post-request.dto';
 import { PostRequestsService } from './services/post-requests.service';
 import { GetPostRequestsDto } from './dto/get-post-requests.dto';
-import { AskPostDto } from './dto/ask-post.dto';
-import { responseSSE } from 'src/common/helpers/sse.helper';
-import { interval, map, Observable } from 'rxjs';
-import { OpenaiService } from 'src/openai/openai.service';
-import OpenAI from 'openai';
 @ApiTags('Posts')
 @Controller('posts')
 export class PostsController {
@@ -25,7 +20,6 @@ export class PostsController {
     private postsService: PostsService,
     private postCommentsService: PostCommentsService,
     private postRequestsService: PostRequestsService,
-    private openaiService: OpenaiService,
   ) { }
 
   @ApiResponse({
@@ -64,7 +58,6 @@ export class PostsController {
   @ApiOperation({ summary: 'Get all posts' })
   @ApiResponse({ status: 200, description: 'The posts has been successfully retrieved.' })
   findAll(@Query() query: GetPostsDto) {
-    //TODO: validate query
     return this.postsService.findAll(query);
   }
 
@@ -191,30 +184,4 @@ export class PostsController {
   getAudio(@Param('id') id: string) {
     return this.postsService.getAudio(id);
   }
-
-  @Sse(':id/ask')
-  getChatStreamsOpenai(@Param('id') id: string, @Query() dto: AskPostDto): Observable<any> {
-    return this.postsService.ask(id, dto);
-  }
-
-  // @Get(':id/ask')
-  // @ApiOperation({ summary: 'Ask a question' })
-  // @ApiResponse({ status: 200, description: 'The question has been successfully asked.' })
-  // ask(@Param('id') id: string, @Query() askPostDto: AskPostDto) {
-  //   return this.postsService.ask(id, askPostDto);
-
-    // const body = responseSSE({ request }, async (sendEvent) => {
-    //   for await (const part of resp) {
-    //     sendEvent(part.choices[0].delta.content)
-    //   }
-
-    //   sendEvent('__END__')
-    // }, response);
-    // response.writeHead(200, {
-    //   'Content-Type': 'text/event-stream',
-    //   'Cache-Control': 'no-cache',
-    //   'Connection': 'keep-alive'
-    // });
-    // body.pipe(response);
-  // }
 }

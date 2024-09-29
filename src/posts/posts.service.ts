@@ -25,6 +25,7 @@ import { getTextFromHtml } from 'src/common/helpers/get-text-from-html.helper';
 import { StorageService } from 'src/storage/storage.service';
 import { AskPostDto } from './dto/ask-post.dto';
 import { from, interval, map, switchMap } from 'rxjs';
+import { isUUID } from 'class-validator';
 
 const BASIC_KEYS_LIST = [
   'id',
@@ -192,6 +193,9 @@ export class PostsService {
 
   async findBySlug(slug: string) {
     this.logger.log(`Finding post by slug - ${slug}`);
+    if(isUUID(slug)){
+      return this.findOne(slug);
+    }
     const querySpec = {
       query: 'SELECT * FROM c WHERE c.slug = @slug',
       parameters: [

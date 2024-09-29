@@ -554,38 +554,6 @@
         ]
       }
     },
-    "/api/posts/{id}/ask": {
-      "get": {
-        "operationId": "PostsController_getChatStreamsOpenai",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "question",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "nullable": true,
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "tags": [
-          "Posts"
-        ]
-      }
-    },
     "/api/common/sync-algolia": {
       "post": {
         "operationId": "CommonController_syncAlgolia",
