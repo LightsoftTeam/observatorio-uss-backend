@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateConversationDto } from './dto/create-conversation.dto';
-import { UpdateConversationDto } from './dto/update-conversation.dto';
 import { InjectModel } from '@nestjs/azure-database';
 import { Conversation } from './entities/conversation.entity';
 import { Container } from '@azure/cosmos';
@@ -9,9 +8,7 @@ import { UsersService } from 'src/users/users.service';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
-import { OpenaiService } from 'src/openai/openai.service';
-import { ChatCompletionMessageParam } from 'openai/resources';
-import { map } from 'rxjs';
+import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
 
 @Injectable()
 export class ConversationsService {
@@ -22,55 +19,17 @@ export class ConversationsService {
     @InjectModel(Message)
     private readonly messagesContainer: Container,
     private readonly usersService: UsersService,
-    private readonly openaiService: OpenaiService,
+    private readonly logger: ApplicationLoggerService,
   ) { }
 
   create(createConversationDto: CreateConversationDto) {
-    const { body } = createConversationDto;
-    const slice = body.length > 20 ? body.slice(0, 20) + '...' : body;
-    const title = slice.charAt(0).toUpperCase() + slice.slice(1);
-    const conversationId = uuidv4();
-    const now = new Date();
-    const userMessage: Message = {
-      conversationId,
-      body,
-      role: 'user',
-      createdAt: now,
-    }
-    this.storeMessage(userMessage);
-    return this.openaiService.getCompletion([{ role: 'user', content: body }])
-      .pipe(
-        map(({ data, type }) => {
-          const { content, role } = data;
-          if (type === 'END') {
-            const systemMessage: Message = {
-              id: uuidv4(),
-              conversationId,
-              body: content,
-              role,
-              createdAt: now,
-            };
-            const conversation: Conversation = {
-              id: conversationId,
-              title,
-              userId: this.usersService.getLoggedUser().id,
-              createdAt: now,
-              lastMessageAt: systemMessage.createdAt,
-            }
-            this.conversationsContainer.items.create(conversation);
-            this.messagesContainer.items.create(systemMessage);
-            return {
-              type,
-              data: {
-                conversation,
-                content,
-                role
-              }
-            }
-          }
-          return { type, data: { content, role } };
-        }),
-      );
+    const { id } = createConversationDto;
+    const conversation: Conversation = {
+      ...createConversationDto,
+      id: id ?? uuidv4(),
+    };
+    this.conversationsContainer.items.create(conversation);
+    return FormatCosmosItem.cleanDocument(conversation);
   }
 
   async findAll() {
@@ -85,7 +44,7 @@ export class ConversationsService {
       ],
     }
     const { resources } = await this.conversationsContainer.items.query<Conversation>(querySpec).fetchAll();
-    return resources;
+    return resources.map(r => FormatCosmosItem.cleanDocument(r));
   }
 
   async getById(id: string): Promise<Conversation | null> {
@@ -102,8 +61,12 @@ export class ConversationsService {
     return resources.at(0) ?? null;
   }
 
-  update(id: number, updateConversationDto: UpdateConversationDto) {
-    return `This action updates a #${id} conversation`;
+  async findOne(id: string) {
+    const conversation = await this.getById(id);
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+    return FormatCosmosItem.cleanDocument(conversation);
   }
 
   async remove(id: string) {
@@ -134,34 +97,19 @@ export class ConversationsService {
   }
 
   async createMessage(conversationId: string, createMessageDto: CreateMessageDto) {
-    return 1;
-    // const { body } = createMessageDto;
-    // const conversation = await this.getById(conversationId);
-    // if (!conversation) {
-    //   throw new NotFoundException('Conversation not found');
-    // }
-    // const messages = await this.getMessages(conversationId);
-    // const message: Message = {
-    //   conversationId,
-    //   body,
-    //   role: 'user',
-    //   createdAt: new Date(),
-    // }
-    // messages.push(message);
-    // this.storeMessage(message);
-    // conversation.lastMessageAt = message.createdAt;
-    // conversation.updatedAt = message.createdAt;
-    // this.conversationsContainer.item(conversationId, conversation.userId).replace(conversation);
-    // const systemMessage = await this.getSystemMessage({ messages, conversationId });
-    // this.messagesContainer.items.create(systemMessage);
-    // return [
-    //   message,
-    //   systemMessage,
-    // ];
-  }
-
-  async storeMessage(message: Message) {
-    const { resource: createdMessage } = await this.messagesContainer.items.create(message);
-    return FormatCosmosItem.cleanDocument(createdMessage);
+    this.logger.debug(`Creating message ${JSON.stringify(createMessageDto)}`);
+    const conversation = await this.getById(conversationId);
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+    conversation.lastMessageAt = new Date(createMessageDto.createdAt);
+    conversation.updatedAt = new Date(createMessageDto.createdAt);
+    const message: Message = {
+      ...createMessageDto,
+      conversationId,
+    };
+    this.conversationsContainer.item(conversationId, conversation.userId).replace(conversation);
+    this.messagesContainer.items.create(message);
+    return FormatCosmosItem.cleanDocument(message);
   }
 }

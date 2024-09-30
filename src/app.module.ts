@@ -21,7 +21,7 @@ import { CompetenciesModule } from './competencies/competencies.module';
 import { SemestersModule } from './semesters/semesters.module';
 import { ReportsModule } from './reports/reports.module';
 import { OpenaiModule } from './openai/openai.module';
-// import { ConversationsModule } from './conversations/conversations.module';
+import { ConversationsModule } from './conversations/conversations.module';
 
 @Module({
   imports: [
@@ -55,10 +55,8 @@ import { OpenaiModule } from './openai/openai.module';
     CompetenciesModule,
     SemestersModule,
     ReportsModule,
-    // OpenaiModule,
-    // ConversationsModule,
     OpenaiModule,
-    // ConversationsModule,
+    ConversationsModule,
     EventEmitterModule.forRoot(),
   ],
   controllers: [AppController],
