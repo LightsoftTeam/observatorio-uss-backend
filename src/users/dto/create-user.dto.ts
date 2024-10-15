@@ -12,6 +12,14 @@ export class CreateUserDto {
     name: string;
 
     @ApiProperty({
+        description: 'The biography of the user',
+        example: 'I am a software engineer'
+    })
+    @IsString()
+    @IsOptional()
+    biography?: string;
+
+    @ApiProperty({
         description: 'The image of the user',
         example: 'https://example.com/image.jpg'
     })

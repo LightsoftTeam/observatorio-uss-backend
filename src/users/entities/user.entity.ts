@@ -12,6 +12,7 @@ export class User {
     id?: string;
     name: string;
     slug: string;
+    biography?: string;
     countryCode?: string;
     country?: Country;
     image?: string;

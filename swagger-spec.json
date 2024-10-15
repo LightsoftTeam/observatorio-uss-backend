@@ -2872,6 +2872,11 @@
             "description": "The name of the user",
             "example": "John Doe"
           },
+          "biography": {
+            "type": "string",
+            "description": "The biography of the user",
+            "example": "I am a software engineer"
+          },
           "image": {
             "type": "string",
             "description": "The image of the user",
@@ -2902,6 +2907,7 @@
         },
         "required": [
           "name",
+          "biography",
           "image",
           "email",
           "password",
@@ -2916,6 +2922,11 @@
             "type": "string",
             "description": "The name of the user",
             "example": "John Doe"
+          },
+          "biography": {
+            "type": "string",
+            "description": "The biography of the user",
+            "example": "I am a software engineer"
           },
           "image": {
             "type": "string",

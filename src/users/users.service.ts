@@ -13,6 +13,7 @@ import { FindUsersDto } from './dto/find-users.dto';
 import { APP_ERRORS, ERROR_CODES } from 'src/common/constants/errors.constants';
 import { COUNTRIES_MAP } from 'src/common/constants/countries';
 import { CountriesService } from 'src/common/services/countries.service';
+import { Post } from 'src/posts/entities/post.entity';
 
 const PASSWORD_SALT_ROUNDS = 5;
 
@@ -24,6 +25,8 @@ export class UsersService {
     private readonly countriesService: CountriesService,
     @InjectModel(User)
     private readonly usersContainer: Container,
+    @InjectModel(Post)
+    private readonly postsContainer: Container,
     private readonly logger: ApplicationLoggerService,
     @Inject(REQUEST) private request: Request,
   ) { }
@@ -110,7 +113,31 @@ export class UsersService {
     if (resources.length === 0) {
       throw new NotFoundException('User not found');
     }
-    return this.toJson(resources[0]);
+    const extraData = await this.getExtraAuthorData(resources[0].id);
+    return this.toJson(resources[0], extraData);
+  }
+
+  private async getExtraAuthorData(id: string) {
+    const querySpecPosts = {
+      query: `
+        SELECT c.id, c.likes FROM c 
+        WHERE c.userId = @id
+        AND c.isActive = true
+      `,
+      parameters: [
+        {
+          name: '@id',
+          value: id,
+        },
+      ],
+    };
+    const { resources: posts } = await this.postsContainer.items.query<{id: string, likes: number}>(querySpecPosts).fetchAll();
+    console.log(posts);
+    const likes = posts.reduce((acc, post) => acc + post.likes, 0);
+    return {
+      postsCount: posts.length,
+      postLikes: likes,
+    };
   }
 
   async findByIds(ids: string[]) {
@@ -270,8 +297,11 @@ export class UsersService {
     return 'ok';
   }
 
-  toJson(user: User) {
+  toJson(user: User, extraData: any = {}) {
     user.country = this.countriesService.getCountry(user.countryCode);
-    return FormatCosmosItem.cleanDocument(user, ['password']);
+    return {
+      ...FormatCosmosItem.cleanDocument(user, ['password']),
+      ...extraData,
+    };
   }
 }
