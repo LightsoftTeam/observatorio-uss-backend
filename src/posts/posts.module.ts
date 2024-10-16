@@ -12,8 +12,8 @@ import { UsersModule } from 'src/users/users.module';
 import { PostComment } from './entities/post-comment.entity';
 import { PostCommentsService } from './services/post-comments.service';
 import { PostRequestsService } from './services/post-requests.service';
-// import { OpenaiModule } from '../openai/openai.module';
-// import { OpenaiService } from 'src/openai/openai.service';
+import { OpenaiModule } from '../openai/openai.module';
+import { OpenaiService } from 'src/openai/openai.service';
 import { StorageService } from 'src/storage/storage.service';
 import { StorageModule } from 'src/storage/storage.module';
 
@@ -26,7 +26,7 @@ import { StorageModule } from 'src/storage/storage.module';
     ]),
     CommonModule,
     UsersModule,
-    // OpenaiModule,
+    OpenaiModule,
     StorageModule,
   ],
   controllers: [PostsController],
@@ -37,14 +37,14 @@ import { StorageModule } from 'src/storage/storage.module';
     UsersService,
     PostCommentsService,
     PostRequestsService,
-    // OpenaiService,
+    OpenaiService,
     StorageService
   ],
   exports: [
     PostsService,
     AzureCosmosDbModule,
     PostsRepository,
-    // OpenaiService, 
+    OpenaiService, 
     StorageService
   ]
 })

@@ -5,12 +5,14 @@ import { User } from './entities/user.entity';
 import { AzureCosmosDbModule } from '@nestjs/azure-database';
 import { CommonModule } from 'src/common/common.module';
 import { CountriesService } from 'src/common/services/countries.service';
+import { Post } from 'src/posts/entities/post.entity';
 
 @Module({
   imports: [
     // PostsModule,
     AzureCosmosDbModule.forFeature([
-      {dto: User}
+      {dto: User},
+      {dto: Post}
     ]),
     CommonModule,
   ],

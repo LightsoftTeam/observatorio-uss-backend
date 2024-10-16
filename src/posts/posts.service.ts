@@ -20,9 +20,12 @@ import { scrapedPosts } from 'src/scrap/outputs/posts';
 import { PostsRepository } from './repositories/post.repository';
 import { APP_ERRORS, ERROR_CODES } from 'src/common/constants/errors.constants';
 import { PostComment } from './entities/post-comment.entity';
-// import { OpenaiService } from 'src/openai/openai.service';
+import { OpenaiService } from 'src/openai/openai.service';
 import { getTextFromHtml } from 'src/common/helpers/get-text-from-html.helper';
 import { StorageService } from 'src/storage/storage.service';
+import { AskPostDto } from './dto/ask-post.dto';
+import { from, interval, map, switchMap } from 'rxjs';
+import { isUUID } from 'class-validator';
 
 const BASIC_KEYS_LIST = [
   'id',
@@ -62,7 +65,7 @@ export class PostsService {
     private readonly algoliaService: AlgoliaService,
     private readonly logger: ApplicationLoggerService,
     private readonly postsRepository: PostsRepository,
-    // private readonly openaiService: OpenaiService,
+    private readonly openaiService: OpenaiService,
     private readonly storageService: StorageService,
   ) {
     this.logger.setContext(PostsService.name);
@@ -124,7 +127,7 @@ export class PostsService {
       ...post,
       ...updatePostDto
     }
-    if(content && content !== post.content){
+    if (content && content !== post.content) {
       const readingTime = content ? calculateReadTime(content) : null;
       updatedPost.readingTime = readingTime;
       delete updatedPost.contentAudioUrl;
@@ -134,7 +137,7 @@ export class PostsService {
       updatedPost.slug = generateUniqueSlug({ title, slugs });
     }
     let newPost: Partial<Post>;
-    if(updatePostDto.category !== post.category){
+    if (updatePostDto.category !== post.category) {
       await this.postsContainer.item(post.id, post.category).delete();
       const { resource } = await this.postsContainer.items.create(updatedPost);
       newPost = FormatCosmosItem.cleanDocument(resource, ['content']);
@@ -148,7 +151,7 @@ export class PostsService {
     return newPost;
   }
 
-  async getSlugs(){
+  async getSlugs() {
     const slugsQuerySpec = {
       query: 'SELECT c.slug FROM c'
     }
@@ -190,6 +193,9 @@ export class PostsService {
 
   async findBySlug(slug: string) {
     this.logger.log(`Finding post by slug - ${slug}`);
+    if(isUUID(slug)){
+      return this.findOne(slug);
+    }
     const querySpec = {
       query: 'SELECT * FROM c WHERE c.slug = @slug',
       parameters: [
@@ -264,7 +270,7 @@ export class PostsService {
 
   async updateLikes(id: string, action: LikeAction = LikeAction.INCREMENT) {
     const post = await this.findOne(id);
-    if(action === LikeAction.DECREMENT && post.likes === 0){
+    if (action === LikeAction.DECREMENT && post.likes === 0) {
       return 0;
     }
     const likes = action === LikeAction.INCREMENT ? post.likes + 1 : post.likes - 1;
@@ -456,38 +462,38 @@ export class PostsService {
 
   async getAudio(id: string): Promise<{
     contentAudioUrl: string
-  }>{
+  }> {
     this.logger.debug(`Getting audio for post - ${id}`);
     const post = await this.findOne(id);
-    // const {content, contentAudioUrl} = post;
-    // if(!content){
-    //   throw new BadRequestException('Post has no content');
-    // }
-    // if(contentAudioUrl){
-    //   this.logger.debug(`Post already has audio - ${id}`);
-    //   return {
-    //     contentAudioUrl
-    //   };
-    // }
-    // const input = getTextFromHtml(content);
-    // this.logger.debug(`Getting audio for post - ${id} - ${input.length} characters`);
-    // if(input.length > 4096){
-    //   throw new BadRequestException('Post content 4096 characteres yet to be implemented');
-    // }
-    // this.logger.debug(`Getting audio from openai`);
-    // const buffer = await this.openaiService.getAudioFromText({
-    //   input,
-    // });
-    // const { blobUrl } = await this.storageService.uploadBuffer({
-    //   buffer,
-    //   blobName: this.getAudioBlobName(id),
-    //   contentType: 'audio/mpeg'
-    // });
-    // post.contentAudioUrl = blobUrl;
-    // this.postsContainer.item(post.id).replace(post);
+    const { content, contentAudioUrl } = post;
+    if (!content) {
+      throw new BadRequestException('Post has no content');
+    }
+    if (contentAudioUrl) {
+      this.logger.debug(`Post already has audio - ${id}`);
+      return {
+        contentAudioUrl
+      };
+    }
+    const input = getTextFromHtml(content);
+    this.logger.debug(`Getting audio for post - ${id} - ${input.length} characters`);
+    if (input.length > 4096) {
+      throw new BadRequestException('Post content 4096 characteres yet to be implemented');
+    }
+    this.logger.debug(`Getting audio from openai`);
+    const buffer = await this.openaiService.getAudioFromText({
+      input,
+    });
+    const { blobUrl } = await this.storageService.uploadBuffer({
+      buffer,
+      blobName: this.getAudioBlobName(id),
+      contentType: 'audio/mpeg'
+    });
+    post.contentAudioUrl = blobUrl;
+    this.postsContainer.item(post.id).replace(post);
     return {
-      // contentAudioUrl: blobUrl
-      contentAudioUrl: post.contentAudioUrl ?? ''
+      contentAudioUrl: blobUrl
+      // contentAudioUrl: post.contentAudioUrl ?? ''
     };
   }
 
@@ -495,5 +501,23 @@ export class PostsService {
     const masterFolder = process.env.AZURE_STORAGE_FOLDER || null;
     const folder = masterFolder ? `${masterFolder}/post-audios` : 'post-audios';
     return `${folder}/${id}.mp3`;
-}
+  }
+
+  ask(id: string, askPostDto: AskPostDto) {
+    console.log('AskPostDto', askPostDto);
+    const { question } = askPostDto;
+    return from(this.findOne(id))
+    .pipe(
+      switchMap(post => {
+        if(!post){
+          throw new NotFoundException('Post not found');
+        }
+        const { content } = post;
+        return this.openaiService.askAbout({
+          context: getTextFromHtml(content),
+          question,
+        });
+      })
+    );
+  }
 }

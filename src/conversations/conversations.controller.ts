@@ -1,7 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
 import { ConversationsService } from './conversations.service';
 import { CreateConversationDto } from './dto/create-conversation.dto';
-import { UpdateConversationDto } from './dto/update-conversation.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { ApiResponse } from '@nestjs/swagger';
@@ -10,7 +9,7 @@ import { ApiResponse } from '@nestjs/swagger';
 export class ConversationsController {
   constructor(private readonly conversationsService: ConversationsService) {}
 
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @Post()
   create(@Body() createConversationDto: CreateConversationDto) {
     return this.conversationsService.create(createConversationDto);
@@ -22,12 +21,18 @@ export class ConversationsController {
     return this.conversationsService.findAll();
   }
 
-  @Get(':id/messages')
+  // @UseGuards(AuthGuard)
+  @Get(':id')
   findOne(@Param('id') id: string) {
+    return this.conversationsService.findOne(id);
+  }
+
+  @Get(':id/messages')
+  getMessages(@Param('id') id: string) {
     return this.conversationsService.getMessages(id);
   }
 
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @ApiResponse({ status: 201, description: 'The message has been successfully created.' })
   @ApiResponse({ status: 404, description: 'The conversation was not found.' })
   @Post(':id/messages')
