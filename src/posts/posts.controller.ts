@@ -13,6 +13,7 @@ import { ApprovalStatus } from './entities/post.entity';
 import { UpdatePostRequestDto } from './dto/update-post-request.dto';
 import { PostRequestsService } from './services/post-requests.service';
 import { GetPostRequestsDto } from './dto/get-post-requests.dto';
+import { GuestGuard } from 'src/auth/guards/guest.guard';
 @ApiTags('Posts')
 @Controller('posts')
 export class PostsController {
@@ -145,6 +146,7 @@ export class PostsController {
     return this.postRequestsService.updatePostRequest(id, updatePostRequestDto);
   }
 
+  @UseGuards(GuestGuard)
   @Get(':id/comments')
   @ApiOperation({ summary: 'Get comments of a post' })
   @ApiResponse({ status: 200, description: 'The comments has been successfully retrieved.' })
