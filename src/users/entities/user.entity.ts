@@ -4,7 +4,8 @@ import { Country } from 'src/common/services/countries.service';
 export enum Role{
     ADMIN = 'admin',
     AUTHOR = 'author',
-    USER = 'user'
+    USER = 'user',
+    EVENT_MANAGER = 'event_manager'
 }
 
 @CosmosPartitionKey('id')
