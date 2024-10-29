@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import * as appInsights from 'applicationinsights';
 import { AlgoliaService } from './services/algolia.service';
 import { CommonController } from './common.controller';
@@ -10,6 +10,7 @@ import { CountriesService } from './services/countries.service';
 import { AzureCosmosDbModule } from '@nestjs/azure-database';
 import { UserToken } from './entities/user-token.entity';
 
+@Global()
 @Module({
   providers: [
     AlgoliaService,

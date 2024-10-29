@@ -71,6 +71,7 @@ export class UsersService {
       }
       return this.toJson(user);
     } catch (error) {
+      this.logger.debug(`Error finding user, ${id}`);
       this.logger.log(error.message);
       throw error;
     }

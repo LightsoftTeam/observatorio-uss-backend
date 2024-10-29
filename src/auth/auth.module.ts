@@ -5,11 +5,9 @@ import { UsersModule } from 'src/users/users.module';
 import { JwtService, JwtModule } from '@nestjs/jwt';
 import { ConfigService, ConfigModule } from '@nestjs/config';
 import { UsersService } from 'src/users/users.service';
-import { CommonModule } from 'src/common/common.module';
 import { PostsModule } from 'src/posts/posts.module';
 import { AuthGuard } from './guards/auth.guard';
 import { OtpService } from 'src/common/services/otp.service';
-import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
 import { UserTokensService } from './services/user-tokens.service';
 
 @Global()
@@ -30,7 +28,6 @@ import { UserTokensService } from './services/user-tokens.service';
       },
       inject: [ConfigService],
     }),
-    CommonModule,
     PostsModule
   ],
   exports: [
