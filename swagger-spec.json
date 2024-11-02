@@ -3343,6 +3343,35 @@
           "certificateEmisionDate": {
             "type": "string",
             "description": "The emision date of the certificate"
+          },
+          "credentialBackgroundUrl": {
+            "type": "string",
+            "description": "The image url of the credential background",
+            "example": "https://example.com/signature.png",
+            "nullable": true
+          },
+          "credentialTextToShare": {
+            "type": "string",
+            "description": "The text to share of the credential",
+            "example": "This is the credential of the training number 1",
+            "nullable": true
+          },
+          "credentialHelpText": {
+            "type": "string",
+            "description": "The help text of the credential",
+            "example": "This is the credential of the training number 1",
+            "nullable": true
+          },
+          "credentialLogos": {
+            "description": "The logos of the credential",
+            "example": [
+              "https://example.com/logo.png"
+            ],
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -3363,7 +3392,11 @@
           "certificateOrganizer",
           "certificateBackgroundUrl",
           "certificateSignatureUrl",
-          "certificateEmisionDate"
+          "certificateEmisionDate",
+          "credentialBackgroundUrl",
+          "credentialTextToShare",
+          "credentialHelpText",
+          "credentialLogos"
         ]
       },
       "UpdateTrainingDto": {
@@ -3483,6 +3516,35 @@
           "certificateEmisionDate": {
             "type": "string",
             "description": "The emision date of the certificate"
+          },
+          "credentialBackgroundUrl": {
+            "type": "string",
+            "description": "The image url of the credential background",
+            "example": "https://example.com/signature.png",
+            "nullable": true
+          },
+          "credentialTextToShare": {
+            "type": "string",
+            "description": "The text to share of the credential",
+            "example": "This is the credential of the training number 1",
+            "nullable": true
+          },
+          "credentialHelpText": {
+            "type": "string",
+            "description": "The help text of the credential",
+            "example": "This is the credential of the training number 1",
+            "nullable": true
+          },
+          "credentialLogos": {
+            "description": "The logos of the credential",
+            "example": [
+              "https://example.com/logo.png"
+            ],
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },

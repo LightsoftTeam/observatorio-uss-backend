@@ -86,5 +86,9 @@ export class Training {
     certificateBackgroundUrl?: string;
     certificateSignatureUrl?: string;
     certificateEmisionDate?: string;
+    credentialBackgroundUrl?: string;
+    credentialTextToShare?: string;
+    credentialHelpText?: string;
+    credentialLogos?: string[];
     @CosmosDateTime() createdAt: Date;
 }
