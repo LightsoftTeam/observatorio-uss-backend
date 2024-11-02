@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import { ApplicationLoggerService } from './application-logger.service';
 import { ApprovalStatus, Post } from 'src/posts/entities/post.entity';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class MailService {
@@ -113,6 +114,35 @@ export class MailService {
         })
         .catch((error) => {
             this.logger.error(`Error sending post request notification to ${to}`);
+            this.logger.error(error.message);
+        });
+    }
+
+    async sendRegisterNotification({ user }: { user: Partial<User> }) {
+        // const verificationOtpIsActive = (process.env.OTP_VERIFICATION_IS_ACTIVE || 'true') === 'true';
+        // if(!verificationOtpIsActive) {
+        //     return;
+        // }
+        this.logger.debug(`Sending register notification to ${user.email}`);
+        const { name, email: to } = user;
+        const template = `
+                <h1>Bienvenido ${name}</h1>
+                <p>Empieza a disfrutar de todas las funcionalidades de Observatorio USS.</p>
+                <p>¡Bienvenido a la comunidad!</p>
+                <a href="${process.env.OBSERVATORY_APP_URL}">Ir a Observatorio USS</a>
+                <p>Atentamente, Observatorio USS</p>
+            `;
+
+        return this.sendMail({
+            to,
+            template,
+            subject: 'Bienvenido a Observatorio USS',
+        })
+        .then(() => {
+            this.logger.log(`Welcome message sent to ${to}`);
+        })
+        .catch((error) => {
+            this.logger.error(`Error welcome message to ${to}`);
             this.logger.error(error.message);
         });
     }

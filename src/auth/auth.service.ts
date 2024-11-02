@@ -15,6 +15,13 @@ import { v4 as uuidv4 } from 'uuid';
 import { TokenReason, UserToken } from 'src/common/entities/user-token.entity';
 import { UserTokensService } from './services/user-tokens.service';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { MailService } from 'src/common/services/mail.service';
+
+enum LoginErrors{
+  USER_NOT_FOUND = 'USER_NOT_FOUND',
+  PASSWORD_INVALID = 'PASSWORD_INVALID',
+  PASSWORD_NOT_SET = 'PASSWORD_NOT_SET',
+}
 
 @Injectable()
 export class AuthService {
@@ -25,24 +32,34 @@ export class AuthService {
     private readonly otpService: OtpService,
     private readonly logger: ApplicationLoggerService,
     private readonly userTokensService: UserTokensService,
+    private readonly mailService: MailService,
   ) { }
 
   async signIn({ email, password: passwordPayload }: SignInDto): Promise<LoginResponse> {
     try {
       this.logger.debug(`Sign in attempt for ${email}`);
       const user = await this.userService.findByEmail(email);
-      if (!user) {
-        throw new UnauthorizedException();
+      if (!user || !user.isActive) {
+        throw new UnauthorizedException({
+          code: LoginErrors.USER_NOT_FOUND,
+          message: 'User not found',
+        });
       }
       if(!user.password){
-        throw new InternalServerErrorException('User password is not set, please contact support');
+        throw new InternalServerErrorException({
+          code: LoginErrors.PASSWORD_NOT_SET,
+          message: 'Password not set, please contact support',
+        });
       }
       const isPasswordValid = await bcrypt.compare(
         passwordPayload,
         user.password,
       );
       if (!isPasswordValid) {
-        throw new UnauthorizedException();
+        throw new UnauthorizedException({
+          code: LoginErrors.PASSWORD_INVALID,
+          message: 'Invalid password',
+        });
       }
       delete user.password;
       const payload = { sub: user.id, email: user.email };
@@ -72,6 +89,7 @@ export class AuthService {
       role: Role.USER,
     }
     const userCreated = await this.userService.create(newUser);
+    this.mailService.sendRegisterNotification({user});
     return {
       user: FormatCosmosItem.cleanDocument(userCreated, ['password']),
       token: this.generateToken(userCreated),
