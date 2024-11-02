@@ -2545,6 +2545,47 @@
           }
         }
       }
+    },
+    "/api/app-configuration": {
+      "get": {
+        "operationId": "AppConfigurationController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/app-configuration/{code}": {
+      "patch": {
+        "operationId": "AppConfigurationController_update",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAppConfigurationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
     }
   },
   "info": {
@@ -3973,6 +4014,16 @@
           "createdAt",
           "role"
         ]
+      },
+      "UpdateAppConfigurationDto": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "description": "The value",
+            "example": "This is the value"
+          }
+        }
       }
     }
   }

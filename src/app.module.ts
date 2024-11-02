@@ -22,6 +22,7 @@ import { SemestersModule } from './semesters/semesters.module';
 import { ReportsModule } from './reports/reports.module';
 import { OpenaiModule } from './openai/openai.module';
 import { ConversationsModule } from './conversations/conversations.module';
+import { AppConfigurationModule } from './app-configuration/app-configuration.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { ConversationsModule } from './conversations/conversations.module';
     OpenaiModule,
     ConversationsModule,
     EventEmitterModule.forRoot(),
+    AppConfigurationModule,
   ],
   controllers: [AppController],
   providers: [AppService, MailService],
