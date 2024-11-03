@@ -6,6 +6,7 @@ import { Role } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { FindUsersDto } from './dto/find-users.dto';
+import { ChangeRoleRequestDto } from './dto/change-role-request.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -16,15 +17,24 @@ export class UsersController {
   @ApiOperation({ summary: 'Get users' })
   @ApiResponse({ status: 200, description: 'Return all users' })
   @Get()
-  findAll(@Query() findUsersDto: FindUsersDto){
+  findAll(@Query() findUsersDto: FindUsersDto) {
     return this.userService.findAll(findUsersDto);
   }
 
   @ApiOperation({ summary: 'Get a user' })
   @ApiResponse({ status: 200, description: 'Return a user' })
   @Get('/:slug')
-  findBySlug(@Param('slug') slug: string){
+  findBySlug(@Param('slug') slug: string) {
     return this.userService.findBySlug(slug);
+  }
+
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Change a role request' })
+  @ApiResponse({ status: 200, description: 'Role accepted or declined' })
+  @HttpCode(200)
+  @Post('/:id/change-role-request')
+  changeRoleRequest(@Param('id') id: string, @Body() changeRoleRequestDto: ChangeRoleRequestDto) {
+    return this.userService.acceptChangeRoleRequest(id, changeRoleRequestDto);
   }
 
   @UseGuards(AuthGuard)
@@ -36,7 +46,7 @@ export class UsersController {
   @ApiResponse({ status: 201, description: 'Create a new user' })
   @ApiResponse({ status: 400, description: 'User already exists' })
   @Post()
-  async create(@Body() createUserDto: CreateUserDto){
+  async create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
   }
 
@@ -50,7 +60,7 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 400, description: 'Bad Request' })
   @Put('/:id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto){
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(id, updateUserDto);
   }
 
@@ -68,12 +78,12 @@ export class UsersController {
   @HttpCode(200)
   @ApiOperation({ summary: 'Toggle active state of a user' })
   @Post('/:id/toggle-active-state')
-  toggleActiveState(@Param('id') id: string){
+  toggleActiveState(@Param('id') id: string) {
     return this.userService.toggleActiveState(id);
   }
 
   @Post('/update-slugs')
-  updateSlugs(){
+  updateSlugs() {
     return this.userService.updateSlugs();
   }
 }

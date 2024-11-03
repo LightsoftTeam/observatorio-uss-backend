@@ -14,6 +14,7 @@ export enum ERROR_CODES {
     USER_ALREADY_EXISTS = 'USER_ALREADY_EXISTS',
     NESTED_COMMENT_NOT_ALLOWED = 'NESTED_COMMENT_NOT_ALLOWED',
     POST_DOES_NOT_HAVE_CONTENT = 'POST_DOES_NOT_HAVE_CONTENT',
+    INVALID_CHANGE_ROLE_REQUEST = 'INVALID_CHANGE_ROLE_REQUEST',
 }
 
 export const APP_ERRORS = {
@@ -76,5 +77,9 @@ export const APP_ERRORS = {
     [ERROR_CODES.POST_DOES_NOT_HAVE_CONTENT]: {
         code: ERROR_CODES.POST_DOES_NOT_HAVE_CONTENT,
         message: 'Post does not have content'
+    },
+    [ERROR_CODES.INVALID_CHANGE_ROLE_REQUEST]: {
+        code: ERROR_CODES.INVALID_CHANGE_ROLE_REQUEST,
+        message: 'Invalid change role request'
     },
 }

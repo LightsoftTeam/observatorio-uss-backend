@@ -16,6 +16,7 @@ import { UserTokensService } from './services/user-tokens.service';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { MailService } from 'src/common/services/mail.service';
 import { UsersRepository } from 'src/repositories/services/users.repository';
+import { ROLES_THAT_CAN_BE_REQUESTED } from 'src/users/constants';
 
 enum LoginErrors{
   USER_NOT_FOUND = 'USER_NOT_FOUND',
@@ -90,7 +91,7 @@ export class AuthService {
       role: Role.USER,
     }
     const { role } = user;
-    if(user.role && user.role !== Role.USER){
+    if(role && ROLES_THAT_CAN_BE_REQUESTED.includes(role)){
       newUser.requestedRole = role;
     }
     const userCreated = await this.userService.create(newUser);

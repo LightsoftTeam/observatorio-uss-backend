@@ -9,4 +9,12 @@ export class FindUsersDto {
     @IsString()
     @IsOptional()
     roles?: string;
+
+    @ApiProperty({
+        description: 'The pending role request of the user',
+        nullable: true,
+    })
+    @IsString()
+    @IsOptional()
+    onlyPendingRole?: string;
 }

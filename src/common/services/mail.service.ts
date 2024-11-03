@@ -36,8 +36,9 @@ export class MailService {
 
         this.logger.log(`Sending email ${JSON.stringify(mailOptions)}`);
 
-        const verificationOtpIsActive = (process.env.SEND_MAIL_NOTIFICATIONS || 'true') === 'true';
-        if (!verificationOtpIsActive) {
+        const sendMailIsActive = (process.env.SEND_MAIL_NOTIFICATIONS || 'true') === 'true';
+        if (!sendMailIsActive) {
+            this.logger.debug('Email sending is DISABLED. Returning success response.');
             return Promise.resolve({
                 to: mailOptions.to,
             });

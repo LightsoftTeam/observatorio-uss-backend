@@ -607,6 +607,16 @@
               "nullable": true,
               "type": "string"
             }
+          },
+          {
+            "name": "onlyPendingRole",
+            "required": true,
+            "in": "query",
+            "description": "The pending role request of the user",
+            "schema": {
+              "nullable": true,
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -665,6 +675,40 @@
         "responses": {
           "200": {
             "description": "Return a user"
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/users/{id}/change-role-request": {
+      "post": {
+        "operationId": "UsersController_changeRoleRequest",
+        "summary": "Change a role request",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeRoleRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Role accepted or declined"
           }
         },
         "tags": [
@@ -2688,6 +2732,23 @@
           "email"
         ]
       },
+      "ChangeRoleRequestDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "The action to be taken on the role request",
+            "example": "accept",
+            "enum": [
+              "accept",
+              "reject"
+            ]
+          }
+        },
+        "required": [
+          "action"
+        ]
+      },
       "CreateUserDto": {
         "type": "object",
         "properties": {
@@ -3067,7 +3128,8 @@
               "POST_IS_NOT_PENDING_APPROVAL",
               "USER_ALREADY_EXISTS",
               "NESTED_COMMENT_NOT_ALLOWED",
-              "POST_DOES_NOT_HAVE_CONTENT"
+              "POST_DOES_NOT_HAVE_CONTENT",
+              "INVALID_CHANGE_ROLE_REQUEST"
             ]
           },
           "message": {

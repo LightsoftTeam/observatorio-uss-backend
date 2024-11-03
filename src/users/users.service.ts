@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException, Scope } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException, Scope } from '@nestjs/common';
 import type { Container } from '@azure/cosmos';
 import { Role, User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -13,8 +13,9 @@ import { FindUsersDto } from './dto/find-users.dto';
 import { CountriesService } from 'src/common/services/countries.service';
 import { Post } from 'src/posts/entities/post.entity';
 import { UsersRepository } from 'src/repositories/services/users.repository';
-
-const PASSWORD_SALT_ROUNDS = 5;
+import { PASSWORD_SALT_ROUNDS, ROLES_THAT_CAN_BE_REQUESTED } from './constants';
+import { APP_ERRORS, ERROR_CODES } from 'src/common/constants/errors.constants';
+import { Action, ChangeRoleRequestDto } from './dto/change-role-request.dto';
 
 @Injectable({ scope: Scope.REQUEST })
 export class UsersService {
@@ -32,7 +33,7 @@ export class UsersService {
 
   async findAll(findUsersDto: FindUsersDto = {}) {
     this.logger.log(`retrieving users - ${JSON.stringify(findUsersDto)}`);
-    const { roles: rolesString } = findUsersDto;
+    const { roles: rolesString, onlyPendingRole } = findUsersDto;
     let roles = rolesString ? rolesString.split(',') : [];
     if (roles.length === 0) {
       this.logger.log('pushing roles');
@@ -42,13 +43,24 @@ export class UsersService {
       roles = roles.filter(r => r !== Role.ADMIN);
     }
     this.logger.log(`selected roles - ${JSON.stringify(roles)}`);
+
     const querySpec = {
-      query: 'SELECT * FROM c where c.isActive = true AND ARRAY_CONTAINS(@roles, c.role) order by c.createdAt DESC',
+      query: `
+        SELECT * FROM c 
+        where c.isActive = true 
+        ${onlyPendingRole === 'true' ? 'AND IS_DEFINED(c.requestedRole) AND ARRAY_CONTAINS(@rolesThatCanBeRequested, c.requestedRole)' : ''}
+        AND ARRAY_CONTAINS(@roles, c.role) 
+        order by c.createdAt DESC
+      `,
       parameters: [
         {
           name: '@roles',
           value: roles,
         },
+        {
+          name: '@rolesThatCanBeRequested',
+          value: ROLES_THAT_CAN_BE_REQUESTED,
+        }
       ],
     };
     const startAt = new Date();
@@ -147,6 +159,8 @@ export class UsersService {
 
   async update(id: string, updateUserDto: UpdateUserDto) {
     //TODO: update slug if name changes
+    //the user can't change its requested role, only an admin can do it, there is a separate endpoint for that
+    delete updateUserDto.requestedRole;
     const isAdmin = this.isAdmin();
     const loggedUser = this.getLoggedUser();
     if (!isAdmin && loggedUser?.id !== id) {
@@ -175,6 +189,25 @@ export class UsersService {
     }
     user.password = bcrypt.hashSync(password, PASSWORD_SALT_ROUNDS);
     const { resource } = await this.usersContainer.item(user.id).replace(user);
+    return this.toJson(resource as User);
+  }
+
+  async acceptChangeRoleRequest(id: string, changeRoleRequestDto: ChangeRoleRequestDto){
+    this.logger.debug(`accept change role request for user ${id}`);
+    this.revokeWhenIsNotAdmin();
+    const user = await this.getById(id);
+    if(!user){
+      throw new NotFoundException('User not found');
+    }
+    if(changeRoleRequestDto.action === Action.ACCEPT){
+      if(!ROLES_THAT_CAN_BE_REQUESTED.includes(user.requestedRole)){
+        throw new BadRequestException(APP_ERRORS[ERROR_CODES.INVALID_CHANGE_ROLE_REQUEST]);
+      }
+      user.role = user.requestedRole;
+    } 
+    delete user.requestedRole;
+    const { resource } = await this.usersContainer.item(user.id, user.id).replace(user);
+    this.logger.debug(`role changed for user ${id}`);
     return this.toJson(resource as User);
   }
 

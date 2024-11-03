@@ -18,13 +18,6 @@ export class OtpService {
         private readonly mailService: MailService,
     ) {
         this.logger.setContext(OtpService.name);
-        // console.log(process.env.REDIS_PORT);
-        // console.log(process.env.REDIS_HOST);
-        // this.redisClient = new Redis({
-        //     port: process.env.REDIS_PORT,
-        //     host: process.env.REDIS_HOST,
-        //     // password: this.configService.get('config.redisDB.key'),
-        // });
     }
 
     async sendOtp(sendOTPDto: SendOTPDto) {
