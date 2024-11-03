@@ -10,6 +10,7 @@ export function validateParticipantRow(participantRow: ParticipantRow) {
         "numero de documento": documentNumber,
         "tipo de documento": documentType,
         "tipo de empleo": employmentType,
+        pais,
     } = participantRow;
 
     if (!Object.keys(BooleanResponse).includes(asistencia)) {
@@ -38,6 +39,9 @@ export function validateParticipantRow(participantRow: ParticipantRow) {
     }
     if(!Object.values(MigrationEmploymentType).includes(employmentType as MigrationEmploymentType)){
         throw new Error('El campo "tipo de empleo" tiene un valor inválido');
+    }
+    if(!pais){
+        throw new Error('El campo "pais" es requerido');
     }
     return participantRow;
 }

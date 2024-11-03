@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
 import { CompetenciesService } from 'src/competencies/competencies.service';
-import { GetProfessorParticipationBySchoolDto } from 'src/professors/dto/get-professor-participation-by-school.dto';
-import { ProfessorReportsService } from 'src/professors/services/professor-reports.service';
-import { School } from 'src/schools/entities/school.entity';
+import { GetProfessorParticipationBySchoolDto } from 'src/reports/dto/get-professor-participation-by-school.dto';
+import { ProfessorReportsRepository } from 'src/repositories/services/professor-reports.repository';
 import { TrainingType } from 'src/training/entities/training.entity';
 import { TrainingService } from 'src/training/training.service';
 
@@ -13,7 +12,7 @@ export class ReportsService {
         private readonly logger: ApplicationLoggerService,
         private readonly competenciesService: CompetenciesService,
         private readonly trainingService: TrainingService,
-        private readonly professorReportsService: ProfessorReportsService,
+        private readonly professorReportsRepository: ProfessorReportsRepository,
     ) {
         this.logger.setContext(ReportsService.name);
     }
@@ -34,18 +33,18 @@ export class ReportsService {
     }
 
     async getProfessorParticipation(semesterId: string) {
-        return this.professorReportsService.getParticipation(semesterId);
+        return this.professorReportsRepository.getParticipation(semesterId);
     }
 
     async getProfessorEmploymentTypeReport() {
-        return this.professorReportsService.getEmploymentTypeReport();
+        return this.professorReportsRepository.getEmploymentTypeReport();
     }
 
     async getProfessorParticipationByYears() {
-        return this.professorReportsService.getParticipationByYears();
+        return this.professorReportsRepository.getProfessorParticipationByYears();
     }
 
     async getProfessorParticipationBySchool(getProfessorParticipationBySchoolDto: GetProfessorParticipationBySchoolDto) {
-        return this.trainingService.getProfessorParticipationBySchool(getProfessorParticipationBySchoolDto);
+        return this.professorReportsRepository.getProfessorParticipationBySchool(getProfessorParticipationBySchoolDto);
     }
 }

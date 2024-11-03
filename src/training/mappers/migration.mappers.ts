@@ -1,7 +1,7 @@
 import { DocumentType } from "src/common/types/document-type.enum";
 import { TrainingModality, TrainingRole, TrainingType } from "../entities/training.entity";
 import { MigrationDocumentType, MigrationEmploymentType, MigrationTrainingModality, MigrationTrainingRole, MigrationTrainingType } from "../types/training-migration.types";
-import { EmploymentType } from "src/professors/entities/professor.entity";
+import { EmploymentType } from "src/users/entities/user.entity";
 
 export function getModality(migrationModality: MigrationTrainingModality): TrainingModality {
     const map = {

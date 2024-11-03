@@ -1119,7 +1119,7 @@
     "/api/training/by-document/{documentType}/{documentNumber}": {
       "get": {
         "operationId": "TrainingController_findAllByDocument",
-        "summary": "Get all trainings of a professor",
+        "summary": "Get all trainings of a user",
         "parameters": [
           {
             "name": "documentType",
@@ -1140,7 +1140,7 @@
         ],
         "responses": {
           "200": {
-            "description": "All trainings of a professor were found"
+            "description": "All trainings of a user were found"
           },
           "400": {
             "description": "Bad Request",
@@ -1731,223 +1731,6 @@
         },
         "tags": [
           "Training"
-        ]
-      }
-    },
-    "/api/professors": {
-      "post": {
-        "operationId": "ProfessorsController_create",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateProfessorDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "The professor has been successfully created.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Professor"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request."
-          },
-          "404": {
-            "description": "School not found."
-          }
-        },
-        "tags": [
-          "Professors"
-        ]
-      },
-      "get": {
-        "operationId": "ProfessorsController_findAll",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "All professors were found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Professor"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Professors"
-        ]
-      }
-    },
-    "/api/professors/{id}": {
-      "get": {
-        "operationId": "ProfessorsController_findOne",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A professor was found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Professor"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Professor not found"
-          }
-        },
-        "tags": [
-          "Professors"
-        ]
-      },
-      "put": {
-        "operationId": "ProfessorsController_update",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateProfessorDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The professor has been successfully updated."
-          },
-          "400": {
-            "description": "Bad Request."
-          },
-          "404": {
-            "description": "Professor not found."
-          }
-        },
-        "tags": [
-          "Professors"
-        ]
-      },
-      "delete": {
-        "operationId": "ProfessorsController_remove",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "The professor has been successfully deleted."
-          },
-          "404": {
-            "description": "Professor not found."
-          }
-        },
-        "tags": [
-          "Professors"
-        ]
-      }
-    },
-    "/api/professors/{documentType}/{documentNumber}": {
-      "get": {
-        "operationId": "ProfessorsController_findByDocument",
-        "parameters": [
-          {
-            "name": "documentType",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "documentNumber",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A professor was found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Professor"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Professor not found"
-          }
-        },
-        "tags": [
-          "Professors"
-        ]
-      }
-    },
-    "/api/professors/confirm-register/{code}": {
-      "post": {
-        "operationId": "ProfessorsController_confirmRegister",
-        "parameters": [
-          {
-            "name": "code",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The email has been confirmed and the professor has been saved."
-          }
-        },
-        "tags": [
-          "Professors"
         ]
       }
     },
@@ -2944,6 +2727,40 @@
             "description": "The country code of the user",
             "example": "US",
             "nullable": true
+          },
+          "requestedRole": {
+            "type": "string",
+            "description": "The requested role of the user",
+            "example": "professor",
+            "nullable": true
+          },
+          "documentType": {
+            "type": "string",
+            "description": "The document type of the user",
+            "example": "dni",
+            "nullable": true
+          },
+          "documentNumber": {
+            "type": "string",
+            "description": "The document number of the user",
+            "example": "87878787",
+            "nullable": true
+          },
+          "employmentType": {
+            "type": "string",
+            "description": "The employment type of the user",
+            "example": "full_time",
+            "nullable": true,
+            "enum": [
+              "full_time",
+              "part_time"
+            ]
+          },
+          "schoolId": {
+            "type": "string",
+            "description": "The school id of the user",
+            "example": "12345678-1234-1234-1234-123456789012",
+            "nullable": true
           }
         },
         "required": [
@@ -2953,7 +2770,12 @@
           "email",
           "password",
           "role",
-          "countryCode"
+          "countryCode",
+          "requestedRole",
+          "documentType",
+          "documentNumber",
+          "employmentType",
+          "schoolId"
         ]
       },
       "UpdateUserDto": {
@@ -2994,6 +2816,40 @@
             "type": "string",
             "description": "The country code of the user",
             "example": "US",
+            "nullable": true
+          },
+          "requestedRole": {
+            "type": "string",
+            "description": "The requested role of the user",
+            "example": "professor",
+            "nullable": true
+          },
+          "documentType": {
+            "type": "string",
+            "description": "The document type of the user",
+            "example": "dni",
+            "nullable": true
+          },
+          "documentNumber": {
+            "type": "string",
+            "description": "The document number of the user",
+            "example": "87878787",
+            "nullable": true
+          },
+          "employmentType": {
+            "type": "string",
+            "description": "The employment type of the user",
+            "example": "full_time",
+            "nullable": true,
+            "enum": [
+              "full_time",
+              "part_time"
+            ]
+          },
+          "schoolId": {
+            "type": "string",
+            "description": "The school id of the user",
+            "example": "12345678-1234-1234-1234-123456789012",
             "nullable": true
           }
         }
@@ -3054,11 +2910,17 @@
             "type": "string",
             "description": "The verification code",
             "example": "A1B2C3"
+          },
+          "role": {
+            "type": "string",
+            "description": "The role",
+            "example": "professor"
           }
         },
         "required": [
           "user",
-          "verificationCode"
+          "verificationCode",
+          "role"
         ]
       },
       "SendResetPasswordOtpDto": {
@@ -3209,7 +3071,6 @@
               "INVALID_OTP",
               "INVALID_AUTHOR",
               "POST_IS_NOT_PENDING_APPROVAL",
-              "PROFESSOR_ALREADY_EXISTS",
               "USER_ALREADY_EXISTS",
               "NESTED_COMMENT_NOT_ALLOWED",
               "POST_DOES_NOT_HAVE_CONTENT"
@@ -3551,14 +3412,14 @@
       "AddParticipantDto": {
         "type": "object",
         "properties": {
-          "professorId": {
+          "userId": {
             "type": "string",
-            "description": "A valid professor id",
+            "description": "A valid user id",
             "example": "a3b4c5d6-1234-5678-90ab-cdef12345678"
           },
           "roles": {
             "type": "string",
-            "description": "The role of the professor",
+            "description": "The role of the user",
             "example": "assistant",
             "enum": [
               "assistant",
@@ -3570,21 +3431,21 @@
           }
         },
         "required": [
-          "professorId",
+          "userId",
           "roles"
         ]
       },
       "UpdateParticipantDto": {
         "type": "object",
         "properties": {
-          "professorId": {
+          "userId": {
             "type": "string",
-            "description": "A valid professor id",
+            "description": "A valid user id",
             "example": "a3b4c5d6-1234-5678-90ab-cdef12345678"
           },
           "roles": {
             "type": "string",
-            "description": "The role of the professor",
+            "description": "The role of the user",
             "example": "assistant",
             "enum": [
               "assistant",
@@ -3836,106 +3697,6 @@
           "participantId",
           "status"
         ]
-      },
-      "CreateProfessorDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "The name of the professor",
-            "example": "John Doe"
-          },
-          "email": {
-            "type": "string",
-            "description": "The email of the professor",
-            "example": "jhon.doe@uss.com"
-          },
-          "documentType": {
-            "type": "string",
-            "description": "The document type of the professor",
-            "example": "dni",
-            "enum": [
-              "dni",
-              "pasaporte",
-              "carnet_extranjeria"
-            ]
-          },
-          "documentNumber": {
-            "type": "string",
-            "description": "The document number of the professor",
-            "example": "12345678"
-          },
-          "employmentType": {
-            "type": "string",
-            "description": "The employment type of the professor",
-            "example": "full_time",
-            "enum": [
-              "full_time",
-              "part_time"
-            ]
-          },
-          "schoolId": {
-            "type": "string",
-            "description": "The school id of the professor",
-            "example": "60f4b3b3-1b7b-4b6b-8b7b-1b7b4b6b8b7b"
-          }
-        },
-        "required": [
-          "name",
-          "email",
-          "documentType",
-          "documentNumber",
-          "employmentType",
-          "schoolId"
-        ]
-      },
-      "Professor": {
-        "type": "object",
-        "properties": {}
-      },
-      "UpdateProfessorDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "The name of the professor",
-            "example": "John Doe"
-          },
-          "email": {
-            "type": "string",
-            "description": "The email of the professor",
-            "example": "jhon.doe@uss.com"
-          },
-          "documentType": {
-            "type": "string",
-            "description": "The document type of the professor",
-            "example": "dni",
-            "enum": [
-              "dni",
-              "pasaporte",
-              "carnet_extranjeria"
-            ]
-          },
-          "documentNumber": {
-            "type": "string",
-            "description": "The document number of the professor",
-            "example": "12345678"
-          },
-          "employmentType": {
-            "type": "string",
-            "description": "The employment type of the professor",
-            "example": "full_time",
-            "enum": [
-              "full_time",
-              "part_time"
-            ]
-          },
-          "schoolId": {
-            "type": "string",
-            "description": "The school id of the professor",
-            "example": "60f4b3b3-1b7b-4b6b-8b7b-1b7b4b6b8b7b"
-          }
-        }
       },
       "CreateSchoolDto": {
         "type": "object",

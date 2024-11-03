@@ -54,10 +54,10 @@ export class TrainingController {
   }
 
   @Get('/by-document/:documentType/:documentNumber')
-  @ApiOperation({ summary: 'Get all trainings of a professor' })
+  @ApiOperation({ summary: 'Get all trainings of a user' })
   @ApiResponse({
     status: 200,
-    description: 'All trainings of a professor were found',
+    description: 'All trainings of a user were found',
   })
   findAllByDocument(@Param('documentType') documentType: DocumentType, @Param('documentNumber') documentNumber: string) {
     return this.trainingService.findByDocument(documentType, documentNumber);

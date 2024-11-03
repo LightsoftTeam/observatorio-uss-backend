@@ -1,4 +1,4 @@
-import { DocumentTypeMap } from "src/professors/mappers/document-type.mapper";
+import { DocumentTypeMap } from "src/users/mappers/document-type.mapper";
 import { TrainingRole } from "../entities/training.entity";
 import { MARCELIS_PRO_FONT } from "./marselis-pro";
 import { TrainingRoleMap } from "../mappers/training-role-map";

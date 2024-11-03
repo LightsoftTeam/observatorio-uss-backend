@@ -57,4 +57,5 @@ export interface ParticipantRow{
     'tipo de empleo': MigrationEmploymentType;
     asistencia: BooleanResponse;
     roles: string;
+    pais: string;
 }

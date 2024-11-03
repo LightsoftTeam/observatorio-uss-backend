@@ -8,8 +8,6 @@ import { CompetenciesService } from '../../competencies/competencies.service';
 import { SchoolsService } from 'src/schools/schools.service';
 import { InjectModel } from '@nestjs/azure-database';
 import type { Container } from '@azure/cosmos';
-import { ProfessorsService } from 'src/professors/professors.service';
-import { Professor } from 'src/professors/entities/professor.entity';
 import { ParticipantsService } from './participants.service';
 import { validateTrainingRow } from '../helpers/validate-training-row.helper';
 import { TrainingService } from '../training.service';
@@ -18,6 +16,10 @@ import { getIsoDateFromMigrationDate } from '../helpers/get-iso-date-from-migrat
 import { getDocumentType, getEmploymentType, getModality, getRoles, getTrainingType } from '../mappers/migration.mappers';
 import { getFileInfo, getSheetRows } from '../helpers/sheets.helpers';
 import { TrainingMigrationEvent, TrainingMigrationTrace } from '../entities/training-migration-event.entity';
+import { UsersRepository } from 'src/repositories/services/users.repository';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { generateRandomPassword } from '../helpers/generate-random-password';
+import { MailService } from 'src/common/services/mail.service';
 
 @Injectable()
 export class MigrationService {
@@ -27,15 +29,14 @@ export class MigrationService {
     private readonly semestersService: SemestersService,
     private readonly competenciesService: CompetenciesService,
     private readonly schoolsService: SchoolsService,
-    private readonly professorsService: ProfessorsService,
     private readonly participantsService: ParticipantsService,
     private readonly trainingService: TrainingService,
     @InjectModel(Training)
     private readonly trainingContainer: Container,
-    @InjectModel(Professor)
-    private readonly professorsContainer: Container,
     @InjectModel(TrainingMigrationEvent)
     private readonly trainingMigrationContainer: Container,
+    private readonly usersRepository: UsersRepository,
+    private readonly mailService: MailService,
   ) { }
 
   async migrateFromExcel() {
@@ -182,10 +183,11 @@ export class MigrationService {
         'tipo de empleo': employmentType,
         asistencia: isAttended,
         roles: rolesInput,
+        pais: countryCode,
       } = data;
       const roles = getRoles(rolesInput);
       let formattedDocumentType = getDocumentType(documentType);
-      let professor = await this.professorsService.getByDocument({ documentNumber, documentType: formattedDocumentType });
+      let professor = await this.usersRepository.getByDocument({ documentNumber, documentType: formattedDocumentType });
       const attendanceStatus = isAttended.toUpperCase().trim() === BooleanResponse.SI ? AttendanceStatus.ATTENDED : AttendanceStatus.PENDING;
       if (!professor) {
         this.logger.debug(`Professor with document ${documentNumber} not found. Creating new professor`);
@@ -195,17 +197,18 @@ export class MigrationService {
           school = await this.schoolsService.create({ name: schoolName });
         }
         let formattedEmploymentType = getEmploymentType(employmentType);
-        const professorPayload: Professor = {
+        const professorPayload: CreateUserDto = {
           name,
           email,
           documentType: formattedDocumentType,
           documentNumber,
           schoolId: school.name,
           employmentType: formattedEmploymentType,
-          createdAt: new Date(),
+          countryCode,
+          password: generateRandomPassword(),
         }
-        const { resource } = await this.professorsContainer.items.create(professorPayload);
-        professor = resource;
+        professor = await this.usersRepository.create(professorPayload);
+        this.mailService.sendNewAccountWithPassword({ user: professor, password: professorPayload.password });
       }
       const participant = {
         id: uuidv4(),

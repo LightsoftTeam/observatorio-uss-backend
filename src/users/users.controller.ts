@@ -37,11 +37,6 @@ export class UsersController {
   @ApiResponse({ status: 400, description: 'User already exists' })
   @Post()
   async create(@Body() createUserDto: CreateUserDto){
-    this.userService.revokeWhenIsNotAdmin();
-    const userExists = await this.userService.findByEmail(createUserDto.email);
-    if(userExists){
-      throw new BadRequestException('User already exists');
-    }
     return this.userService.create(createUserDto);
   }
 

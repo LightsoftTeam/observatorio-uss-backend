@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
-import { Role } from "../entities/user.entity";
+import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
+import { EmploymentType, Role } from "../entities/user.entity";
+import { DocumentType } from "src/common/types/document-type.enum";
 
 export class CreateUserDto {
     @ApiProperty({
@@ -24,7 +25,7 @@ export class CreateUserDto {
         example: 'https://example.com/image.jpg'
     })
     @IsOptional()
-    image: string;
+    image?: string;
 
     @ApiProperty({
         description: 'The email of the user',
@@ -49,7 +50,7 @@ export class CreateUserDto {
     })
     @IsEnum(Role)
     @IsOptional()
-    role: Role;
+    role?: Role;
 
     @ApiProperty({
         description: 'The country code of the user',
@@ -58,5 +59,51 @@ export class CreateUserDto {
     })
     @IsString()
     @IsOptional()
-    countryCode: string;
+    countryCode?: string;
+
+    @ApiProperty({
+        description: 'The requested role of the user',
+        example: Role.PROFESSOR,
+        nullable: true,
+    })
+    @IsEnum(Role)
+    @IsOptional()
+    requestedRole?: Role;
+
+    @ApiProperty({
+        description: 'The document type of the user',
+        example: DocumentType.DNI,
+        nullable: true,
+    })
+    @IsString()
+    @IsOptional()
+    documentType?: DocumentType;
+
+    @ApiProperty({
+        description: 'The document number of the user',
+        example: '87878787',
+        nullable: true,
+    })
+    @IsString()
+    @IsOptional()
+    documentNumber?: string;
+
+    @ApiProperty({
+        description: 'The employment type of the user',
+        example: EmploymentType.FULL_TIME,
+        nullable: true,
+        enum: EmploymentType,
+    })
+    @IsEnum(EmploymentType)
+    @IsOptional()
+    employmentType?: EmploymentType;
+
+    @ApiProperty({
+        description: 'The school id of the user',
+        example: '12345678-1234-1234-1234-123456789012',
+        nullable: true,
+    })
+    @IsUUID()
+    @IsOptional()
+    schoolId?: string;
 }

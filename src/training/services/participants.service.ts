@@ -3,7 +3,6 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import type { Container } from '@azure/cosmos';
 import { AttendanceStatus, ExecutionAttendance, Training, TrainingCertificate, TrainingParticipant, TrainingRole } from '../entities/training.entity';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
-import { ProfessorsService } from 'src/professors/professors.service';
 import { AddParticipantDto } from '../dto/add-participant.dto';
 import { TrainingService } from '../training.service';
 import { isUUID } from 'class-validator';
@@ -16,6 +15,7 @@ import nodeHtmlToImage from 'node-html-to-image';
 import { StorageService } from 'src/storage/storage.service';
 import { CertificatesHelper } from 'src/common/helpers/certificates.helper';
 import { ERROR_CODES, APP_ERRORS } from '../../common/constants/errors.constants';
+import { UsersRepository } from 'src/repositories/services/users.repository';
 const HTML_TO_PDF = require('html-pdf-node');
 
 @Injectable()
@@ -25,7 +25,7 @@ export class ParticipantsService {
         @InjectModel(Training)
         private readonly trainingContainer: Container,
         private readonly logger: ApplicationLoggerService,
-        private readonly professorService: ProfessorsService,
+        private readonly usersRepository: UsersRepository,
         private readonly trainingService: TrainingService,
         private readonly storageService: StorageService,
     ) {
@@ -63,30 +63,30 @@ export class ParticipantsService {
 
     async addParticipant(trainingId: string, addParticipantDto: AddParticipantDto) {
         try {
-            this.logger.log(`Adding professor ${addParticipantDto.professorId} to training ${trainingId}`);
+            this.logger.log(`Adding user ${addParticipantDto.userId} to training ${trainingId}`);
             const training = await this.trainingService.getTrainingById(trainingId);
             if (!training) {
                 this.logger.error(`Training ${trainingId} not found`);
                 throw new NotFoundException('Training not found');
             }
-            const { professorId, roles } = addParticipantDto;
-            if (!isUUID(professorId)) {
-                throw new BadRequestException('The professorId must be a valid UUID.');
+            const { userId, roles } = addParticipantDto;
+            if (!isUUID(userId)) {
+                throw new BadRequestException('The userId must be a valid UUID.');
             }
-            //TODO: validate that professorId exists in the database
-            const participant = training.participants.find((participant) => participant.foreignId === professorId);
+            //TODO: validate that userId exists in the database
+            const participant = training.participants.find((participant) => participant.foreignId === userId);
             this.validateMultipleRoles(roles);
             if (!participant) {
-                this.logger.log(`Participant ${professorId} does not exist in training ${trainingId}`);
+                this.logger.log(`Participant ${userId} does not exist in training ${trainingId}`);
                 training.participants.push({
                     id: uuidv4(),
-                    foreignId: professorId,
+                    foreignId: userId,
                     roles,
                     attendanceStatus: AttendanceStatus.PENDING,
                     certificates: [],
                 });
                 const { resource: trainingUpdated } = await this.trainingContainer.item(trainingId, trainingId).replace(training);
-                const newParticipant = trainingUpdated.participants.find((participant) => participant.foreignId === professorId);
+                const newParticipant = trainingUpdated.participants.find((participant) => participant.foreignId === userId);
                 return this.fillParticipant(newParticipant);
             }
             if (participant.roles.length === roles.length && participant.roles.every((role) => roles.includes(role))) {
@@ -173,10 +173,10 @@ export class ParticipantsService {
     private async fillParticipant(participant: TrainingParticipant) {
         this.logger.log(`Filling participant ${participant.id}`);
         const { foreignId } = participant;
-        const professor = await this.professorService.findOne(foreignId);
+        const user = await this.usersRepository.getById(foreignId);
         return {
             ...participant,
-            professor,
+            user,
         };
     }
 
@@ -328,8 +328,8 @@ export class ParticipantsService {
         }, 0);
         const durationInHours = Math.round((durationinMiliseconds / 1000 / 60 / 60) * 100) / 100;
         const filledParticipant = await this.fillParticipant(participant);
-        const { id, professor } = filledParticipant;
-        const { name } = professor;
+        const { id, user } = filledParticipant;
+        const { name } = user;
         const certificates: TrainingCertificate[] = await Promise.all(roles.map(async (role) => {
             const certificate: TrainingCertificate = {
                 id: uuidv4(),
@@ -370,40 +370,6 @@ export class ParticipantsService {
         return certificates;
     }
 
-    async getCertificate(participantId: string) {
-        // const training = await this.getTrainingByParticipantId(participantId);
-        // if (!training) {
-        //     throw new BadRequestException(ERRORS[ERROR_CODES.PARTICIPANT_NOT_FOUND]);
-        // }
-        // const participant = training.participants.find((participant) => participant.id === participantId);
-        // //TODO: validate that the training is completed and set certificate status
-        // const filledParticipant = await this.fillParticipant(participant);
-        // if (participant.attendanceStatus !== AttendanceStatus.ATTENDED || !participant.certificate) {
-        //     throw new BadRequestException(ERRORS[ERROR_CODES.TRAINING_NOT_COMPLETED]);
-        // }
-        // const { name: trainingName } = training;
-        // const { id, professor, role, certificate } = filledParticipant;
-        // const { name } = professor;
-        // const data: TrainingCertificateTemplateData = {
-        //     id,
-        //     name,
-        //     role,
-        //     trainingName,
-        //     emisionDate: participant.certificate.emisionDate,
-        //     trainingFromDate: participant.certificate.trainingFromDate,
-        //     trainingToDate: participant.certificate.trainingToDate,
-        //     duration: participant.certificate.duration,
-        // };
-        // const html = getTrainingCertificateTemplate(data);
-        // const buffer: Buffer = await this.getPdfBuffer(html);
-        // const { blobUrl } = await this.storageService.uploadMessageMedia({
-        //     buffer,
-        //     blobName: CertificatesHelper.getBlobName(certificate.id),
-        //     contentType: 'application/pdf',
-        // });
-        return participantId;
-    }
-
     async getParticipantQr(participantId: string) {
         try {
             this.logger.log(`Generating QR code for participant ${participantId}`);
@@ -413,8 +379,8 @@ export class ParticipantsService {
             }
             const participant = training.participants.find((participant) => participant.id === participantId);
             const filledParticipant = await this.fillParticipant(participant);
-            const { id, roles, professor } = filledParticipant;
-            const { documentNumber, documentType, email, name } = professor;
+            const { id, roles, user } = filledParticipant;
+            const { documentNumber, documentType, email, name } = user;
             const data: TrainingParticipantQrTemplateData = {
                 documentNumber,
                 documentType,

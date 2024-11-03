@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, NotFoundException, Scope } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, Scope } from '@nestjs/common';
 import type { Container } from '@azure/cosmos';
 import { Role, User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -10,10 +10,9 @@ import { ApplicationLoggerService } from 'src/common/services/application-logger
 import { REQUEST } from '@nestjs/core';
 import { generateUniqueSlug } from 'src/posts/helpers/generate-slug.helper';
 import { FindUsersDto } from './dto/find-users.dto';
-import { APP_ERRORS, ERROR_CODES } from 'src/common/constants/errors.constants';
-import { COUNTRIES_MAP } from 'src/common/constants/countries';
 import { CountriesService } from 'src/common/services/countries.service';
 import { Post } from 'src/posts/entities/post.entity';
+import { UsersRepository } from 'src/repositories/services/users.repository';
 
 const PASSWORD_SALT_ROUNDS = 5;
 
@@ -29,6 +28,7 @@ export class UsersService {
     private readonly postsContainer: Container,
     private readonly logger: ApplicationLoggerService,
     @Inject(REQUEST) private request: Request,
+    private readonly usersRepository: UsersRepository,
   ) { }
 
   async findAll(findUsersDto: FindUsersDto = {}) {
@@ -155,45 +155,9 @@ export class UsersService {
     return resources.map(user => this.toJson(user));
   }
 
-  async findByEmail(email: string): Promise<User | null> {
-    const querySpec = {
-      query: 'SELECT * FROM c WHERE c.email = @email',
-      parameters: [
-        {
-          name: '@email',
-          value: email,
-        },
-      ],
-    };
-    const { resources } = await this.usersContainer.items.query<User>(querySpec).fetchAll();
-    if (resources.length === 0) {
-      return null;
-    }
-    return resources[0];
-  }
-
   async create(createUserDto: CreateUserDto) {
-    const hashedPassword = bcrypt.hashSync(createUserDto.password, PASSWORD_SALT_ROUNDS);
-    const slug = generateUniqueSlug({ title: createUserDto.name, slugs: await this.getSlugs() });
-    const { countryCode } = createUserDto;
-    const country = COUNTRIES_MAP[countryCode];
-    if (countryCode && !country) {
-      throw new BadRequestException('Invalid country code');
-    }
-    const user = {
-      ...createUserDto,
-      slug,
-      password: hashedPassword,
-      role: createUserDto.role || Role.AUTHOR,
-      isActive: true,
-      createdAt: new Date(),
-    };
-    const existingUser = await this.findByEmail(user.email);
-    if (existingUser) {
-      throw new BadRequestException(APP_ERRORS[ERROR_CODES.USER_ALREADY_EXISTS]);
-    }
-    const { resource } = await this.usersContainer.items.create<User>(user);
-    return this.toJson(resource);
+    const user = await this.usersRepository.create(createUserDto);
+    return this.toJson(user);
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
@@ -272,15 +236,6 @@ export class UsersService {
     if (!this.isAdmin() && loggedUser?.id !== id) {
       throw new NotFoundException('Unauthorized');
     }
-  }
-
-  private async getSlugs(): Promise<string[]> {
-    const querySpec = {
-      query: 'SELECT c.slug FROM c',
-      parameters: [],
-    };
-    const { resources } = await this.usersContainer.items.query<{ slug: string }>(querySpec).fetchAll();
-    return resources.map(u => u.slug);
   }
 
   async updateSlugs() {

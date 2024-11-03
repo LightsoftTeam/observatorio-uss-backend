@@ -11,11 +11,11 @@ import { Role, User } from 'src/users/entities/user.entity';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
-import { v4 as uuidv4 } from 'uuid';
-import { TokenReason, UserToken } from 'src/common/entities/user-token.entity';
+import { TokenReason } from 'src/common/entities/user-token.entity';
 import { UserTokensService } from './services/user-tokens.service';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { MailService } from 'src/common/services/mail.service';
+import { UsersRepository } from 'src/repositories/services/users.repository';
 
 enum LoginErrors{
   USER_NOT_FOUND = 'USER_NOT_FOUND',
@@ -27,6 +27,7 @@ enum LoginErrors{
 export class AuthService {
   constructor(
     private readonly userService: UsersService,
+    private readonly usersRepository: UsersRepository,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly otpService: OtpService,
@@ -38,7 +39,7 @@ export class AuthService {
   async signIn({ email, password: passwordPayload }: SignInDto): Promise<LoginResponse> {
     try {
       this.logger.debug(`Sign in attempt for ${email}`);
-      const user = await this.userService.findByEmail(email);
+      const user = await this.usersRepository.findByEmail(email);
       if (!user || !user.isActive) {
         throw new UnauthorizedException({
           code: LoginErrors.USER_NOT_FOUND,
@@ -82,11 +83,14 @@ export class AuthService {
   }
 
   async register(registerDto: RegisterDto): Promise<LoginResponse> {
-    const { user, verificationCode } = registerDto;
+    const { user, verificationCode, role } = registerDto;
     await this.otpService.verifyOtp({ code: verificationCode, email: user.email });
     const newUser: CreateUserDto = {
       ...registerDto.user,
       role: Role.USER,
+    }
+    if(role){
+      newUser.requestedRole = role;
     }
     const userCreated = await this.userService.create(newUser);
     this.mailService.sendRegisterNotification({user});
@@ -109,19 +113,10 @@ export class AuthService {
   }
 
   async sendResetPasswordOtp(email: string) {
-    const token = uuidv4();
-    const user = await this.userService.findByEmail(email);
+    const user = await this.usersRepository.findByEmail(email);
     if(!user){
       throw new NotFoundException('User not found');
     }
-    const now = new Date();
-    const userToken: UserToken = {
-      createdAt: now,
-      userId: user.id,
-      token,
-      reason: TokenReason.PASSWORD_RESET,
-      expiresAt: new Date(now.getTime() + 1000 * 60 * 5),
-    } 
     await this.userTokensService.sendResetPasswordOtp(email);
     return {
       message: 'OTP sent successfully'

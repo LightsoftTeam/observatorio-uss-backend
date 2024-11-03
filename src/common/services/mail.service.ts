@@ -36,11 +36,19 @@ export class MailService {
 
         this.logger.log(`Sending email ${JSON.stringify(mailOptions)}`);
 
+        const verificationOtpIsActive = (process.env.OTP_VERIFICATION_IS_ACTIVE || 'true') === 'true';
+        if (!verificationOtpIsActive) {
+            return Promise.resolve({
+                to: mailOptions.to,
+            });
+        }
+
         return new Promise((resolve, reject) => {
             this.transporter.sendMail(mailOptions, function (error, info) {
                 if (error) {
                     reject(error);
                 } else {
+                    console.log({ info });
                     resolve(info);
                 }
             });
@@ -48,10 +56,6 @@ export class MailService {
     }
 
     async sendVerificationCode({ to, code, forceSend = false }) {
-        const verificationOtpIsActive = (process.env.OTP_VERIFICATION_IS_ACTIVE || 'true') === 'true' || forceSend;
-        if(!verificationOtpIsActive) {
-            return;
-        }
         const template = `
                 <h1>Verification Code</h1>
                 <p>Your verification code is: <b>${code}</b></p>
@@ -62,13 +66,13 @@ export class MailService {
             template,
             subject: 'Verification Code',
         })
-        .then(() => {
-            this.logger.log(`Verification code sent to ${to}`);
-        })
-        .catch((error) => {
-            this.logger.error(`Error sending verification code to ${to}`);
-            this.logger.error(error.message);
-        });
+            .then(() => {
+                this.logger.log(`Verification code sent to ${to}`);
+            })
+            .catch((error) => {
+                this.logger.error(`Error sending verification code to ${to}`);
+                this.logger.error(error.message);
+            });
     }
 
     async sendPostRequestNotification({ to, post, approvalStatus }: { to: string, post: Partial<Post>, approvalStatus: ApprovalStatus }) {
@@ -77,60 +81,62 @@ export class MailService {
         const postUrl = `${process.env.OBSERVATORY_APP_URL}/${category}/${slug}`;
         const requestsUrl = `${process.env.OBSERVATORY_APP_URL}/mis-solicitudes`;
         let template = ``;
-        
-        switch(approvalStatus) {
+
+        switch (approvalStatus) {
             case ApprovalStatus.PENDING:
                 template = `
-                    <h1>Tu solicitud ha sido aceptada.</h1>
-                    <p>Tu post <b>"${title}"</b> ha sido recibido y está pendiente de aprobación.</p>
-                    <p>Te notificaremos cuando haya sido revisado.</p>
-                    <p>Puedes ver tus solicitudes <a href="${requestsUrl}">aquí</a></p>
+                    <h1>Tu solicitud está en revisión</h1>
+                    <p>Tu publicación titulada <b>"${title}"</b> ha sido recibida y está pendiente de aprobación.</p>
+                    <p>Te notificaremos una vez que haya sido revisada.</p>
+                    <p>Puedes ver el estado de tus solicitudes <a href="${requestsUrl}" style="color: #007bff; text-decoration: none;">aquí</a>.</p>
                 `;
                 break;
             case ApprovalStatus.REJECTED:
                 template = `
-                    <h1>Tu solicitud de nuevo post ha sido rechazada.</h1>
-                    <p>Lamentablemente, tu post <b>"${title}"</b> ha sido rechazado.</p>
-                    <p>Por favor, revisa los motivos de rechazo <a href="${requestsUrl}>aquí</a>.</p>
+                    <h1>Tu publicación ha sido rechazada</h1>
+                    <p>Lamentablemente, tu publicación <b>"${title}"</b> no ha sido aprobada.</p>
+                    <p>Consulta los motivos del rechazo <a href="${requestsUrl}" style="color: #007bff; text-decoration: none;">aquí</a>.</p>
                 `;
                 break;
             case ApprovalStatus.APPROVED:
                 template = `
-                    <h1>Tu solicitud de nuevo post ha sido aceptada.</h1>
-                    <p>Felicidades, tu post <b>"${title}"</b> ha sido aceptado.</p>
-                    <p>Puedes verlo <a href="${postUrl}">aquí</a></p>
+                    <h1>¡Tu publicación ha sido aprobada!</h1>
+                    <p>Felicidades, tu publicación <b>"${title}"</b> ha sido aprobada y ya está disponible.</p>
+                    <p>Puedes verla <a href="${postUrl}" style="color: #007bff; text-decoration: none;">aquí</a>.</p>
                 `;
-                break
+                break;
             default:
+                template = `
+                    <h1>Estado desconocido</h1>
+                    <p>Hubo un problema al procesar el estado de tu publicación <b>"${title}"</b>.</p>
+                    <p>Por favor, intenta de nuevo más tarde o contacta con soporte.</p>
+                `;
                 break;
         }
+        
         return this.sendMail({
             to,
             template,
             subject: 'Observatorio USS - Solicitud de nuevo post',
         })
-        .then(() => {
-            this.logger.log(`Post request notification sent to ${to}`);
-        })
-        .catch((error) => {
-            this.logger.error(`Error sending post request notification to ${to}`);
-            this.logger.error(error.message);
-        });
+            .then(() => {
+                this.logger.log(`Post request notification sent to ${to}`);
+            })
+            .catch((error) => {
+                this.logger.error(`Error sending post request notification to ${to}`);
+                this.logger.error(error.message);
+            });
     }
 
     async sendRegisterNotification({ user }: { user: Partial<User> }) {
-        // const verificationOtpIsActive = (process.env.OTP_VERIFICATION_IS_ACTIVE || 'true') === 'true';
-        // if(!verificationOtpIsActive) {
-        //     return;
-        // }
         this.logger.debug(`Sending register notification to ${user.email}`);
         const { name, email: to } = user;
         const template = `
-                <h1>Bienvenido ${name}</h1>
-                <p>Empieza a disfrutar de todas las funcionalidades de Observatorio USS.</p>
-                <p>¡Bienvenido a la comunidad!</p>
-                <a href="${process.env.OBSERVATORY_APP_URL}">Ir a Observatorio USS</a>
-                <p>Atentamente, Observatorio USS</p>
+                <h1>¡Bienvenido, ${name}!</h1>
+                <p>Nos alegra que te unas a la comunidad de Observatorio USS. Ahora puedes comenzar a explorar y disfrutar de todas nuestras funcionalidades.</p>
+                <p><a href="${process.env.OBSERVATORY_APP_URL}" style="color: #007bff; text-decoration: none;">Accede a Observatorio USS aquí</a></p>
+                <p>¡Esperamos que esta experiencia sea enriquecedora y productiva para ti!</p>
+                <p>Saludos cordiales,<br>El equipo de Observatorio USS</p>
             `;
 
         return this.sendMail({
@@ -138,12 +144,43 @@ export class MailService {
             template,
             subject: 'Bienvenido a Observatorio USS',
         })
-        .then(() => {
-            this.logger.log(`Welcome message sent to ${to}`);
+            .then(() => {
+                this.logger.log(`Welcome message sent to ${to}`);
+            })
+            .catch((error) => {
+                this.logger.error(`Error welcome message to ${to}`);
+                this.logger.error(error.message);
+            });
+    }
+
+    async sendNewAccountWithPassword({
+        user,
+        password
+    }) {
+        const { name, email: to } = user;
+        this.logger.debug(`Sending register notification to ${to}`);
+        const template = `
+                <h1>¡Hola, ${name}!</h1>
+                <p>Bienvenido a la comunidad de Observatorio USS. Nos complace tenerte con nosotros.</p>
+                <p>La administración de Observatorio USS ha creado tu cuenta de acceso para que puedas comenzar a utilizar nuestros servicios.</p>
+                <p>Para ingresar, utiliza tu correo electrónico junto con la siguiente contraseña temporal: <strong>${password}</strong></p>
+                <p><a href="${process.env.OBSERVATORY_APP_URL}" style="color: #007bff; text-decoration: none;">Acceder a Observatorio USS</a></p>
+                <p>Te recomendamos que actualices tu contraseña en cualquier momento desde tu perfil: <a href="${process.env.OBSERVATORY_APP_URL}/mi-cuenta" style="color: #007bff; text-decoration: none;">Mi Perfil</a></p>
+                <p>¡Esperamos que disfrutes de todos los recursos y oportunidades que encontrarás en Observatorio USS!</p>
+                <p>Saludos cordiales,<br>El equipo de Observatorio USS</p>
+            `;
+
+        return this.sendMail({
+            to,
+            template,
+            subject: 'Bienvenido a Observatorio USS',
         })
-        .catch((error) => {
-            this.logger.error(`Error welcome message to ${to}`);
-            this.logger.error(error.message);
-        });
+            .then(() => {
+                this.logger.log(`Welcome message sent to ${to}`);
+            })
+            .catch((error) => {
+                this.logger.error(`Error welcome message to ${to}`);
+                this.logger.error(error.message);
+            });
     }
 }

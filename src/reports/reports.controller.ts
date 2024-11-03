@@ -1,7 +1,7 @@
 import { BadRequestException, Controller, Get, Param, Query } from '@nestjs/common';
 import { ReportsService } from './reports.service';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
-import { GetProfessorParticipationBySchoolDto } from 'src/professors/dto/get-professor-participation-by-school.dto';
+import { GetProfessorParticipationBySchoolDto } from 'src/reports/dto/get-professor-participation-by-school.dto';
 
 @ApiTags('Reports')
 @Controller('reports')

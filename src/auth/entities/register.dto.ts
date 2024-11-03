@@ -1,7 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString, ValidateNested } from "class-validator";
+import { IsNotEmpty, IsOptional, IsString, ValidateNested } from "class-validator";
 import { CreateUserDto } from "src/users/dto/create-user.dto";
 import { Type } from "class-transformer";
+import { Role } from "src/users/entities/user.entity";
 
 export class RegisterDto {
     @ApiProperty({
@@ -18,4 +19,12 @@ export class RegisterDto {
     @IsString()
     @IsNotEmpty()
     verificationCode: string;
+
+    @ApiProperty({
+        description: 'The role',
+        example: Role.PROFESSOR
+    })
+    @IsString()
+    @IsOptional()
+    role: Role;
 }

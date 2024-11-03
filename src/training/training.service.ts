@@ -10,15 +10,13 @@ import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
 import { SchoolsService } from 'src/schools/schools.service';
 import { School } from 'src/schools/entities/school.entity';
-import { ProfessorsService } from 'src/professors/professors.service';
 import { StorageService } from 'src/storage/storage.service';
 import { CertificatesHelper } from 'src/common/helpers/certificates.helper';
 import { DocumentType } from 'src/common/types/document-type.enum';
 import { ERROR_CODES, APP_ERRORS } from '../common/constants/errors.constants';
 import { CompetenciesService } from 'src/competencies/competencies.service';
 import { SemestersService } from 'src/semesters/semesters.service';
-import { GetProfessorParticipationBySchoolDto } from 'src/professors/dto/get-professor-participation-by-school.dto';
-import { Professor } from 'src/professors/entities/professor.entity';
+import { UsersRepository } from 'src/repositories/services/users.repository';
 const AdmZip = require("adm-zip");
 
 const DDA_ORGANIZER_ID = 'DDA';
@@ -48,7 +46,7 @@ export class TrainingService {
     private readonly trainingContainer: Container,
     private readonly logger: ApplicationLoggerService,
     private readonly schoolService: SchoolsService,
-    private readonly professorsService: ProfessorsService,
+    private readonly usersRepository: UsersRepository,
     private readonly storageService: StorageService,
     private readonly competenciesService: CompetenciesService,
     private readonly semestersService: SemestersService,
@@ -109,16 +107,16 @@ export class TrainingService {
   }
 
   async findByDocument(documentType: DocumentType, documentNumber: string) {
-    const professor = await this.professorsService.getByDocument({ documentType, documentNumber });
-    if (!professor) {
-      throw new NotFoundException(`Professor with document ${documentType} ${documentNumber} not found`);
+    const user = await this.usersRepository.getByDocument({ documentType, documentNumber });
+    if (!user) {
+      throw new NotFoundException(`User with document ${documentType} ${documentNumber} not found`);
     }
     const querySpec = {
-      query: 'SELECT value c FROM c join p in c.participants where p.foreignId = @professorId',
+      query: 'SELECT value c FROM c join p in c.participants where p.foreignId = @userId',
       parameters: [
         {
-          name: '@professorId',
-          value: professor.id
+          name: '@userId',
+          value: user.id
         }
       ]
     }
@@ -126,7 +124,7 @@ export class TrainingService {
     const mappedTrainingsPromise = resources
       .map(async training => {
         const formattedTraining = (await this.toJson(training)) as Training;
-        const participant = formattedTraining.participants.find(participant => participant.foreignId === professor.id);
+        const participant = formattedTraining.participants.find(participant => participant.foreignId === user.id);
         delete formattedTraining.participants;
         delete formattedTraining.executions;
         return {
@@ -136,7 +134,7 @@ export class TrainingService {
       });
     const mappedTrainings = await Promise.all(mappedTrainingsPromise);
     return {
-      professor: FormatCosmosItem.cleanDocument(professor),
+      professor: FormatCosmosItem.cleanDocument(user),
       trainings: mappedTrainings
     }
   }
@@ -300,7 +298,7 @@ export class TrainingService {
       };
     }
     await Promise.all(training.participants.map(async participant => {
-      const professor = await this.professorsService.getById(participant.foreignId);
+      const professor = await this.usersRepository.getById(participant.foreignId);
       if (!professor) {
         return;
       }
@@ -308,79 +306,6 @@ export class TrainingService {
       report[professor.schoolId].pending += participant.attendanceStatus === AttendanceStatus.PENDING ? 1 : 0;
     }));
     return Object.values(report);
-  }
-
-  async getProfessorParticipationBySchool(getProfessorParticipationBySchoolDto: GetProfessorParticipationBySchoolDto) {
-    this.logger.log(`Getting professor participation by school for semester: ${JSON.stringify(getProfessorParticipationBySchoolDto)}`);
-    const { trainingId, semesterId } = getProfessorParticipationBySchoolDto;
-    if (!semesterId && !trainingId) {
-      throw new BadRequestException('SemesterId or trainingId is required');
-    }
-    const querySpec = {
-      query: `SELECT c.id, c.participants FROM c WHERE c.semesterId = @semesterId or c.id = @trainingId`,
-      parameters: [
-        {
-          name: '@semesterId',
-          value: semesterId
-        },
-        {
-          name: '@trainingId',
-          value: trainingId
-        }
-      ]
-    }
-    const [{ resources: trainings }, schools, professors] = await Promise.all([
-      this.trainingContainer.items.query<{ id: string, participants: TrainingParticipant[] }>(querySpec).fetchAll(),
-      this.schoolService.findAll(),
-      this.professorsService.findAll(),
-    ]);
-    const report: {
-      [schoolId: string]: {
-        school: Partial<School>;
-        attended: number;
-        pending: number;
-        professorsCount: number;
-        professorWhoAttendedIds: string[];
-        professors?: Partial<Professor>[];
-      }
-    } = {};
-    for (const school of schools) {
-      report[school.id] = {
-        school,
-        attended: 0,
-        pending: 0,
-        professorWhoAttendedIds: [],
-        professorsCount: professors.filter(professor => professor.schoolId === school.id).length,
-      };
-    }
-    this.logger.debug(`Found ${trainings.length} trainings`);
-    this.logger.debug(`Found ${professors.length} professors`);
-    trainings.map(training => {
-      this.logger.debug(`Processing training ${training.id} - it has ${training.participants.length} participants`);
-      training.participants.forEach(participant => {
-        const professor = professors.find(professor => professor.id === participant.foreignId);
-        if (!professor) {
-          this.logger.debug(`Professor with id ${participant.foreignId} not found`);
-          return;
-        }
-        const isAttended = participant.attendanceStatus === AttendanceStatus.ATTENDED;
-        this.logger.debug(`Professor ${professor.id} is ${isAttended ? 'attended' : 'pending'}`);
-        const row = report[professor.schoolId];
-        if(row.professorWhoAttendedIds.includes(professor.id) || !isAttended) {
-          return;
-        }
-        this.logger.debug(`Counting professor ${professor.id}`);
-        row.attended += 1;
-        row.professorWhoAttendedIds.push(professor.id);
-      });
-    });
-    return Object.values(report)
-      .map(row => {
-        row.pending = row.professorsCount - row.attended;
-        row.professors = row.professorWhoAttendedIds.map(professorId => professors.find(professor => professor.id === professorId));
-        delete row.professorWhoAttendedIds;
-        return row;
-      });
   }
 
   async getAsistance(id: string) {

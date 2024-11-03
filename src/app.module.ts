@@ -12,7 +12,6 @@ import { StorageModule } from './storage/storage.module';
 import { AuthoritiesModule } from './authorities/authorities.module';
 import { TagsModule } from './tags/tags.module';
 import { TrainingModule } from './training/training.module';
-import { ProfessorsModule } from './professors/professors.module';
 import { SchoolsModule } from './schools/schools.module';
 import { MailService } from './common/services/mail.service';
 import { StatisticsModule } from './statistics/statistics.module';
@@ -23,6 +22,7 @@ import { ReportsModule } from './reports/reports.module';
 import { OpenaiModule } from './openai/openai.module';
 import { ConversationsModule } from './conversations/conversations.module';
 import { AppConfigurationModule } from './app-configuration/app-configuration.module';
+import { RepositoriesModule } from './repositories/repositories.module';
 
 @Module({
   imports: [
@@ -50,7 +50,6 @@ import { AppConfigurationModule } from './app-configuration/app-configuration.mo
     AuthoritiesModule,
     TagsModule,
     TrainingModule,
-    ProfessorsModule,
     SchoolsModule,
     StatisticsModule,
     CompetenciesModule,
@@ -60,6 +59,7 @@ import { AppConfigurationModule } from './app-configuration/app-configuration.mo
     ConversationsModule,
     EventEmitterModule.forRoot(),
     AppConfigurationModule,
+    RepositoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService, MailService],
