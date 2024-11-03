@@ -19,12 +19,4 @@ export class RegisterDto {
     @IsString()
     @IsNotEmpty()
     verificationCode: string;
-
-    @ApiProperty({
-        description: 'The role',
-        example: Role.PROFESSOR
-    })
-    @IsString()
-    @IsOptional()
-    role: Role;
 }

@@ -2910,17 +2910,11 @@
             "type": "string",
             "description": "The verification code",
             "example": "A1B2C3"
-          },
-          "role": {
-            "type": "string",
-            "description": "The role",
-            "example": "professor"
           }
         },
         "required": [
           "user",
-          "verificationCode",
-          "role"
+          "verificationCode"
         ]
       },
       "SendResetPasswordOtpDto": {

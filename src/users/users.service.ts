@@ -16,7 +16,6 @@ import { UsersRepository } from 'src/repositories/services/users.repository';
 
 const PASSWORD_SALT_ROUNDS = 5;
 
-
 @Injectable({ scope: Scope.REQUEST })
 export class UsersService {
 

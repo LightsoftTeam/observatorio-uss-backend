@@ -83,13 +83,14 @@ export class AuthService {
   }
 
   async register(registerDto: RegisterDto): Promise<LoginResponse> {
-    const { user, verificationCode, role } = registerDto;
+    const { user, verificationCode } = registerDto;
     await this.otpService.verifyOtp({ code: verificationCode, email: user.email });
     const newUser: CreateUserDto = {
       ...registerDto.user,
       role: Role.USER,
     }
-    if(role){
+    const { role } = user;
+    if(user.role && user.role !== Role.USER){
       newUser.requestedRole = role;
     }
     const userCreated = await this.userService.create(newUser);
