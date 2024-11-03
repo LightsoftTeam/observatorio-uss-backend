@@ -36,7 +36,7 @@ export class MailService {
 
         this.logger.log(`Sending email ${JSON.stringify(mailOptions)}`);
 
-        const verificationOtpIsActive = (process.env.OTP_VERIFICATION_IS_ACTIVE || 'true') === 'true';
+        const verificationOtpIsActive = (process.env.SEND_MAIL_NOTIFICATIONS || 'true') === 'true';
         if (!verificationOtpIsActive) {
             return Promise.resolve({
                 to: mailOptions.to,
