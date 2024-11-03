@@ -120,4 +120,18 @@ export class UsersRepository {
         }
         return resources[0];
     }
+
+    async findByIds(ids: string[]) {
+        const querySpec = {
+            query: 'SELECT * FROM c WHERE ARRAY_CONTAINS(@ids, c.id)',
+            parameters: [
+                {
+                    name: '@ids',
+                    value: ids,
+                },
+            ],
+        };
+        const { resources } = await this.usersContainer.items.query<User>(querySpec).fetchAll();
+        return resources;
+    }
 }

@@ -4,7 +4,7 @@ import { UsersService } from 'src/users/users.service';
 import { InjectModel } from '@nestjs/azure-database';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
 import { PostComment } from '../entities/post-comment.entity';
-import { PostsRepository } from '../repositories/post.repository';
+import { PostsRepository } from '../../repositories/services/post.repository';
 import { CreatePostCommentDto } from '../dto/create-post-comment.dto';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { User } from 'src/users/entities/user.entity';

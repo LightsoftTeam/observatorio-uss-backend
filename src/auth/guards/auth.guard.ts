@@ -1,10 +1,10 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { UsersService } from 'src/users/users.service';
 import { User } from 'src/users/entities/user.entity';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
+import { UsersRepository } from 'src/repositories/services/users.repository';
 
 export type LoggedUser = Partial<User>;
 
@@ -14,7 +14,7 @@ export class AuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private readonly usersService: UsersService,
+    private readonly usersRepository: UsersRepository,
     private readonly logger: ApplicationLoggerService
     ){}
 
@@ -36,7 +36,11 @@ export class AuthGuard implements CanActivate {
       this.logger.debug(`Token verified for user ${sub}`);
       const startDate = new Date().getTime();
       this.logger.debug('Getting user');
-      const user = await this.usersService.findOne(sub);
+      const user = await this.usersRepository.getById(sub);
+      if(!user){
+        this.logger.debug('User not found');
+        throw new UnauthorizedException();
+      }
       this.logger.debug('User found');
       const endDate = new Date().getTime();
       console.log('Time taken to get user in seconds : ', (endDate - startDate) / 1000);

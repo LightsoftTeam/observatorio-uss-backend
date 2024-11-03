@@ -17,15 +17,16 @@ import { AlgoliaService, PostAlgoliaRecord } from 'src/common/services/algolia.s
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
 import { Role } from 'src/users/entities/user.entity';
 import { scrapedPosts } from 'src/scrap/outputs/posts';
-import { PostsRepository } from './repositories/post.repository';
+import { PostsRepository } from '../repositories/services/post.repository';
 import { APP_ERRORS, ERROR_CODES } from 'src/common/constants/errors.constants';
 import { PostComment } from './entities/post-comment.entity';
 import { OpenaiService } from 'src/openai/openai.service';
 import { getTextFromHtml } from 'src/common/helpers/get-text-from-html.helper';
 import { StorageService } from 'src/storage/storage.service';
 import { AskPostDto } from './dto/ask-post.dto';
-import { from, interval, map, switchMap } from 'rxjs';
+import { from, switchMap } from 'rxjs';
 import { isUUID } from 'class-validator';
+import { UsersRepository } from 'src/repositories/services/users.repository';
 
 const BASIC_KEYS_LIST = [
   'id',
@@ -48,7 +49,6 @@ const BASIC_KEYS_LIST = [
 
 export const BASIC_KEYS = BASIC_KEYS_LIST.map(f => `c.${f}`).join(', ')
 const HOME_POSTS_KEY = 'homePosts';
-const TAGS_KEY = 'tags';
 const LONG_CACHE_TIME = 1000 * 60 * 60 * 3;//3 hours
 
 @Injectable()
@@ -67,6 +67,7 @@ export class PostsService {
     private readonly postsRepository: PostsRepository,
     private readonly openaiService: OpenaiService,
     private readonly storageService: StorageService,
+    private readonly usersRepository: UsersRepository,
   ) {
     this.logger.setContext(PostsService.name);
   }
@@ -111,7 +112,7 @@ export class PostsService {
     }
     const { resource } = await this.postsContainer.items.create<Post>(post);
     this.algoliaService.saveObject(this.transformPostToAlgoliaRecord(post));
-    this.cacheManager.del(TAGS_KEY);
+    this.postsRepository.deleteTagsCache();
     return FormatCosmosItem.cleanDocument(resource, ['content']);
   }
 
@@ -147,7 +148,7 @@ export class PostsService {
     }
     this.algoliaService.updateObject(this.transformPostToAlgoliaRecord(updatedPost));
     this.cacheManager.del(HOME_POSTS_KEY);
-    this.cacheManager.del(TAGS_KEY);
+    this.postsRepository.deleteTagsCache();
     return newPost;
   }
 
@@ -213,7 +214,7 @@ export class PostsService {
     let user = null;
     const userId = post.userId;
     if (userId) {
-      user = (await this.usersService.findByIds([userId])).at(0);
+      user = (await this.usersRepository.findByIds([userId])).at(0);
     }
     const numberOfCommentsQuery = {
       query: 'SELECT VALUE COUNT(1) FROM c WHERE c.postId = @postId',
@@ -377,21 +378,6 @@ export class PostsService {
     return response;
   }
 
-  async getDistinctTags(search: string) {
-    const cachedTags = await this.cacheManager.get(TAGS_KEY);
-    if (cachedTags) {
-      console.log('retrieving tags from cache')
-      return (cachedTags as string[]).filter(t => t.includes(search));
-    }
-    console.log('retrieving tags from db')
-    const querySpec = {
-      query: 'SELECT DISTINCT VALUE tag FROM tag IN c.tags'
-    }
-    const { resources } = await this.postsContainer.items.query<string>(querySpec).fetchAll();
-    this.cacheManager.set(TAGS_KEY, resources, LONG_CACHE_TIME);
-    return resources.filter(t => t.includes(search));
-  }
-
   async updateSlugs() {
     const querySpec = {
       query: 'SELECT * FROM c'
@@ -411,7 +397,7 @@ export class PostsService {
     const newPosts = await this.postsContainer.items.query<Post>(querySpec).fetchAll();
     const newSlugs = newPosts.resources.map(p => p.slug);
     const uniqueSlugs = new Set(newSlugs);
-    this.cacheManager.del(TAGS_KEY);
+    this.postsRepository.deleteTagsCache();
     this.cacheManager.del(HOME_POSTS_KEY);
     return {
       totalPosts: newPosts.resources.length,
@@ -449,7 +435,7 @@ export class PostsService {
         userIds.push(post.userId);
       }
     });
-    const users = await this.usersService.findByIds(userIds);
+    const users = await this.usersRepository.findByIds(userIds);
     const postsWithAuthor = posts.map(post => {
       const user = users.find(u => u.id === post.userId);
       return {

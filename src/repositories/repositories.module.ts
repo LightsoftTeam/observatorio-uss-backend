@@ -5,6 +5,8 @@ import { UsersRepository } from './services/users.repository';
 import { SchoolsRepository } from './services/schools.repository';
 import { School } from 'src/schools/entities/school.entity';
 import { Training } from 'src/training/entities/training.entity';
+import { PostsRepository } from './services/post.repository';
+import { Post } from 'src/posts/entities/post.entity';
 
 @Global()
 @Module({
@@ -13,15 +15,18 @@ import { Training } from 'src/training/entities/training.entity';
             { dto: User },
             { dto: School },
             { dto: Training },
+            { dto: Post },
         ]),
     ],
     providers: [
         UsersRepository, 
-        SchoolsRepository
+        SchoolsRepository,
+        PostsRepository,
     ],
     exports: [
         UsersRepository, 
-        SchoolsRepository
+        SchoolsRepository,
+        PostsRepository,
     ],
 })
 export class RepositoriesModule { }

@@ -6,7 +6,7 @@ import { Post } from './entities/post.entity';
 import { HomePost } from './entities/home-post.entity';
 import { AlgoliaService } from 'src/common/services/algolia.service';
 import { CommonModule } from 'src/common/common.module';
-import { PostsRepository } from './repositories/post.repository';
+import { PostsRepository } from '../repositories/services/post.repository';
 import { UsersService } from 'src/users/users.service';
 import { UsersModule } from 'src/users/users.module';
 import { PostComment } from './entities/post-comment.entity';
