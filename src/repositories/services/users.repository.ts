@@ -68,6 +68,7 @@ export class UsersRepository {
     }
 
     async create(createUserDto: CreateUserDto) {
+        this.logger.debug(`Creating user ${JSON.stringify(createUserDto)}`);
         const hashedPassword = bcrypt.hashSync(createUserDto.password, PASSWORD_SALT_ROUNDS);
         const slug = generateUniqueSlug({ title: createUserDto.name, slugs: await this.getSlugs() });
         const { countryCode } = createUserDto;
@@ -83,8 +84,8 @@ export class UsersRepository {
             isActive: true,
             createdAt: new Date(),
         };
-        const { documentType, documentNumber, requestedRole, role, employmentType, schoolId } = user;
-        if ((user.role === Role.PROFESSOR || user.requestedRole === Role.PROFESSOR) && (!documentType || !documentNumber || !requestedRole || !role || !employmentType || !schoolId)) {
+        const { documentType, documentNumber, employmentType, schoolId } = user;
+        if ((user.role === Role.PROFESSOR || user.requestedRole === Role.PROFESSOR) && (!documentType || !documentNumber || !employmentType || !schoolId)) {
             throw new BadRequestException('Missing required fields for professor');
         }
         const existingUser = await this.findByEmail(user.email);

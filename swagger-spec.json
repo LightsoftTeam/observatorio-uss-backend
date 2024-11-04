@@ -3129,7 +3129,8 @@
               "USER_ALREADY_EXISTS",
               "NESTED_COMMENT_NOT_ALLOWED",
               "POST_DOES_NOT_HAVE_CONTENT",
-              "INVALID_CHANGE_ROLE_REQUEST"
+              "INVALID_CHANGE_ROLE_REQUEST",
+              "ROLE_CANNOT_PARTICIPATE_IN_TRAINING"
             ]
           },
           "message": {
@@ -3736,22 +3737,10 @@
             "type": "string",
             "description": "A valid participant id",
             "example": "a3b4c5d6-1234-5678-90ab-cdef12345678"
-          },
-          "status": {
-            "type": "string",
-            "description": "The status of the participant in the execution.",
-            "example": "attended",
-            "enum": [
-              "pending",
-              "attended"
-            ],
-            "nullable": true,
-            "default": "attended"
           }
         },
         "required": [
-          "participantId",
-          "status"
+          "participantId"
         ]
       },
       "CreateSchoolDto": {

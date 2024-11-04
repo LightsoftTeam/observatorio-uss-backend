@@ -15,6 +15,7 @@ import { SemestersService } from 'src/semesters/semesters.service';
 import { StorageModule } from 'src/storage/storage.module';
 import { MigrationService } from './services/migration.service';
 import { TrainingMigrationEvent } from './entities/training-migration-event.entity';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
   controllers: [TrainingController],
@@ -29,6 +30,7 @@ import { TrainingMigrationEvent } from './entities/training-migration-event.enti
     SchoolsModule,
     SemestersModule,
     StorageModule,
+    UsersModule,
   ],
   exports: [
     AzureCosmosDbModule,

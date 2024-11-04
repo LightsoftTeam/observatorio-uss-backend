@@ -14,7 +14,6 @@ import { ApplicationLoggerService } from 'src/common/services/application-logger
 import { TokenReason } from 'src/common/entities/user-token.entity';
 import { UserTokensService } from './services/user-tokens.service';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { MailService } from 'src/common/services/mail.service';
 import { UsersRepository } from 'src/repositories/services/users.repository';
 import { ROLES_THAT_CAN_BE_REQUESTED } from 'src/users/constants';
 
@@ -34,7 +33,6 @@ export class AuthService {
     private readonly otpService: OtpService,
     private readonly logger: ApplicationLoggerService,
     private readonly userTokensService: UserTokensService,
-    private readonly mailService: MailService,
   ) { }
 
   async signIn({ email, password: passwordPayload }: SignInDto): Promise<LoginResponse> {
@@ -95,7 +93,6 @@ export class AuthService {
       newUser.requestedRole = role;
     }
     const userCreated = await this.userService.create(newUser);
-    this.mailService.sendRegisterNotification({user});
     return {
       user: FormatCosmosItem.cleanDocument(userCreated, ['password']),
       token: this.generateToken(userCreated),

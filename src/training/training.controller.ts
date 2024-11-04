@@ -192,6 +192,7 @@ export class TrainingController {
     return this.participantsService.verifyParticipant(participantId);
   }
 
+  @UseGuards(AuthGuard)
   @Post(':id/executions/:executionId/attendances')
   @ApiOperation({ summary: 'Add attendance to an execution' })
   @HttpCode(200)

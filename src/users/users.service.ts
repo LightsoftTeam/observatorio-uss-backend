@@ -16,6 +16,7 @@ import { UsersRepository } from 'src/repositories/services/users.repository';
 import { PASSWORD_SALT_ROUNDS, ROLES_THAT_CAN_BE_REQUESTED } from './constants';
 import { APP_ERRORS, ERROR_CODES } from 'src/common/constants/errors.constants';
 import { Action, ChangeRoleRequestDto } from './dto/change-role-request.dto';
+import { MailService } from 'src/common/services/mail.service';
 
 @Injectable({ scope: Scope.REQUEST })
 export class UsersService {
@@ -29,6 +30,7 @@ export class UsersService {
     private readonly logger: ApplicationLoggerService,
     @Inject(REQUEST) private request: Request,
     private readonly usersRepository: UsersRepository,
+    private readonly mailService: MailService,
   ) { }
 
   async findAll(findUsersDto: FindUsersDto = {}) {
@@ -154,6 +156,7 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto) {
     const user = await this.usersRepository.create(createUserDto);
+    this.mailService.sendRegisterNotification({user});
     return this.toJson(user);
   }
 

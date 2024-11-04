@@ -1,5 +1,5 @@
 import { InjectModel } from '@nestjs/azure-database';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import type { Container } from '@azure/cosmos';
 import { AttendanceStatus, ExecutionAttendance, Training, TrainingCertificate, TrainingParticipant, TrainingRole } from '../entities/training.entity';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
@@ -16,6 +16,9 @@ import { StorageService } from 'src/storage/storage.service';
 import { CertificatesHelper } from 'src/common/helpers/certificates.helper';
 import { ERROR_CODES, APP_ERRORS } from '../../common/constants/errors.constants';
 import { UsersRepository } from 'src/repositories/services/users.repository';
+import { ROLES_THAT_CAN_PARTICIPATE_IN_TRAINING } from '../constants';
+import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
+import { UsersService } from 'src/users/users.service';
 const HTML_TO_PDF = require('html-pdf-node');
 
 @Injectable()
@@ -28,6 +31,7 @@ export class ParticipantsService {
         private readonly usersRepository: UsersRepository,
         private readonly trainingService: TrainingService,
         private readonly storageService: StorageService,
+        private readonly usersService: UsersService,
     ) {
         this.logger.setContext(ParticipantsService.name);
     }
@@ -73,7 +77,13 @@ export class ParticipantsService {
             if (!isUUID(userId)) {
                 throw new BadRequestException('The userId must be a valid UUID.');
             }
-            //TODO: validate that userId exists in the database
+            const user = await this.usersRepository.getById(userId);
+            if(!user) {
+                throw new BadRequestException('User not found');
+            }
+            if(!ROLES_THAT_CAN_PARTICIPATE_IN_TRAINING.includes(user.role)) {
+                throw new BadRequestException(APP_ERRORS[ERROR_CODES.ROLE_CANNOT_PARTICIPATE_IN_TRAINING]);
+            }
             const participant = training.participants.find((participant) => participant.foreignId === userId);
             this.validateMultipleRoles(roles);
             if (!participant) {
@@ -176,7 +186,7 @@ export class ParticipantsService {
         const user = await this.usersRepository.getById(foreignId);
         return {
             ...participant,
-            user,
+            user: FormatCosmosItem.cleanDocument(user, ['password']),
         };
     }
 
@@ -242,8 +252,23 @@ export class ParticipantsService {
             if (!execution) {
                 throw new NotFoundException('Execution not found');
             }
-            const { participantId, status } = addAttendanceToExecutionDto;
-            const participant = training.participants.find((participant) => participant.id === participantId);
+            const { participantId } = addAttendanceToExecutionDto;
+            const loggedUser = this.usersService.getLoggedUser();
+            if(participantId && !this.usersService.isAdmin()){
+                throw new UnauthorizedException('Only admins can add attendance to a specific participant');
+            }
+            const participant = training.participants.find((participant) => {
+                if(!participantId){
+                    this.logger.log('Participant not found, using logged user');
+                    this.logger.debug(`Logged user: ${loggedUser?.id}`);
+                    if(!loggedUser){
+                        return false;
+                    }
+                    this.logger.debug(`comparing: ${participant.foreignId} === ${loggedUser.id}`);
+                    return participant.foreignId === loggedUser.id;
+                }
+                return participant.id === participantId;
+            });
             if (!participant) {
                 throw new NotFoundException('Participant not found');
             }
@@ -254,7 +279,7 @@ export class ParticipantsService {
             const attendance: ExecutionAttendance = {
                 id: uuidv4(),
                 participantId,
-                status: status ?? AttendanceStatus.ATTENDED,
+                status: AttendanceStatus.ATTENDED,
                 createdAt: new Date().toISOString(),
             }
             execution.attendance.push(attendance);
