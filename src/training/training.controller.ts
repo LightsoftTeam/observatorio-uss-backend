@@ -29,6 +29,7 @@ export class TrainingController {
     private readonly migrationService: MigrationService,
   ) { }
 
+  @UseGuards(AuthGuard)
   @Post()
   @ApiOperation({ summary: 'Create a training' })
   @ApiResponse({
@@ -43,6 +44,7 @@ export class TrainingController {
     return this.trainingService.create(createTrainingDto);
   }
 
+  @UseGuards(AuthGuard)
   @Get()
   @ApiOperation({ summary: 'Get all trainings' })
   @ApiResponse({
@@ -63,6 +65,7 @@ export class TrainingController {
     return this.trainingService.findByDocument(documentType, documentNumber);
   };
 
+  @UseGuards(AuthGuard)
   @Get(':id')
   @ApiOperation({ summary: 'Get a training' })
   @ApiResponse({
@@ -77,6 +80,7 @@ export class TrainingController {
     return this.trainingService.findOne(id);
   }
 
+  @UseGuards(AuthGuard)
   @Put(':id')
   @ApiOperation({ summary: 'Update a training' })
   @ApiResponse({
@@ -91,6 +95,7 @@ export class TrainingController {
     return this.trainingService.update(id, updateTrainingDto);
   }
 
+  @UseGuards(AuthGuard)
   @Delete(':id')
   @ApiOperation({ summary: 'Remove a training' })
   @HttpCode(204)
@@ -106,6 +111,7 @@ export class TrainingController {
     return this.trainingService.remove(id);
   }
 
+  @UseGuards(AuthGuard)
   @Post(':id/participants')
   @ApiOperation({ summary: 'Add a participant' })
   @HttpCode(200)
@@ -125,6 +131,7 @@ export class TrainingController {
     return this.participantsService.addParticipant(id, addParticipantDto);
   }
 
+  @UseGuards(AuthGuard)
   @Get(':id/participants')
   @ApiOperation({ summary: 'Get all participants' })
   @ApiResponse({
@@ -139,6 +146,7 @@ export class TrainingController {
     return this.participantsService.findByTrainingId(id);
   }
 
+  @UseGuards(AuthGuard)
   @Put(':id/participants/:participantId')
   @ApiOperation({ summary: 'Update a participant' })
   @HttpCode(200)
@@ -158,6 +166,7 @@ export class TrainingController {
     return this.participantsService.updateParticipant(id, participantId, updateParticipantDto);
   }
 
+  @UseGuards(AuthGuard)
   @Delete(':id/participants/:participantId')
   @ApiOperation({ summary: 'Remove a participant' })
   @HttpCode(204)
@@ -177,6 +186,7 @@ export class TrainingController {
     return this.participantsService.removeParticipant(id, participantId);
   }
 
+  @UseGuards(AuthGuard)
   @Get('participants/:participantId/verify')
   @ApiOperation({ summary: 'Verify a participant' })
   @ApiResponse({
@@ -212,6 +222,7 @@ export class TrainingController {
     return this.participantsService.addAttendanceToExecution(id, executionId, addAttendanceToExecutionDto);
   }
 
+  @UseGuards(AuthGuard)
   @Post('participants/:participantId/complete')
   @ApiOperation({ summary: 'Complete a training' })
   @ApiResponse({
@@ -240,6 +251,7 @@ export class TrainingController {
     stream.pipe(res);
   }
 
+  @UseGuards(AuthGuard)
   @Get(':id/download-certificates')
   @ApiOperation({ summary: 'Download the certificates of a training' })
   @ApiResponse({
@@ -260,6 +272,7 @@ export class TrainingController {
     stream.pipe(res);
   }
 
+  @UseGuards(AuthGuard)
   @Get('participants/:participantId/qr')
   @ApiOperation({ summary: 'Download the qr code of a participant' })
   @ApiResponse({
@@ -280,6 +293,7 @@ export class TrainingController {
     stream.pipe(res);
   }
 
+  @UseGuards(AuthGuard)
   @Get(':id/asistance')
   @ApiOperation({ summary: 'Get the assistance' })
   @ApiResponse({
@@ -294,6 +308,7 @@ export class TrainingController {
     return this.trainingService.getAsistance(id);
   }
 
+  @UseGuards(AuthGuard)
   @Get(':id/asistance-by-school')
   @ApiOperation({ summary: 'Get the assistance by school' })
   @ApiResponse({

@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { ArrayMinSize, IsArray, IsEnum, IsNotEmpty, IsString } from "class-validator";
+import { ArrayMinSize, IsArray, IsEnum, IsOptional, IsString } from "class-validator";
 import { TrainingRole } from "../entities/training.entity";
 
 export class AddParticipantDto {
@@ -8,8 +8,8 @@ export class AddParticipantDto {
         example: 'a3b4c5d6-1234-5678-90ab-cdef12345678',
     })
     @IsString()
-    @IsNotEmpty()
-    userId: string;
+    @IsOptional()
+    userId?: string;
     @ApiProperty({
         description: 'The role of the user',
         example: TrainingRole.ASSISTANT,

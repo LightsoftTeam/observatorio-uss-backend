@@ -19,6 +19,7 @@ import { UsersRepository } from 'src/repositories/services/users.repository';
 import { ROLES_THAT_CAN_PARTICIPATE_IN_TRAINING } from '../constants';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { UsersService } from 'src/users/users.service';
+import { Role } from 'src/users/entities/user.entity';
 const HTML_TO_PDF = require('html-pdf-node');
 
 @Injectable()
@@ -74,13 +75,14 @@ export class ParticipantsService {
                 throw new NotFoundException('Training not found');
             }
             const { userId, roles } = addParticipantDto;
-            if (!isUUID(userId)) {
+            if (userId && !isUUID(userId)) {
                 throw new BadRequestException('The userId must be a valid UUID.');
             }
-            const user = await this.usersRepository.getById(userId);
-            if(!user) {
-                throw new BadRequestException('User not found');
+            const loggedUser = this.usersService.getLoggedUser();
+            if(userId && (!this.usersService.isAdmin() || loggedUser?.role !== Role.EVENT_MANAGER)){
+                throw new UnauthorizedException('Cannot add a specific participant');
             }
+            const user = userId ? await this.usersRepository.getById(userId) : loggedUser;
             if(!ROLES_THAT_CAN_PARTICIPATE_IN_TRAINING.includes(user.role)) {
                 throw new BadRequestException(APP_ERRORS[ERROR_CODES.ROLE_CANNOT_PARTICIPATE_IN_TRAINING]);
             }
@@ -254,8 +256,8 @@ export class ParticipantsService {
             }
             const { participantId } = addAttendanceToExecutionDto;
             const loggedUser = this.usersService.getLoggedUser();
-            if(participantId && !this.usersService.isAdmin()){
-                throw new UnauthorizedException('Only admins can add attendance to a specific participant');
+            if(participantId && (!this.usersService.isAdmin() || loggedUser?.role !== Role.EVENT_MANAGER) ){
+                throw new UnauthorizedException('Cannot add attendance to a specific participant');
             }
             const participant = training.participants.find((participant) => {
                 if(!participantId){
