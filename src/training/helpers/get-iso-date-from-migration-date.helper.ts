@@ -6,6 +6,7 @@ import { DateTime } from "luxon";
  * @returns ISO date
  */
 export function getIsoDateFromMigrationDate(date: string): string {
+    console.log('converting date', date);
     const formattedDate = DateTime.fromFormat(date, 'dd/MM/yyyy HH:mm:ss').plus({ hours: 5 }).toISO();
     return formattedDate;
 }   

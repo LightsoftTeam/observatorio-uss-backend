@@ -33,6 +33,7 @@ export class User {
     employmentType?: EmploymentType;
     schoolId?: string;
     requestedRole?: Role;
+    excludedFromReports?: boolean;
     @CosmosDateTime() createdAt: Date;
     @CosmosDateTime() updatedAt?: Date;
     @CosmosDateTime() deletedAt?: Date;

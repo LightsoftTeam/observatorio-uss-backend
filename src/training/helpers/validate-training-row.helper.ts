@@ -9,7 +9,7 @@ export function validateTrainingRow(trainingDataRow: TrainingRow) {
         desde,
         hasta,
         modalidad,
-        organizador,
+        escuela,
         semestre,
         tipo,
         // "fecha de emision": emisionDate,
@@ -43,7 +43,7 @@ export function validateTrainingRow(trainingDataRow: TrainingRow) {
     if (!Object.values(MigrationTrainingModality).includes(modalidad as MigrationTrainingModality)) {
         throw new Error('El campo "modalidad" tiene un valor inválido');
     }
-    if (!organizador) {
+    if (!escuela) {
         throw new Error('El campo "organizador" es requerido');
     }
     if (!semestre) {

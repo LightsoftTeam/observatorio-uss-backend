@@ -11,10 +11,14 @@ export function validateParticipantRow(participantRow: ParticipantRow) {
         "tipo de documento": documentType,
         "tipo de empleo": employmentType,
         pais,
+        "interesa reporteria": interesaReporteria,
     } = participantRow;
 
     if (!Object.keys(BooleanResponse).includes(asistencia)) {
         throw new Error('El campo "asistencia" tiene un valor inválido');
+    }
+    if (interesaReporteria && !Object.keys(BooleanResponse).includes(interesaReporteria)) {
+        throw new Error('El campo "interesa reporteria" tiene un valor inválido');
     }
     if (!email) {
         throw new Error('El campo "email" es requerido');

@@ -2822,6 +2822,12 @@
             "description": "The school id of the user",
             "example": "12345678-1234-1234-1234-123456789012",
             "nullable": true
+          },
+          "excludedFromReports": {
+            "type": "boolean",
+            "description": "The flag to participate in reports",
+            "example": true,
+            "nullable": true
           }
         },
         "required": [
@@ -2836,7 +2842,8 @@
           "documentType",
           "documentNumber",
           "employmentType",
-          "schoolId"
+          "schoolId",
+          "excludedFromReports"
         ]
       },
       "UpdateUserDto": {
@@ -2911,6 +2918,12 @@
             "type": "string",
             "description": "The school id of the user",
             "example": "12345678-1234-1234-1234-123456789012",
+            "nullable": true
+          },
+          "excludedFromReports": {
+            "type": "boolean",
+            "description": "The flag to participate in reports",
+            "example": true,
             "nullable": true
           }
         }

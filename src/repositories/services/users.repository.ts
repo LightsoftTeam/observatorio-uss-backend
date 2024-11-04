@@ -88,12 +88,31 @@ export class UsersRepository {
         if ((user.role === Role.PROFESSOR || user.requestedRole === Role.PROFESSOR) && (!documentType || !documentNumber || !employmentType || !schoolId)) {
             throw new BadRequestException('Missing required fields for professor');
         }
-        const existingUser = await this.findByEmail(user.email);
+        const existingUser = await this.getDuplicatedUser({ email: user.email, documentType, documentNumber });
         if (existingUser) {
+            this.logger.debug(`User with email ${user.email} already exists`);
             throw new BadRequestException(APP_ERRORS[ERROR_CODES.USER_ALREADY_EXISTS]);
         }
         const { resource } = await this.usersContainer.items.create<User>(user);
         return resource;
+    }
+
+    async getDuplicatedUser({email, documentType, documentNumber}: {email: string, documentType: DocumentType, documentNumber: string}) {
+        this.logger.debug(`Checking for duplicated user with email ${email} and document ${documentType} ${documentNumber}`);
+        const querySpec = {
+            query: 'SELECT * FROM c WHERE c.email = @email OR (c.documentType = @documentType AND c.documentNumber = @documentNumber)',
+            parameters: [
+                { name: '@email', value: email },
+                { name: '@documentType', value: documentType },
+                { name: '@documentNumber', value: documentNumber },
+            ],
+        };
+        const { resources } = await this.usersContainer.items.query<User>(querySpec).fetchAll();
+        const duplicated = resources.at(0);
+        if(duplicated){
+            this.logger.debug(`Duplicated user found: ${JSON.stringify(duplicated)}`);
+        }
+        return duplicated;
     }
 
     private async getSlugs(): Promise<string[]> {

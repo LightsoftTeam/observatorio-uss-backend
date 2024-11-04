@@ -20,6 +20,7 @@ import { UsersRepository } from 'src/repositories/services/users.repository';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { generateRandomPassword } from '../helpers/generate-random-password';
 import { MailService } from 'src/common/services/mail.service';
+import { Role } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class MigrationService {
@@ -101,7 +102,7 @@ export class MigrationService {
         competencia: competencyName,
         modalidad: modality,
         nombre: name,
-        organizador: organizerName,
+        escuela: escuelaName,
         semestre: semesterName,
         tipo: type,
         descripcion: description,
@@ -125,7 +126,7 @@ export class MigrationService {
       let [semester, competency, school] = await Promise.all([
         this.semestersService.getByName(semesterName),
         this.competenciesService.getByName(competencyName),
-        this.schoolsService.getByName(organizerName),
+        this.schoolsService.getByName(escuelaName),
       ]);
       if (!semester) {
         this.logger.debug(`Semester with name ${data.semestre} not found. Creating new semester`);
@@ -136,8 +137,8 @@ export class MigrationService {
         competency = await this.competenciesService.create({ name: data.competencia });
       }
       if (!school) {
-        this.logger.debug(`School with name ${data.organizador} not found. Creating new school`);
-        school = await this.schoolsService.create({ name: data.organizador });
+        this.logger.debug(`School with name ${escuelaName} not found. Creating new school`);
+        school = await this.schoolsService.create({ name: escuelaName });
       }
       const trainingPayload: Training = {
         code,
@@ -184,9 +185,11 @@ export class MigrationService {
         asistencia: isAttended,
         roles: rolesInput,
         pais: countryCode,
+        'interesa reporteria': interesaReporteria,
       } = data;
       const roles = getRoles(rolesInput);
       let formattedDocumentType = getDocumentType(documentType);
+      this.logger.debug(`Searching professor with document ${formattedDocumentType} ${documentNumber}`);
       let professor = await this.usersRepository.getByDocument({ documentNumber, documentType: formattedDocumentType });
       const attendanceStatus = isAttended.toUpperCase().trim() === BooleanResponse.SI ? AttendanceStatus.ATTENDED : AttendanceStatus.PENDING;
       if (!professor) {
@@ -200,12 +203,14 @@ export class MigrationService {
         const professorPayload: CreateUserDto = {
           name,
           email,
+          role: Role.PROFESSOR,
           documentType: formattedDocumentType,
           documentNumber,
           schoolId: school.name,
           employmentType: formattedEmploymentType,
           countryCode,
           password: generateRandomPassword(),
+          excludedFromReports: interesaReporteria === BooleanResponse.SI ? undefined : true,
         }
         professor = await this.usersRepository.create(professorPayload);
         this.mailService.sendNewAccountWithPassword({ user: professor, password: professorPayload.password });

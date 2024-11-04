@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
 import { EmploymentType, Role } from "../entities/user.entity";
 import { DocumentType } from "src/common/types/document-type.enum";
 
@@ -106,4 +106,13 @@ export class CreateUserDto {
     @IsUUID()
     @IsOptional()
     schoolId?: string;
+
+    @ApiProperty({
+        description: 'The flag to participate in reports',
+        example: true,
+        nullable: true,
+    })
+    @IsBoolean()
+    @IsOptional()
+    excludedFromReports?: boolean;
 }

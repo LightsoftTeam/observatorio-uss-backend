@@ -4,7 +4,7 @@ export interface TrainingRow{
     semestre: string;
     "descripcion": string;
     tipo: MigrationTrainingType;
-    "organizador": string;
+    "escuela": string;
     "modalidad": MigrationTrainingModality;
     "capacidad": string;
     "competencia": string;
@@ -58,4 +58,5 @@ export interface ParticipantRow{
     asistencia: BooleanResponse;
     roles: string;
     pais: string;
+    "interesa reporteria": BooleanResponse;
 }
