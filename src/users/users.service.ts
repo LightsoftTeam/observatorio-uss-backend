@@ -17,6 +17,7 @@ import { PASSWORD_SALT_ROUNDS, ROLES_THAT_CAN_BE_REQUESTED } from './constants';
 import { APP_ERRORS, ERROR_CODES } from 'src/common/constants/errors.constants';
 import { Action, ChangeRoleRequestDto } from './dto/change-role-request.dto';
 import { MailService } from 'src/common/services/mail.service';
+import { SchoolsRepository } from 'src/repositories/services/schools.repository';
 
 @Injectable({ scope: Scope.REQUEST })
 export class UsersService {
@@ -31,6 +32,7 @@ export class UsersService {
     @Inject(REQUEST) private request: Request,
     private readonly usersRepository: UsersRepository,
     private readonly mailService: MailService,
+    private readonly schoolsRepository: SchoolsRepository,
   ) { }
 
   async findAll(findUsersDto: FindUsersDto = {}) {
@@ -68,7 +70,7 @@ export class UsersService {
     const startAt = new Date();
     const { resources } = await this.usersContainer.items.query<User>(querySpec).fetchAll();
     this.logger.log(`query time findAll users ${(new Date().getTime() - startAt.getTime())}`);
-    return resources.map(user => this.toJson(user));
+    return Promise.all(resources.map(user => this.toJson(user)));
   }
 
   async toggleActiveState(id: string) {
@@ -110,7 +112,7 @@ export class UsersService {
       ],
     };
     const { resources } = await this.usersContainer.items.query<User>(querySpec).fetchAll();
-    return resources.map(user => this.toJson(user));
+    return resources;
   }
 
   async findBySlug(slug: string) {
@@ -235,9 +237,8 @@ export class UsersService {
     return this.toJson(resource as User);
   }
 
-  getLoggedUser() {
-    const loggedUser = this.request['loggedUser'];
-    return loggedUser ? this.toJson(loggedUser) : null;
+  getLoggedUser(): User | null {
+    return this.request['loggedUser'] ?? null;
   }
 
   isAdmin() {
@@ -274,10 +275,13 @@ export class UsersService {
     return 'ok';
   }
 
-  toJson(user: User, extraData: any = {}) {
+  async toJson(user: User, extraData: any = {}) {
     user.country = this.countriesService.getCountry(user.countryCode);
+    const school = user.schoolId ? await this.schoolsRepository.getById(user.schoolId) : null;
+    this.logger.debug(`school ${JSON.stringify(school)}`);
     return {
       ...FormatCosmosItem.cleanDocument(user, ['password']),
+      school: school ? FormatCosmosItem.cleanDocument(school) : null,
       ...extraData,
     };
   }

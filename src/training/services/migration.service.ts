@@ -206,7 +206,7 @@ export class MigrationService {
           role: Role.PROFESSOR,
           documentType: formattedDocumentType,
           documentNumber,
-          schoolId: school.name,
+          schoolId: school.id,
           employmentType: formattedEmploymentType,
           countryCode,
           password: generateRandomPassword(),

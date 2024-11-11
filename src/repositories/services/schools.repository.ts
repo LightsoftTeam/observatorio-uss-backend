@@ -17,4 +17,15 @@ export class SchoolsRepository {
         const { resources } = await this.schoolsContainer.items.readAll<School>().fetchAll();
         return resources;
     }
+
+    async getById(id: string): Promise<School | null> {
+        try {
+            this.logger.debug(`Getting school with id ${id}`);
+            const { resource } = await this.schoolsContainer.item(id, id).read<School>();
+            return resource;
+        } catch (error) {
+            this.logger.error(`Error getting school with id ${id}`);
+            return null;
+        }
+    }
 }
