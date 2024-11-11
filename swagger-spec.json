@@ -2206,7 +2206,16 @@
     "/api/reports/professors-by-employment-type": {
       "get": {
         "operationId": "ReportsController_getEmploymentType",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "semesterId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "The employment type report was found"

@@ -36,8 +36,8 @@ export class ReportsService {
         return this.professorReportsRepository.getParticipation(semesterId);
     }
 
-    async getProfessorEmploymentTypeReport() {
-        return this.professorReportsRepository.getEmploymentTypeReport();
+    async getProfessorEmploymentTypeReport(semesterId: string) {
+        return this.professorReportsRepository.getEmploymentTypeReport(semesterId);
     }
 
     async getProfessorParticipationByYears() {

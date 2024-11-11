@@ -91,26 +91,59 @@ export class ProfessorReportsRepository {
     return report;
   }
 
-  async getEmploymentTypeReport() {
-    this.logger.debug('Getting employment type report');
-    const querySpec = {
-      query: `
-              SELECT COUNT(1) AS count, c.employmentType 
-              FROM c 
-              where c.role = @role
-              GROUP BY c.employmentType
-            `,
-      parameters: [
-        { name: '@role', value: Role.PROFESSOR },
-      ],
-    }
-    const { resources } = await this.usersContainer.items.query(querySpec).fetchAll();
-    this.logger.debug(`Employment type report resources: ${JSON.stringify(resources)}`);
-    const employmentTypes = Object.values(EmploymentType);
-    const report = employmentTypes.reduce((acc, employmentType) => {
-      acc[employmentType] = resources.find((resource) => resource.employmentType === employmentType)?.count || 0;
-      return acc;
-    }, {});
+  async getEmploymentTypeReport(semesterId: string) {
+    // this.logger.debug('Getting employment type report');
+    // const querySpec = {
+    //   query: `
+    //           SELECT COUNT(1) AS count, c.employmentType 
+    //           FROM c 
+    //           where c.role = @role
+    //           GROUP BY c.employmentType
+    //         `,
+    //   parameters: [
+    //     { name: '@role', value: Role.PROFESSOR },
+    //   ],
+    // }
+    // const { resources } = await this.usersContainer.items.query(querySpec).fetchAll();
+    // this.logger.debug(`Employment type report resources: ${JSON.stringify(resources)}`);
+    // const employmentTypes = Object.values(EmploymentType);
+    // const report = employmentTypes.reduce((acc, employmentType) => {
+    //   acc[employmentType] = resources.find((resource) => resource.employmentType === employmentType)?.count || 0;
+    //   return acc;
+    // }, {});
+    // return report;
+    const professors = await this.usersRepository.findAll({
+      role: Role.PROFESSOR,
+    });
+    const report = {
+      [EmploymentType.FULL_TIME]: {
+        [AttendanceStatus.ATTENDED]: 0,
+        [AttendanceStatus.PENDING]: 0,
+      },
+      [EmploymentType.PART_TIME]: {
+        [AttendanceStatus.ATTENDED]: 0,
+        [AttendanceStatus.PENDING]: 0,
+      },
+    };
+    (await Promise.all(professors.map(async (professor) => {
+      const querySpec = {
+        query: `
+                SELECT TOP 1 c.foreignId, c.createdAt, p.attendanceStatus 
+                FROM c JOIN p IN c.participants 
+                WHERE p.foreignId = @id
+                AND c.semesterId = @semesterId
+                AND p.attendanceStatus = @status  
+              `,
+        parameters: [
+          { name: '@id', value: professor.id },
+          { name: '@status', value: AttendanceStatus.ATTENDED },
+          { name: '@semesterId', value: semesterId },
+        ],
+      }
+      const { resources } = await this.trainingContainer.items.query<{ foreignId: string, createdAt: string, attendanceStatus: AttendanceStatus }>(querySpec).fetchAll();
+      const professorEmploymentType = professor.employmentType;
+      resources.length > 0 ? report[professorEmploymentType][AttendanceStatus.ATTENDED]++ : report[professorEmploymentType][AttendanceStatus.PENDING]++;
+    })));
     return report;
   }
 

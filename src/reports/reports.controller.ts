@@ -46,8 +46,9 @@ export class ReportsController {
     status: 200,
     description: 'The employment type report was found',
   })
-  getEmploymentType() {
-    return this.reportsService.getProfessorEmploymentTypeReport();
+  getEmploymentType(@Query('semesterId') semesterId: string) {
+    if(!semesterId) throw new BadRequestException('SemesterId is required');
+    return this.reportsService.getProfessorEmploymentTypeReport(semesterId);
   }
 
   @Get('professor-participation-by-school')

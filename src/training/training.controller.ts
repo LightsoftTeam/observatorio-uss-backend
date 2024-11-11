@@ -44,7 +44,6 @@ export class TrainingController {
     return this.trainingService.create(createTrainingDto);
   }
 
-  @UseGuards(AuthGuard)
   @Get()
   @ApiOperation({ summary: 'Get all trainings' })
   @ApiResponse({
