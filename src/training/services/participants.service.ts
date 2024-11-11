@@ -68,7 +68,6 @@ export class ParticipantsService {
 
     async addParticipant(trainingId: string, addParticipantDto: AddParticipantDto) {
         try {
-            this.logger.log(`Adding user ${addParticipantDto.userId} to training ${trainingId}`);
             const training = await this.trainingService.getTrainingById(trainingId);
             if (!training) {
                 this.logger.error(`Training ${trainingId} not found`);
@@ -86,19 +85,19 @@ export class ParticipantsService {
             if(!ROLES_THAT_CAN_PARTICIPATE_IN_TRAINING.includes(user.role)) {
                 throw new BadRequestException(APP_ERRORS[ERROR_CODES.ROLE_CANNOT_PARTICIPATE_IN_TRAINING]);
             }
-            const participant = training.participants.find((participant) => participant.foreignId === userId);
+            const participant = training.participants.find((participant) => participant.foreignId === user.id);
             this.validateMultipleRoles(roles);
             if (!participant) {
-                this.logger.log(`Participant ${userId} does not exist in training ${trainingId}`);
+                this.logger.log(`Participant with userId ${user.id} does not exist in training ${trainingId}`);
                 training.participants.push({
                     id: uuidv4(),
-                    foreignId: userId,
+                    foreignId: user.id,
                     roles,
                     attendanceStatus: AttendanceStatus.PENDING,
                     certificates: [],
                 });
                 const { resource: trainingUpdated } = await this.trainingContainer.item(trainingId, trainingId).replace(training);
-                const newParticipant = trainingUpdated.participants.find((participant) => participant.foreignId === userId);
+                const newParticipant = trainingUpdated.participants.find((participant) => participant.foreignId === user.id);
                 return this.fillParticipant(newParticipant);
             }
             if (participant.roles.length === roles.length && participant.roles.every((role) => roles.includes(role))) {
