@@ -228,6 +228,7 @@ export class ParticipantsService {
     }
 
     async getTrainingByParticipantId(participantId: string): Promise<Training | null> {
+        this.logger.debug(`Getting training by participantId ${participantId}`);
         const querySpec = {
             query: `SELECT value c from c join p in c.participants where p.id = @participantId`,
             parameters: [
@@ -236,9 +237,10 @@ export class ParticipantsService {
         }
         const { resources } = await this.trainingContainer.items.query<Training>(querySpec).fetchAll();
         if (resources.length === 0) {
+            this.logger.log(`training for participant ${participantId} not found`);
             return null;
         }
-        this.logger.log(`Participant ${participantId} found`);
+        this.logger.log(`Training for participant ${participantId} found`);
         return resources[0];
     }
 
@@ -273,13 +275,13 @@ export class ParticipantsService {
             if (!participant) {
                 throw new NotFoundException('Participant not found');
             }
-            const assistance = execution.attendance.find((assistance) => assistance.participantId === participantId);
+            const assistance = execution.attendance.find((assistance) => assistance.participantId === participant.id);
             if (assistance) {
                 throw new BadRequestException('The participant is already added to the execution.');
             }
             const attendance: ExecutionAttendance = {
                 id: uuidv4(),
-                participantId,
+                participantId: participant.id,
                 status: AttendanceStatus.ATTENDED,
                 createdAt: new Date().toISOString(),
             }
