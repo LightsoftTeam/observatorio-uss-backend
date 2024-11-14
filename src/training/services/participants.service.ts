@@ -203,7 +203,7 @@ export class ParticipantsService {
             if (!participant) {
                 throw new BadRequestException(APP_ERRORS[ERROR_CODES.QR_CODE_NOT_FOUND]);
             }
-            const { id, name, code, modality, executions } = training;
+            const { id, name, code, modality, executions, credentialBackgroundUrl, credentialHelpText, credentialLogos, credentialTextToShare } = training;
             const filledParticipant = await this.fillParticipant(participant);
             return {
                 training: {
@@ -211,6 +211,10 @@ export class ParticipantsService {
                     name,
                     code,
                     modality,
+                    credentialBackgroundUrl,
+                    credentialHelpText,
+                    credentialLogos,
+                    credentialTextToShare,
                 },
                 executions: executions.map((execution) => {
                     const { attendance, ...rest } = execution;
@@ -319,7 +323,7 @@ export class ParticipantsService {
             });
             participant.certificates = certificates;
             await this.trainingContainer.item(training.id, training.id).replace(training);
-            return participant;
+            return this.fillParticipant(participant);
         } catch (error) {
             this.logger.error(`changeStatus ${error.message}`);
             throw error;
