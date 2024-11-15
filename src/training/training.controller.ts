@@ -322,7 +322,6 @@ export class TrainingController {
     return this.trainingService.getAsistanceBySchool(id);
   }
   
-  @UseGuards(AuthGuard)
   @Post('migrate')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Migrate data from an excel' })

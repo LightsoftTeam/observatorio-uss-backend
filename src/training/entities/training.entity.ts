@@ -12,6 +12,7 @@ export interface Execution {
     id: string;
     from: string;
     to: string;
+    durationInMinutes: number;
     place?: string;
     attendance: ExecutionAttendance[];
 }

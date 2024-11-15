@@ -1,4 +1,5 @@
 import { MigrationTrainingModality, MigrationTrainingType, TrainingRow } from "../types/training-migration.types";
+import { validateDateString } from "./validate-date-string";
 
 export function validateTrainingRow(trainingDataRow: TrainingRow) {
     const {
@@ -12,6 +13,7 @@ export function validateTrainingRow(trainingDataRow: TrainingRow) {
         escuela,
         semestre,
         tipo,
+        "horas academicas": academicHours,
         // "fecha de emision": emisionDate,
         // "organizador en certificado": certificateOrganizer,
         // "firma de certificado": certificateSignature,
@@ -37,6 +39,8 @@ export function validateTrainingRow(trainingDataRow: TrainingRow) {
     if(!hasta){
         throw new Error('El campo "hasta" es requerido');
     }
+    validateDateString(desde);
+    validateDateString(hasta);
     if (!modalidad) {
         throw new Error('El campo "modalidad" es requerido');
     }
@@ -54,6 +58,9 @@ export function validateTrainingRow(trainingDataRow: TrainingRow) {
     }
     if(!Object.values(MigrationTrainingType).includes(tipo as MigrationTrainingType)){
         throw new Error('El campo "tipo" tiene un valor inválido');
+    }
+    if(!academicHours || isNaN(academicHours)){
+        trainingDataRow['horas academicas'] = 0;
     }
     return trainingDataRow;
 }

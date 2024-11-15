@@ -7,7 +7,7 @@ export function validateParticipantRow(participantRow: ParticipantRow) {
         escuela,
         nombre,
         // roles,
-        "numero de documento": documentNumber,
+        // "numero de documento": documentNumber,
         "tipo de documento": documentType,
         "tipo de empleo": employmentType,
         pais,
@@ -29,23 +29,23 @@ export function validateParticipantRow(participantRow: ParticipantRow) {
     if (!nombre) {
         throw new Error('El campo "nombre" es requerido');
     }
-    if (!documentNumber) {
-        throw new Error('El campo "numero de documento" es requerido');
-    }
-    if (!documentType) {
-        throw new Error('El campo "tipo de documento" es requerido');
-    }
-    if(!Object.values(MigrationDocumentType).includes(documentType as MigrationDocumentType)){
+    // if (!documentNumber) {
+    //     throw new Error('El campo "numero de documento" es requerido');
+    // }
+    // if (!documentType) {
+    //     throw new Error('El campo "tipo de documento" es requerido');
+    // }
+    if(documentType && !Object.values(MigrationDocumentType).includes(documentType as MigrationDocumentType)){
         throw new Error('El campo "tipo de documento" tiene un valor inválido');
     }
-    if (!employmentType) {
-        throw new Error('El campo "tipo de empleo" es requerido');
-    }
-    if(!Object.values(MigrationEmploymentType).includes(employmentType as MigrationEmploymentType)){
+    // if (!employmentType) {
+    //     throw new Error('El campo "tipo de empleo" es requerido');
+    // }
+    if(employmentType && !Object.values(MigrationEmploymentType).includes(employmentType as MigrationEmploymentType)){
         throw new Error('El campo "tipo de empleo" tiene un valor inválido');
     }
     if(!pais){
-        throw new Error('El campo "pais" es requerido');
+        participantRow.pais = 'PE';
     }
     return participantRow;
 }

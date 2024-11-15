@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { ArrayMaxSize, IsArray, IsDateString, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
+import { ArrayMaxSize, IsArray, IsDateString, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Matches, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
 import { TrainingModality, TrainingStatus, TrainingType } from "../entities/training.entity";
 
@@ -16,15 +16,28 @@ export class ExecutionRequest {
         description: 'The date of the execution',
         example: '2022-07-01',
     })
-    @IsDateString()
+    @IsString()
+    @Matches(/^\d{4}-\d{2}-\d{2}$/, {
+        message: 'The date must be in the format YYYY-MM-DD',
+    })
     from: string;
 
     @ApiProperty({
         description: 'The end date of the execution',
         example: '2022-07-01',
     })
-    @IsDateString()
+    @IsString()
+    @Matches(/^\d{4}-\d{2}-\d{2}$/, {
+        message: 'The date must be in the format YYYY-MM-DD',
+    })
     to: string;
+
+    @ApiProperty({
+        description: 'The duration of the execution in minutes',
+        example: '60 is 1 hour',
+    })
+    @IsNumber()
+    durationInMinutes: number;
 
     @ApiProperty({
         description: 'The place of the execution',

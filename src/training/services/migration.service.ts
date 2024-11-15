@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import * as ExcelJS from 'exceljs';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
 import { BooleanResponse, ParticipantRow, TrainingRow } from '../types/training-migration.types';
 import { AttendanceStatus, Training, TrainingStatus } from '../entities/training.entity';
@@ -14,7 +15,7 @@ import { TrainingService } from '../training.service';
 import { validateParticipantRow } from '../helpers/validate-participant-row.helper';
 import { getIsoDateFromMigrationDate } from '../helpers/get-iso-date-from-migration-date.helper';
 import { getDocumentType, getEmploymentType, getModality, getRoles, getTrainingType } from '../mappers/migration.mappers';
-import { getFileInfo, getSheetRows } from '../helpers/sheets.helpers';
+import { getColumnNameFromIndex, getFileInfo, getSheetRows, updateRawState } from '../helpers/sheets.helpers';
 import { TrainingMigrationEvent, TrainingMigrationTrace } from '../entities/training-migration-event.entity';
 import { UsersRepository } from 'src/repositories/services/users.repository';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
@@ -40,13 +41,32 @@ export class MigrationService {
     private readonly mailService: MailService,
   ) { }
 
+  headerResultName = 'Estado';
+
   async migrateFromExcel() {
+    //crear un excel que será la respuesta de la función
+    // const workbook = new ExcelJS.Workbook();
+    // const trainingSheet = workbook.addWorksheet('Capacitaciones');
     const trace: TrainingMigrationTrace[] = [];
     const { sheets, spreadsheetId, sheetNames } = await getFileInfo();
     const [trainingSheetName, ...participantsSheetNames] = sheetNames;
-    const trainingRows = await getSheetRows<TrainingRow>({ sheets, spreadsheetId, sheetName: trainingSheetName });
+    const {headers: trainingHeaders, rows: trainingRows} = await getSheetRows<TrainingRow>({ sheets, spreadsheetId, sheetName: trainingSheetName });
     this.logger.debug('Initializing migration');
+    // trainingSheet.columns = [
+    //   ...trainingHeaders.map(header => ({ header, key: header })),
+    //   { header: 'Estado', key: 'status' },
+    // ];
+    const columnResultIndex = trainingHeaders.indexOf(this.headerResultName);
+    if(columnResultIndex === -1){
+      throw new Error(`No se encontró la columna ${this.headerResultName}`);
+    }
+    let trainingRowsCount = 1;
     for (const trainingDataRow of trainingRows) {
+      trainingRowsCount++;
+      this.logger.debug(`Processing row: ${JSON.stringify(trainingDataRow)}`);
+      const range = `${trainingSheetName}!${getColumnNameFromIndex(columnResultIndex)}${trainingRowsCount}`;
+      const messageRange = `${trainingSheetName}!${getColumnNameFromIndex(columnResultIndex + 1)}${trainingRowsCount}`;
+      this.logger.debug(`Updating state to processing ${range}`);
       this.logger.debug(`Initializing training migration`);
       let training: Training;
       try {
@@ -55,28 +75,55 @@ export class MigrationService {
           isSuccessful: true,
           message: `Capacitación ${trainingDataRow.codigo} importada satisfactoriamente`,
         });
+        // trainingSheet.addRow({...trainingDataRow, status: 'Importado'});
+        updateRawState({ sheets, range, state: 'success' });
       } catch (error) {
+        this.logger.debug(`Controlling error in training ${trainingDataRow.codigo}: ${error.message}`);
         trace.push({
           isSuccessful: false,
           message: error.message,
         })
+        // trainingSheet.addRow({...trainingDataRow, status: 'Error'});
+        updateRawState({ sheets, range, state: 'error' });
+        updateRawState({ sheets, range: messageRange, state: error.message });
         continue;
       }
       this.logger.debug(`Searching participants sheet for training ${trainingDataRow.codigo}`);
-      const participantRows: ParticipantRow[] = await getSheetRows<ParticipantRow>({ sheets, spreadsheetId, sheetName: participantsSheetNames.find(name => name.includes(trainingDataRow.codigo)) });
+      const {rows: participantRows, headers: participantsHeaders} = await getSheetRows<ParticipantRow>({ sheets, spreadsheetId, sheetName: participantsSheetNames.find(name => name.includes(trainingDataRow.codigo)) });
       this.logger.debug(`Adding participants to training - ${participantRows.length} participants`);
-      for (const participantRow of participantRows) {
+      // workbook.addWorksheet(trainingDataRow.codigo).columns = [
+      //   ...participantsHeaders.map(header => ({ header, key: header })),
+      //   { header: 'Estado', key: 'status' },
+      // ];
+      const participantColumnResultIndex = participantsHeaders.indexOf(this.headerResultName);
+      if(participantColumnResultIndex === -1){
+        throw new Error(`No se encontró la columna ${this.headerResultName}`);
+      }
+      let participantRawCount = 1;
+      for (const participantRow of participantRows) { 
+        participantRawCount++;
+        this.logger.debug(`Processing participant row: ${JSON.stringify(participantRow)}`);
+        const range = `${trainingDataRow.codigo}!${getColumnNameFromIndex(participantColumnResultIndex)}${participantRawCount}`;
+        const messageRange = `${trainingDataRow.codigo}!${getColumnNameFromIndex(participantColumnResultIndex + 1)}${participantRawCount}`;
+        this.logger.debug(`Updating state to processing ${range}`);
         try {
           await this.addParticipantToTraining({ training, participantRow });
           trace.push({
             isSuccessful: true,
             message: `Participante ${participantRow.nombre} importado satisfactoriamente en capacitación ${trainingDataRow.codigo}`,
           });
+          // workbook.getWorksheet(trainingDataRow.codigo).addRow({...participantRow, status: 'Importado'});
+          updateRawState({ sheets, range, state: 'success' });
         } catch (error) {
+          this.logger.debug(`Controlling error in participant ${participantRow.nombre}: ${error.message}`);
+          const message = `Participante ${participantRow.nombre} no importado: ${error.message} en capacitación ${trainingDataRow.codigo}`;
           trace.push({
             isSuccessful: false,
-            message: `Participante ${participantRow.nombre} no importado: ${error.message} en capacitación ${trainingDataRow.codigo}`,
+            message,
           });
+          // workbook.getWorksheet(trainingDataRow.codigo).addRow({...participantRow, status: 'Error'});
+          updateRawState({ sheets, range, state: 'error' });
+          updateRawState({ sheets, range: messageRange, state: error.message });
           continue;
         }
       }
@@ -87,7 +134,16 @@ export class MigrationService {
       createdAt: new Date(),
     }
     this.trainingMigrationContainer.items.create(resume);
-    return { trace };
+    // workbook.addWorksheet('Resumen').columns = [
+    //   { header: 'Estado', key: 'isSuccessful' },
+    //   { header: 'Mensaje', key: 'message' },
+    // ];
+    // for (const { isSuccessful, message } of trace) {
+    //   workbook.getWorksheet('Resumen').addRow({ isSuccessful, message });
+    // }
+    // const buffer = await workbook.xlsx.writeBuffer();
+    // return buffer;
+    return trace;
   }
 
   async importTraining(trainingRow: TrainingRow) {
@@ -110,6 +166,7 @@ export class MigrationService {
         "fecha de emision": certificateEmisionDatePeru,
         "organizador en certificado": certificateOrganizer,
         "firma de certificado": certificateSignatureUrl,
+        "horas academicas": academicHours,
       } = data;
       const existingTraining = await this.trainingService.getByCode(code);
       if (existingTraining) {
@@ -152,8 +209,9 @@ export class MigrationService {
         executions: [{
           id: uuidv4(),
           attendance: [],
-          from: getIsoDateFromMigrationDate(fromDate),
-          to: getIsoDateFromMigrationDate(toDate),
+          from: fromDate,
+          to: toDate,
+          durationInMinutes: academicHours * 60,
         }],
         competencyId: competency.id,
         description,

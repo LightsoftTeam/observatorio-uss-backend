@@ -14,6 +14,7 @@ export interface TrainingRow{
     "organizador en certificado": string;
     "desde": string;
     "hasta": string;
+    "horas academicas": number;
 }
 
 export enum MigrationTrainingModality {

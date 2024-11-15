@@ -78,11 +78,11 @@ export class ParticipantsService {
                 throw new BadRequestException('The userId must be a valid UUID.');
             }
             const loggedUser = this.usersService.getLoggedUser();
-            if(userId && (!this.usersService.isAdmin() || loggedUser?.role !== Role.EVENT_MANAGER)){
+            if (userId && (!this.usersService.isAdmin() || loggedUser?.role !== Role.EVENT_MANAGER)) {
                 throw new UnauthorizedException('Cannot add a specific participant');
             }
             const user = userId ? await this.usersRepository.getById(userId) : loggedUser;
-            if(!ROLES_THAT_CAN_PARTICIPATE_IN_TRAINING.includes(user.role)) {
+            if (!ROLES_THAT_CAN_PARTICIPATE_IN_TRAINING.includes(user.role)) {
                 throw new BadRequestException(APP_ERRORS[ERROR_CODES.ROLE_CANNOT_PARTICIPATE_IN_TRAINING]);
             }
             const participant = training.participants.find((participant) => participant.foreignId === user.id);
@@ -261,14 +261,14 @@ export class ParticipantsService {
             }
             const { participantId } = addAttendanceToExecutionDto;
             const loggedUser = this.usersService.getLoggedUser();
-            if(participantId && (!this.usersService.isAdmin() || loggedUser?.role !== Role.EVENT_MANAGER) ){
+            if (participantId && (!this.usersService.isAdmin() || loggedUser?.role !== Role.EVENT_MANAGER)) {
                 throw new UnauthorizedException('Cannot add attendance to a specific participant');
             }
             const participant = training.participants.find((participant) => {
-                if(!participantId){
+                if (!participantId) {
                     this.logger.log('Participant not found, using logged user');
                     this.logger.debug(`Logged user: ${loggedUser?.id}`);
-                    if(!loggedUser){
+                    if (!loggedUser) {
                         return false;
                     }
                     this.logger.debug(`comparing: ${participant.foreignId} === ${loggedUser.id}`);
@@ -387,16 +387,23 @@ export class ParticipantsService {
                 signatureUrl: certificateSignatureUrl,
                 certificateOrganizer
             };
-            this.logger.log(`Certificate: ${JSON.stringify(certificate)}`)
-            const html = getTrainingCertificateTemplate(data);
-            const buffer: Buffer = await this.getPdfBuffer(html);
-            this.logger.log(`Buffer ${buffer.length}`)
-            const { blobUrl } = await this.storageService.uploadBuffer({
-                buffer,
-                blobName: CertificatesHelper.getBlobName(certificate.id),
-                contentType: 'application/pdf',
-            });
-            certificate.url = blobUrl;
+            const start = new Date();
+            if (process.env.NODE_ENV === 'development') {
+                this.logger.debug(`Development mode, returning test certificate`);
+                certificate.url = 'https://www.test.com/test.pdf';
+            } else {
+                this.logger.log(`Certificate: ${JSON.stringify(certificate)}`)
+                const html = getTrainingCertificateTemplate(data);
+                const buffer: Buffer = await this.getPdfBuffer(html);
+                this.logger.log(`Buffer ${buffer.length}`)
+                const { blobUrl } = await this.storageService.uploadBuffer({
+                    buffer,
+                    blobName: CertificatesHelper.getBlobName(certificate.id),
+                    contentType: 'application/pdf',
+                });
+                certificate.url = blobUrl;
+            }
+            this.logger.debug(`Certificate generated in ${new Date().getTime() - start.getTime()}ms`);
             return certificate;
         }));
         return certificates;
