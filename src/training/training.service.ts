@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/azure-database';
 import type { Container } from '@azure/cosmos';
+import { isUUID } from 'class-validator';
 import { v4 as uuidv4 } from 'uuid';
 import { CreateTrainingDto, ExecutionRequest } from './dto/create-training.dto';
 import { UpdateTrainingDto } from './dto/update-training.dto';
-import { InjectModel } from '@nestjs/azure-database';
 import { AttendanceStatus, Execution, Training, TrainingParticipant, TrainingType } from './entities/training.entity';
-import { isUUID } from 'class-validator';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
 import { SchoolsService } from 'src/schools/schools.service';

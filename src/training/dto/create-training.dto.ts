@@ -13,23 +13,17 @@ export class ExecutionRequest {
     id?: string;
     
     @ApiProperty({
-        description: 'The date of the execution',
-        example: '2022-07-01',
+        description: 'The date of the execution in iso format',
+        example: '2022-07-01T00:00:00.000Z',
     })
-    @IsString()
-    @Matches(/^\d{4}-\d{2}-\d{2}$/, {
-        message: 'The date must be in the format YYYY-MM-DD',
-    })
+    @IsDateString()
     from: string;
 
     @ApiProperty({
         description: 'The end date of the execution',
-        example: '2022-07-01',
+        example: '2022-07-01T23:59:59.999Z',
     })
-    @IsString()
-    @Matches(/^\d{4}-\d{2}-\d{2}$/, {
-        message: 'The date must be in the format YYYY-MM-DD',
-    })
+    @IsDateString()
     to: string;
 
     @ApiProperty({
