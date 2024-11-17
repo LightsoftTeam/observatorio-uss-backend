@@ -15,8 +15,6 @@ export class ProfessorReportsRepository {
     private readonly logger: ApplicationLoggerService,
     @InjectModel(Training)
     private readonly trainingContainer: Container,
-    @InjectModel(User)
-    private readonly usersContainer: Container,
     private readonly usersRepository: UsersRepository,
     private readonly schoolsRepository: SchoolsRepository,
   ) { }
@@ -26,9 +24,7 @@ export class ProfessorReportsRepository {
       query: 'SELECT c.createdAt FROM c',
     };
     const { resources: createdAtDates } = await this.trainingContainer.items.query<{ createdAt: string }>(querySpec).fetchAll();
-    const professors = await this.usersRepository.findAll({
-      role: Role.PROFESSOR,
-    });
+    const professors = await this.usersRepository.getProfessorsForReports();
     const dates = createdAtDates.map((resource) => new Date(resource.createdAt));
     const distinctYears = [...new Set(dates.map((date) => date.getFullYear()))];
     this.logger.debug(`Distinct years: ${distinctYears}`);
@@ -63,9 +59,7 @@ export class ProfessorReportsRepository {
   }
 
   async getParticipation(semesterId: string) {
-    const professors = await this.usersRepository.findAll({
-      role: Role.PROFESSOR,
-    });
+    const professors = await this.usersRepository.getProfessorsForReports();
     const report = {
       [AttendanceStatus.ATTENDED]: 0,
       [AttendanceStatus.PENDING]: 0,
@@ -92,29 +86,7 @@ export class ProfessorReportsRepository {
   }
 
   async getEmploymentTypeReport(semesterId: string) {
-    // this.logger.debug('Getting employment type report');
-    // const querySpec = {
-    //   query: `
-    //           SELECT COUNT(1) AS count, c.employmentType 
-    //           FROM c 
-    //           where c.role = @role
-    //           GROUP BY c.employmentType
-    //         `,
-    //   parameters: [
-    //     { name: '@role', value: Role.PROFESSOR },
-    //   ],
-    // }
-    // const { resources } = await this.usersContainer.items.query(querySpec).fetchAll();
-    // this.logger.debug(`Employment type report resources: ${JSON.stringify(resources)}`);
-    // const employmentTypes = Object.values(EmploymentType);
-    // const report = employmentTypes.reduce((acc, employmentType) => {
-    //   acc[employmentType] = resources.find((resource) => resource.employmentType === employmentType)?.count || 0;
-    //   return acc;
-    // }, {});
-    // return report;
-    const professors = await this.usersRepository.findAll({
-      role: Role.PROFESSOR,
-    });
+    const professors = await this.usersRepository.getProfessorsForReports();
     const report = {
       [EmploymentType.FULL_TIME]: {
         [AttendanceStatus.ATTENDED]: 0,
@@ -169,9 +141,7 @@ export class ProfessorReportsRepository {
     const [{ resources: trainings }, schools, users] = await Promise.all([
       this.trainingContainer.items.query<{ id: string, participants: TrainingParticipant[] }>(querySpec).fetchAll(),
       this.schoolsRepository.findAll(),
-      this.usersRepository.findAll({
-        role: Role.PROFESSOR
-      }),
+      this.usersRepository.getProfessorsForReports(),
     ]);
     const report: {
       [schoolId: string]: {

@@ -40,6 +40,16 @@ export class UsersRepository {
         return resources;
     }
 
+    async getProfessorsForReports() {
+        this.logger.log('Getting professors for reports');
+        const querySpec = {
+            query: 'SELECT * FROM c WHERE c.role = @role and NOT c.excludedFromReports = true',
+            parameters: [{ name: '@role', value: Role.PROFESSOR }],
+        };
+        const { resources } = await this.usersContainer.items.query<User>(querySpec).fetchAll();
+        return resources;
+    }
+
     async getByDocument({ documentType, documentNumber }: { documentType: DocumentType, documentNumber: string }): Promise<User | null> {
         this.logger.log(`Getting user with document ${documentType} ${documentNumber}`);
         const querySpec = {
