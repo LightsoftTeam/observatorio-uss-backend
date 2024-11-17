@@ -13,7 +13,7 @@ import { validateTrainingRow } from '../helpers/validate-training-row.helper';
 import { TrainingService } from '../training.service';
 import { validateParticipantRow } from '../helpers/validate-participant-row.helper';
 import { getDocumentType, getEmploymentType, getModality, getRoles, getTrainingType } from '../mappers/migration.mappers';
-import { getColumnNameFromIndex, getFileInfo, getSheetRows, updateRawState } from '../helpers/sheets.helpers';
+import { getFileInfo, getSheetRows, updateColumnInBatch, UpdateInBatchPayload } from '../helpers/sheets.helpers';
 import { TrainingMigrationEvent, TrainingMigrationTrace } from '../entities/training-migration-event.entity';
 import { UsersRepository } from 'src/repositories/services/users.repository';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
@@ -43,25 +43,30 @@ export class MigrationService {
 
   async migrateFromExcel() {
     const trace: TrainingMigrationTrace[] = [];
-    const { sheets, spreadsheetId, sheetNames } = await getFileInfo();
+    const { sheetsClient: sheetsClient, sheets, spreadsheetId, sheetNames } = await getFileInfo();
     const [trainingSheetName, ...participantsSheetNames] = sheetNames;
-    const {headers: trainingHeaders, rows: trainingRows} = await getSheetRows<TrainingRow>({ sheets, spreadsheetId, sheetName: trainingSheetName });
+    const { headers: trainingHeaders, rows: trainingRows } = await getSheetRows<TrainingRow>({ sheets: sheetsClient, spreadsheetId, sheetName: trainingSheetName });
     this.logger.debug('Initializing migration');
     const columnResultIndex = trainingHeaders.indexOf(this.headerResultName);
-    if(columnResultIndex === -1){
+    if (columnResultIndex === -1) {
       throw new Error(`No se encontró la columna ${this.headerResultName}`);
     }
+    const migrationResults: UpdateInBatchPayload = {};
+    const trainingSheetId = sheets.find(sheet => sheet.properties.title === trainingSheetName).properties.sheetId;
     let trainingRowsCount = 1;
+    migrationResults[trainingSheetId] = {
+      values: [],
+      rowIndex: trainingRowsCount,
+      columnIndex: columnResultIndex,
+    };
     for (const trainingDataRow of trainingRows) {
       trainingRowsCount++;
-      if(trainingDataRow.Estado === 'success'){
+      if (trainingDataRow.Estado === 'success') {
         this.logger.warn(`Skipping row training ${trainingDataRow.codigo} because it was already processed`);
+        migrationResults[trainingSheetId].values.push('success');
         continue;
       }
       this.logger.debug(`Processing row: ${JSON.stringify(trainingDataRow)}`);
-      const range = `${trainingSheetName}!${getColumnNameFromIndex(columnResultIndex)}${trainingRowsCount}`;
-      const messageRange = `${trainingSheetName}!${getColumnNameFromIndex(columnResultIndex + 1)}${trainingRowsCount}`;
-      this.logger.debug(`Updating state to processing ${range}`);
       this.logger.debug(`Initializing training migration`);
       let training: Training;
       try {
@@ -70,42 +75,48 @@ export class MigrationService {
           isSuccessful: true,
           message: `Capacitación ${trainingDataRow.codigo} importada satisfactoriamente`,
         });
-        updateRawState({ sheets, range, state: 'success' });
+        migrationResults[trainingSheetId].values.push('success');
       } catch (error) {
         this.logger.debug(`Controlling error in training ${trainingDataRow.codigo}: ${error.message}`);
         trace.push({
           isSuccessful: false,
           message: error.message,
         })
-        updateRawState({ sheets, range, state: 'error' });
-        updateRawState({ sheets, range: messageRange, state: error.message });
+        migrationResults[trainingSheetId].values.push('error: ' + error.message);
         continue;
       }
       this.logger.debug(`Searching participants sheet for training ${trainingDataRow.codigo}`);
-      const {rows: participantRows, headers: participantsHeaders} = await getSheetRows<ParticipantRow>({ sheets, spreadsheetId, sheetName: participantsSheetNames.find(name => name.includes(trainingDataRow.codigo)) });
+      const participantsSheetId = sheets.find(sheet => sheet.properties.title === trainingDataRow.codigo)?.properties?.sheetId;
+      if (!participantsSheetId) {
+        this.logger.warn(`No se encontró la hoja de participantes para la capacitación ${trainingDataRow.codigo}`);
+        continue;
+      }
+      const { rows: participantRows, headers: participantsHeaders } = await getSheetRows<ParticipantRow>({ sheets: sheetsClient, spreadsheetId, sheetName: participantsSheetNames.find(name => name.includes(trainingDataRow.codigo)) });
       this.logger.debug(`Adding participants to training - ${participantRows.length} participants`);
       const participantColumnResultIndex = participantsHeaders.indexOf(this.headerResultName);
-      if(participantColumnResultIndex === -1){
+      if (participantColumnResultIndex === -1) {
         throw new Error(`No se encontró la columna ${this.headerResultName}`);
       }
       let participantRawCount = 1;
-      for (const participantRow of participantRows) { 
+      migrationResults[participantsSheetId] = {
+        values: [],
+        rowIndex: participantRawCount,
+        columnIndex: participantColumnResultIndex,
+      }; 
+      for (const participantRow of participantRows) {
         participantRawCount++;
-        if(participantRow.Estado === 'success'){
+        if (participantRow.Estado === 'success') {
           this.logger.warn(`Skipping row participant ${participantRow.nombre} because it was already processed`);
           continue;
         }
         this.logger.debug(`Processing participant row: ${JSON.stringify(participantRow)}`);
-        const range = `${trainingDataRow.codigo}!${getColumnNameFromIndex(participantColumnResultIndex)}${participantRawCount}`;
-        const messageRange = `${trainingDataRow.codigo}!${getColumnNameFromIndex(participantColumnResultIndex + 1)}${participantRawCount}`;
-        this.logger.debug(`Updating state to processing ${range}`);
         try {
           await this.addParticipantToTraining({ training, participantRow });
           trace.push({
             isSuccessful: true,
             message: `Participante ${participantRow.nombre} importado satisfactoriamente en capacitación ${trainingDataRow.codigo}`,
           });
-          updateRawState({ sheets, range, state: 'success' });
+          migrationResults[participantsSheetId].values.push('success');
         } catch (error) {
           this.logger.debug(`Controlling error in participant ${participantRow.nombre}: ${error.message}`);
           const message = `Participante ${participantRow.nombre} no importado: ${error.message} en capacitación ${trainingDataRow.codigo}`;
@@ -113,8 +124,7 @@ export class MigrationService {
             isSuccessful: false,
             message,
           });
-          updateRawState({ sheets, range, state: 'error' });
-          updateRawState({ sheets, range: messageRange, state: error.message });
+          migrationResults[participantsSheetId].values.push('error: ' + error.message);
           continue;
         }
       }
@@ -125,6 +135,9 @@ export class MigrationService {
       createdAt: new Date(),
     }
     this.trainingMigrationContainer.items.create(resume);
+    this.logger.log(`Updating migration results in remote spreadsheet`);
+    this.logger.debug(`Migration results: ${JSON.stringify(migrationResults)}`);
+    await updateColumnInBatch({ sheetsClient, payload: migrationResults });
     return trace;
   }
 
@@ -255,6 +268,11 @@ export class MigrationService {
         }
         professor = await this.usersRepository.create(professorPayload);
         this.mailService.sendNewAccountWithPassword({ user: professor, password: professorPayload.password });
+      }
+      const existingParticipant = training.participants.find(participant => participant.foreignId === professor.id);
+      if (existingParticipant) {
+        this.logger.warn(`Participant with document ${documentNumber} already exists in training ${training.code}`);
+        return;
       }
       const participant = {
         id: uuidv4(),

@@ -33,34 +33,53 @@ export async function getFileInfo() {
         key,
         scopes,
     });
-    await client.authorize(); 
-    const sheets = google.sheets({ version: 'v4', auth: client });
-    const spreadsheet = await sheets.spreadsheets.get({
+    await client.authorize();
+    const sheetsClient = google.sheets({ version: 'v4', auth: client });
+    const spreadsheet = await sheetsClient.spreadsheets.get({
         spreadsheetId: spreadsheetId,
     });
-    const sheetNames = spreadsheet.data.sheets.map(sheet => sheet.properties.title);
-    return { sheets, spreadsheetId, sheetNames };
+    const sheets = spreadsheet.data.sheets;
+    const sheetNames = sheets.map(sheet => sheet.properties.title);
+    return { sheetsClient, spreadsheetId, sheetNames, sheets };
 }
 
-export async function updateRawState({range, sheets, state}: {sheets: sheets_v4.Sheets, range: string, state: 'success' | 'error'}){
-    const spreadsheetId = process.env.TRAINING_MIGRATION_SPREADSHEET_ID;
-    sheets.spreadsheets.values.update({
-        spreadsheetId,
-        range,
-        valueInputOption: 'RAW',
-        requestBody: {
-            values: [[state]],
-        },
-    })
-}
+// export async function updateRawState({range, sheets, state}: {sheets: sheets_v4.Sheets, range: string, state: 'success' | 'error'}){
+//     const spreadsheetId = process.env.TRAINING_MIGRATION_SPREADSHEET_ID;
+//     sheets.spreadsheets.values.update({
+//         spreadsheetId,
+//         range,
+//         valueInputOption: 'RAW',
+//         requestBody: {
+//             values: [[state]],
+//         },
+//     })
+// }
 
-export function getColumnNameFromIndex(columnIndex: number) {
-    let letra = '';
-    let temp = columnIndex + 1;
-    while (temp > 0) {
-      let mod = (temp - 1) % 26;
-      letra = String.fromCharCode(65 + mod) + letra;
-      temp = Math.floor((temp - mod) / 26);
+export interface UpdateInBatchPayload {
+    [sheetId: string]: {
+        values: string[],
+        rowIndex: number,
+        columnIndex: number,
     }
-    return letra;
-  }
+}
+export async function updateColumnInBatch({ sheetsClient, payload }: { sheetsClient: sheets_v4.Sheets, payload: UpdateInBatchPayload }) {
+    const spreadsheetId = process.env.TRAINING_MIGRATION_SPREADSHEET_ID;
+
+    const requests = Object.entries(payload).map(([sheetId, { values, rowIndex, columnIndex }]) => {
+        return {
+            updateCells: {
+                rows: values.map(value => ({
+                    values: [{ userEnteredValue: { stringValue: value } }],
+                })
+                ),
+                fields: 'userEnteredValue',
+                start: { sheetId: Number(sheetId), rowIndex, columnIndex },
+            },
+        };
+    });
+
+    sheetsClient.spreadsheets.batchUpdate({
+        spreadsheetId,
+        requestBody: { requests },
+    });
+}
