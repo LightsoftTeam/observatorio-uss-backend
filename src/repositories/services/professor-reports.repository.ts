@@ -25,10 +25,12 @@ export class ProfessorReportsRepository {
     };
     const { resources: createdAtDates } = await this.trainingContainer.items.query<{ createdAt: string }>(querySpec).fetchAll();
     const professors = await this.usersRepository.getProfessorsForReports();
+    this.logger.debug(`Found ${professors.length} professors for reports`);
     const dates = createdAtDates.map((resource) => new Date(resource.createdAt));
     const distinctYears = [...new Set(dates.map((date) => date.getFullYear()))];
     this.logger.debug(`Distinct years: ${distinctYears}`);
     const report = {};
+    const startDate = new Date();
     for (const year of distinctYears) {
       report[year] = {
         [AttendanceStatus.ATTENDED]: 0,
@@ -55,6 +57,7 @@ export class ProfessorReportsRepository {
       })))
         .forEach(({ resources: professorTrainingsInYear }) => professorTrainingsInYear.length > 0 ? report[year][AttendanceStatus.ATTENDED]++ : report[year][AttendanceStatus.PENDING]++);
     }
+    this.logger.debug(`Time to get professors participation by years: ${new Date().getTime() - startDate.getTime()}ms`);
     return report;
   }
 

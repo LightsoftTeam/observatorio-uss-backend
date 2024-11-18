@@ -42,11 +42,13 @@ export class UsersRepository {
 
     async getProfessorsForReports() {
         this.logger.log('Getting professors for reports');
+        const startDate = new Date();
         const querySpec = {
-            query: 'SELECT * FROM c WHERE c.role = @role and NOT c.excludedFromReports = true',
+            query: 'SELECT * FROM c WHERE c.role = @role and NOT IS_DEFINED(c.excludedFromReports)',
             parameters: [{ name: '@role', value: Role.PROFESSOR }],
         };
         const { resources } = await this.usersContainer.items.query<User>(querySpec).fetchAll();
+        this.logger.debug(`Time to get professors for reports: ${new Date().getTime() - startDate.getTime()}ms`);
         return resources;
     }
 

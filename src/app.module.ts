@@ -23,6 +23,9 @@ import { OpenaiModule } from './openai/openai.module';
 import { ConversationsModule } from './conversations/conversations.module';
 import { AppConfigurationModule } from './app-configuration/app-configuration.module';
 import { RepositoriesModule } from './repositories/repositories.module';
+import { ApplicationLoggerService } from './common/services/application-logger.service';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { GeneralInterceptor } from './common/interceptors/general.interceptor';
 
 @Module({
   imports: [
@@ -62,6 +65,9 @@ import { RepositoriesModule } from './repositories/repositories.module';
     RepositoriesModule,
   ],
   controllers: [AppController],
-  providers: [AppService, MailService],
+  providers: [
+    AppService, 
+    MailService
+  ],
 })
 export class AppModule { }
