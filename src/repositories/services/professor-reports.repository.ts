@@ -21,12 +21,13 @@ export class ProfessorReportsRepository {
 
   async getProfessorParticipationByYears() {
     const querySpec = {
-      query: 'SELECT c.createdAt FROM c',
+      query: 'SELECT c.id, c.createdAt FROM c',
     };
-    const { resources: createdAtDates } = await this.trainingContainer.items.query<{ createdAt: string }>(querySpec).fetchAll();
-    const professors = await this.usersRepository.getProfessorsForReports();
+    const { resources: trainingBasics } = await this.trainingContainer.items.query<{ createdAt: string }>(querySpec).fetchAll();
+    const professors = await this.usersRepository.getProfessorsForReportsIds();
+    const professorIds = professors.map(professor => professor.id);
     this.logger.debug(`Found ${professors.length} professors for reports`);
-    const dates = createdAtDates.map((resource) => new Date(resource.createdAt));
+    const dates = trainingBasics.map((resource) => new Date(resource.createdAt));
     const distinctYears = [...new Set(dates.map((date) => date.getFullYear()))];
     this.logger.debug(`Distinct years: ${distinctYears}`);
     const report = {};
@@ -36,55 +37,57 @@ export class ProfessorReportsRepository {
         [AttendanceStatus.ATTENDED]: 0,
         [AttendanceStatus.PENDING]: 0,
       };
-      (await Promise.all(professors.map(async (professor) => {
-        const querySpec = {
-          query: `
-                SELECT TOP 1 c.foreignId, c.createdAt, p.attendanceStatus 
-                FROM c JOIN p IN c.participants 
-                WHERE p.foreignId = @id
-                AND c.createdAt >= @startDate
+
+      const querySpec = {
+        query: `
+                SELECT c.id AS trainingId, p.id AS participantId, p.attendanceStatus, p.foreignId FROM c JOIN p IN c.participants
+                WHERE c.createdAt >= @startDate
                 AND c.createdAt <= @endDate
                 AND p.attendanceStatus = @status  
               `,
-          parameters: [
-            { name: '@id', value: professor.id },
-            { name: '@startDate', value: `${year}-01-01T00:00:00.000Z` },
-            { name: '@endDate', value: `${year}-12-31T23:59:59.999Z` },
-            { name: '@status', value: AttendanceStatus.ATTENDED },
-          ],
-        }
-        return this.trainingContainer.items.query<{ foreignId: string, createdAt: string, attendanceStatus: AttendanceStatus }>(querySpec).fetchAll();
-      })))
-        .forEach(({ resources: professorTrainingsInYear }) => professorTrainingsInYear.length > 0 ? report[year][AttendanceStatus.ATTENDED]++ : report[year][AttendanceStatus.PENDING]++);
+        parameters: [
+          { name: '@startDate', value: `${year}-01-01T00:00:00.000Z` },
+          { name: '@endDate', value: `${year}-12-31T23:59:59.999Z` },
+          { name: '@status', value: AttendanceStatus.ATTENDED },
+        ],
+      }
+      const { resources: trainingInYear } = await this.trainingContainer.items.query<{ foreignId: string, attendanceStatus: AttendanceStatus, participantId: string, trainingId: string }>(querySpec).fetchAll();
+
+      professorIds.forEach(professorId => {
+        const professorTrainingsInYear = trainingInYear.filter(training => training.foreignId === professorId);
+        professorTrainingsInYear.length > 0 ? report[year][AttendanceStatus.ATTENDED]++ : report[year][AttendanceStatus.PENDING]++;
+      });
     }
     this.logger.debug(`Time to get professors participation by years: ${new Date().getTime() - startDate.getTime()}ms`);
     return report;
   }
 
   async getParticipation(semesterId: string) {
-    const professors = await this.usersRepository.getProfessorsForReports();
+    const professors = await this.usersRepository.getProfessorsForReportsIds();
+    const professorIds = professors.map(professor => professor.id);
     const report = {
       [AttendanceStatus.ATTENDED]: 0,
       [AttendanceStatus.PENDING]: 0,
     };
-    (await Promise.all(professors.map(async (professor) => {
-      const querySpec = {
-        query: `
-                SELECT TOP 1 c.foreignId, c.createdAt, p.attendanceStatus 
-                FROM c JOIN p IN c.participants 
-                WHERE p.foreignId = @id
-                AND c.semesterId = @semesterId
+
+    const querySpec = {
+      query: `
+                SELECT c.id AS trainingId, p.id AS participantId, p.attendanceStatus, p.foreignId FROM c JOIN p IN c.participants
+                WHERE c.semesterId = @semesterId
                 AND p.attendanceStatus = @status  
               `,
-        parameters: [
-          { name: '@id', value: professor.id },
-          { name: '@status', value: AttendanceStatus.ATTENDED },
-          { name: '@semesterId', value: semesterId },
-        ],
-      }
-      return this.trainingContainer.items.query<{ foreignId: string, createdAt: string, attendanceStatus: AttendanceStatus }>(querySpec).fetchAll();
-    })))
-      .forEach(({ resources: professorTrainingsInYear }) => professorTrainingsInYear.length > 0 ? report[AttendanceStatus.ATTENDED]++ : report[AttendanceStatus.PENDING]++);
+      parameters: [
+        { name: '@status', value: AttendanceStatus.ATTENDED },
+        { name: '@semesterId', value: semesterId },
+      ],
+    }
+
+    const { resources } = await this.trainingContainer.items.query<{ foreignId: string, attendanceStatus: AttendanceStatus, participantId: string, trainingId: string }>(querySpec).fetchAll();
+
+    professorIds.forEach(professorId => {
+      const professorTrainingsInYear = resources.filter(training => training.foreignId === professorId);
+      professorTrainingsInYear.length > 0 ? report[AttendanceStatus.ATTENDED]++ : report[AttendanceStatus.PENDING]++;
+    });
     return report;
   }
 

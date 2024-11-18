@@ -52,6 +52,18 @@ export class UsersRepository {
         return resources;
     }
 
+    async getProfessorsForReportsIds() {
+        this.logger.log('Getting professors for reports');
+        const startDate = new Date();
+        const querySpec = {
+            query: 'SELECT c.id FROM c WHERE c.role = @role and NOT IS_DEFINED(c.excludedFromReports)',
+            parameters: [{ name: '@role', value: Role.PROFESSOR }],
+        };
+        const { resources } = await this.usersContainer.items.query<User>(querySpec).fetchAll();
+        this.logger.debug(`Time to get professors for reports ids: ${new Date().getTime() - startDate.getTime()}ms`);
+        return resources;
+    }
+
     async getByDocument({ documentType, documentNumber }: { documentType: DocumentType, documentNumber: string }): Promise<User | null> {
         this.logger.log(`Getting user with document ${documentType} ${documentNumber}`);
         const querySpec = {
