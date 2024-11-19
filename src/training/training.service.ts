@@ -139,13 +139,25 @@ export class TrainingService {
     }
   }
 
-  async findAll() {
+  async findAll({
+    onlyActives = 'false',
+  }: {
+    onlyActives?: string;
+  } = {}) {
     try {
       this.logger.log('Finding all trainings');
       const querySpec = {
         query: `SELECT ${BASIC_FIELDS.map(f => `c.${f}`).join(', ')} FROM c`
       }
       const { resources } = await this.trainingContainer.items.query<Training>(querySpec).fetchAll();
+      if (onlyActives === 'true') {
+        const currentDate = new Date();
+        return this.toJson(resources.filter(training => {
+          const executions = training.executions;
+          const executionForLater = executions.filter(execution => new Date(execution.to) > currentDate);
+          return executionForLater.length > 0;
+        }));
+      }
       return this.toJson(resources);
     } catch (error) {
       this.logger.log(`findAll ${error.message}`);
@@ -156,11 +168,22 @@ export class TrainingService {
   async findOne(id: string) {
     this.logger.log(`Finding training by id: ${id}`);
     try {
-      const training = await this.getTrainingById(id);
-      if (!training) {
+      const querySpec = {
+        query: `SELECT ${BASIC_FIELDS.map(f => `c.${f}`).join(', ')} , c.participants FROM c WHERE c.id = @id`,
+        parameters: [{ name: '@id', value: id }]
+      };
+      const { resources } = await this.trainingContainer.items.query<Training>(querySpec).fetchAll();
+      if (resources.length === 0) {
         throw new NotFoundException('Training not found');
       }
-      return this.toJson(training);
+      const participantsCount = resources[0].participants.length
+      //TODO: refactor this
+      delete resources[0].participants;
+      const formatted = await this.toJson(resources[0]);
+      return {
+        ...formatted,
+        participantsCount
+      }
     } catch (error) {
       this.logger.log(`findOne ${error.message}`);
       throw error;

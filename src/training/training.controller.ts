@@ -50,8 +50,8 @@ export class TrainingController {
     status: 200,
     description: 'All trainings were found',
   })
-  findAll() {
-    return this.trainingService.findAll();
+  findAll(@Query('onlyActives') onlyActives: string) {
+    return this.trainingService.findAll({onlyActives});
   }
 
   @Get('/by-document/:documentType/:documentNumber')

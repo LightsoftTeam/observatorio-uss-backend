@@ -1139,7 +1139,16 @@
       "get": {
         "operationId": "TrainingController_findAll",
         "summary": "Get all trainings",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "onlyActives",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "All trainings were found"
