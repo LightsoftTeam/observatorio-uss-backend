@@ -40,23 +40,15 @@ export class UsersRepository {
         return resources;
     }
 
-    async getProfessorsForReports() {
+    async getProfessorsForReports({
+        fields,
+    }: {
+        fields?: Array<keyof User>;
+    } = {}) {
         this.logger.log('Getting professors for reports');
         const startDate = new Date();
         const querySpec = {
-            query: 'SELECT * FROM c WHERE c.role = @role and NOT IS_DEFINED(c.excludedFromReports)',
-            parameters: [{ name: '@role', value: Role.PROFESSOR }],
-        };
-        const { resources } = await this.usersContainer.items.query<User>(querySpec).fetchAll();
-        this.logger.debug(`Time to get professors for reports: ${new Date().getTime() - startDate.getTime()}ms`);
-        return resources;
-    }
-
-    async getProfessorsForReportsIds() {
-        this.logger.log('Getting professors for reports');
-        const startDate = new Date();
-        const querySpec = {
-            query: 'SELECT c.id FROM c WHERE c.role = @role and NOT IS_DEFINED(c.excludedFromReports)',
+            query: `SELECT ${!fields ? '*' : fields.map(f => 'c.' + f)} FROM c WHERE c.role = @role and NOT IS_DEFINED(c.excludedFromReports)`,
             parameters: [{ name: '@role', value: Role.PROFESSOR }],
         };
         const { resources } = await this.usersContainer.items.query<User>(querySpec).fetchAll();

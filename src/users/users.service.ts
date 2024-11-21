@@ -18,6 +18,7 @@ import { APP_ERRORS, ERROR_CODES } from 'src/common/constants/errors.constants';
 import { Action, ChangeRoleRequestDto } from './dto/change-role-request.dto';
 import { MailService } from 'src/common/services/mail.service';
 import { SchoolsRepository } from 'src/repositories/services/schools.repository';
+import { School } from 'src/schools/entities/school.entity';
 
 @Injectable({ scope: Scope.REQUEST })
 export class UsersService {
@@ -70,7 +71,8 @@ export class UsersService {
     const startAt = new Date();
     const { resources } = await this.usersContainer.items.query<User>(querySpec).fetchAll();
     this.logger.log(`query time findAll users ${(new Date().getTime() - startAt.getTime())}`);
-    return Promise.all(resources.map(user => this.toJson(user)));
+    const schools = await this.schoolsRepository.findAll();
+    return Promise.all(resources.map(user => this.toJson(user, {}, schools)));
   }
 
   async toggleActiveState(id: string) {
@@ -275,9 +277,14 @@ export class UsersService {
     return 'ok';
   }
 
-  async toJson(user: User, extraData: any = {}) {
+  async toJson(user: User, extraData: any = {}, schools?: School[]) {
+    let school: School;
+    if(schools.length > 0){
+      school = schools.find(s => s.id === user.schoolId);
+    } else{
+      school = await this.schoolsRepository.getById(user.schoolId);
+    }
     user.country = this.countriesService.getCountry(user.countryCode);
-    const school = user.schoolId ? await this.schoolsRepository.getById(user.schoolId) : null;
     this.logger.debug(`school ${JSON.stringify(school)}`);
     return {
       ...FormatCosmosItem.cleanDocument(user, ['password']),

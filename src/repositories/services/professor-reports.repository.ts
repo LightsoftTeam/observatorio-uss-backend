@@ -23,10 +23,9 @@ export class ProfessorReportsRepository {
     const querySpec = {
       query: 'SELECT c.id, c.createdAt FROM c',
     };
-    const { resources: trainingBasics } = await this.trainingContainer.items.query<{ createdAt: string }>(querySpec).fetchAll();
-    const professors = await this.usersRepository.getProfessorsForReportsIds();
-    const professorIds = professors.map(professor => professor.id);
-    this.logger.debug(`Found ${professors.length} professors for reports`);
+    const { resources: trainingBasics } = await this.trainingContainer.items.query<{ id: string, createdAt: string }>(querySpec).fetchAll();
+    const professorIds = (await this.usersRepository.getProfessorsForReports({ fields: ['id'] })).map(professor => professor.id);
+    this.logger.debug(`Found ${professorIds.length} professors for reports`);
     const dates = trainingBasics.map((resource) => new Date(resource.createdAt));
     const distinctYears = [...new Set(dates.map((date) => date.getFullYear()))];
     this.logger.debug(`Distinct years: ${distinctYears}`);
@@ -51,11 +50,11 @@ export class ProfessorReportsRepository {
           { name: '@status', value: AttendanceStatus.ATTENDED },
         ],
       }
-      const { resources: trainingInYear } = await this.trainingContainer.items.query<{ foreignId: string, attendanceStatus: AttendanceStatus, participantId: string, trainingId: string }>(querySpec).fetchAll();
+      const { resources } = await this.trainingContainer.items.query<{ foreignId: string, attendanceStatus: AttendanceStatus, participantId: string, trainingId: string }>(querySpec).fetchAll();
 
       professorIds.forEach(professorId => {
-        const professorTrainingsInYear = trainingInYear.filter(training => training.foreignId === professorId);
-        professorTrainingsInYear.length > 0 ? report[year][AttendanceStatus.ATTENDED]++ : report[year][AttendanceStatus.PENDING]++;
+        const professorTrainingsInYear = resources.some(training => training.foreignId === professorId);
+        professorTrainingsInYear ? report[year][AttendanceStatus.ATTENDED]++ : report[year][AttendanceStatus.PENDING]++;
       });
     }
     this.logger.debug(`Time to get professors participation by years: ${new Date().getTime() - startDate.getTime()}ms`);
@@ -63,8 +62,7 @@ export class ProfessorReportsRepository {
   }
 
   async getParticipation(semesterId: string) {
-    const professors = await this.usersRepository.getProfessorsForReportsIds();
-    const professorIds = professors.map(professor => professor.id);
+    const professorIds = (await this.usersRepository.getProfessorsForReports({ fields: ['id'] })).map(professor => professor.id);
     const report = {
       [AttendanceStatus.ATTENDED]: 0,
       [AttendanceStatus.PENDING]: 0,
@@ -85,14 +83,16 @@ export class ProfessorReportsRepository {
     const { resources } = await this.trainingContainer.items.query<{ foreignId: string, attendanceStatus: AttendanceStatus, participantId: string, trainingId: string }>(querySpec).fetchAll();
 
     professorIds.forEach(professorId => {
-      const professorTrainingsInYear = resources.filter(training => training.foreignId === professorId);
-      professorTrainingsInYear.length > 0 ? report[AttendanceStatus.ATTENDED]++ : report[AttendanceStatus.PENDING]++;
+      const professorTrainingsInYear = resources.some(training => training.foreignId === professorId);
+      professorTrainingsInYear ? report[AttendanceStatus.ATTENDED]++ : report[AttendanceStatus.PENDING]++;
     });
     return report;
   }
 
   async getEmploymentTypeReport(semesterId: string) {
-    const professors = await this.usersRepository.getProfessorsForReports();
+    const professors = await this.usersRepository.getProfessorsForReports({
+      fields: ['id', 'employmentType'],
+    });
     const report = {
       [EmploymentType.FULL_TIME]: {
         [AttendanceStatus.ATTENDED]: 0,
@@ -103,25 +103,26 @@ export class ProfessorReportsRepository {
         [AttendanceStatus.PENDING]: 0,
       },
     };
-    (await Promise.all(professors.map(async (professor) => {
-      const querySpec = {
-        query: `
-                SELECT TOP 1 c.foreignId, c.createdAt, p.attendanceStatus 
+
+    const querySpec = {
+      query: `
+                SELECT c.foreignId, c.createdAt, p.attendanceStatus 
                 FROM c JOIN p IN c.participants 
-                WHERE p.foreignId = @id
-                AND c.semesterId = @semesterId
+                WHERE c.semesterId = @semesterId
                 AND p.attendanceStatus = @status  
               `,
-        parameters: [
-          { name: '@id', value: professor.id },
-          { name: '@status', value: AttendanceStatus.ATTENDED },
-          { name: '@semesterId', value: semesterId },
-        ],
-      }
-      const { resources } = await this.trainingContainer.items.query<{ foreignId: string, createdAt: string, attendanceStatus: AttendanceStatus }>(querySpec).fetchAll();
+      parameters: [
+        { name: '@status', value: AttendanceStatus.ATTENDED },
+        { name: '@semesterId', value: semesterId },
+      ],
+    }
+
+    const { resources } = await this.trainingContainer.items.query<{ foreignId: string, createdAt: string, attendanceStatus: AttendanceStatus }>(querySpec).fetchAll();
+    professors.forEach((professor => {
+      const professorAttended = resources.some(training => training.foreignId === professor.id);
       const professorEmploymentType = professor.employmentType;
-      resources.length > 0 ? report[professorEmploymentType][AttendanceStatus.ATTENDED]++ : report[professorEmploymentType][AttendanceStatus.PENDING]++;
-    })));
+      professorAttended ? report[professorEmploymentType][AttendanceStatus.ATTENDED]++ : report[professorEmploymentType][AttendanceStatus.PENDING]++;
+    }));
     return report;
   }
 
@@ -168,6 +169,7 @@ export class ProfessorReportsRepository {
         professorsCount: users.filter(user => user.schoolId === school.id).length,
       };
     }
+    this.logger.debug(`Report initialized: ${JSON.stringify(report)}`);
     this.logger.debug(`Found ${trainings.length} trainings`);
     this.logger.debug(`Found ${users.length} professors`);
     trainings.map(training => {
@@ -178,9 +180,11 @@ export class ProfessorReportsRepository {
           this.logger.debug(`Professor with id ${participant.foreignId} not found`);
           return;
         }
+        this.logger.debug(`Found professor ${JSON.stringify(professor)}`);
         const isAttended = participant.attendanceStatus === AttendanceStatus.ATTENDED;
         this.logger.debug(`Professor ${professor.id} is ${isAttended ? 'attended' : 'pending'}`);
         const row = report[professor.schoolId];
+        this.logger.debug(`Row for school ${professor.schoolId}: ${JSON.stringify(row)}`);
         if (row.professorWhoAttendedIds.includes(professor.id) || !isAttended) {
           return;
         }
