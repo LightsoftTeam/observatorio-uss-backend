@@ -37,47 +37,57 @@ export class UsersService {
   ) { }
 
   async findAll(findUsersDto: FindUsersDto = {}) {
-    this.logger.log(`retrieving users - ${JSON.stringify(findUsersDto)}`);
-    const { roles: rolesString, onlyPendingRole } = findUsersDto;
-    let roles = rolesString ? rolesString.split(',') : [];
-    if (roles.length === 0) {
-      this.logger.log('pushing roles');
-      roles.push(...Object.values(Role));
-    }
-    if (!this.isAdmin()) {
-      roles = roles.filter(r => r !== Role.ADMIN);
-    }
-    this.logger.log(`selected roles - ${JSON.stringify(roles)}`);
+    try {
+      this.logger.log(`retrieving users - ${JSON.stringify(findUsersDto)}`);
+      const { roles: rolesString, onlyPendingRole } = findUsersDto;
+      let roles = rolesString ? rolesString.split(',') : [];
+      if (roles.length === 0) {
+        this.logger.log('pushing roles');
+        roles.push(...Object.values(Role));
+      }
+      if (!this.isAdmin()) {
+        roles = roles.filter(r => r !== Role.ADMIN);
+      }
+      this.logger.log(`selected roles - ${JSON.stringify(roles)}`);
 
-    const querySpec = {
-      query: `
+      const querySpec = {
+        query: `
         SELECT * FROM c 
         where c.isActive = true 
         ${onlyPendingRole === 'true' ? 'AND IS_DEFINED(c.requestedRole) AND ARRAY_CONTAINS(@rolesThatCanBeRequested, c.requestedRole)' : ''}
         AND ARRAY_CONTAINS(@roles, c.role) 
         order by c.createdAt DESC
       `,
-      parameters: [
-        {
-          name: '@roles',
-          value: roles,
-        },
-        {
-          name: '@rolesThatCanBeRequested',
-          value: ROLES_THAT_CAN_BE_REQUESTED,
-        }
-      ],
-    };
-    const startAt = new Date();
-    const { resources } = await this.usersContainer.items.query<User>(querySpec).fetchAll();
-    this.logger.log(`query time findAll users ${(new Date().getTime() - startAt.getTime())}`);
-    const schools = await this.schoolsRepository.findAll();
-    return Promise.all(resources.map(user => this.toJson(user, {}, schools)));
+        parameters: [
+          {
+            name: '@roles',
+            value: roles,
+          },
+          {
+            name: '@rolesThatCanBeRequested',
+            value: ROLES_THAT_CAN_BE_REQUESTED,
+          }
+        ],
+      };
+      const startAt = new Date();
+      const { resources } = await this.usersContainer.items.query<User>(querySpec).fetchAll();
+      this.logger.log(`query time findAll users ${(new Date().getTime() - startAt.getTime())}`);
+      const schools = await this.schoolsRepository.findAll();
+      return Promise.all(resources.map(user => this.toJson(user, {}, schools)));
+    } catch (error) {
+      this.logger.error(error.message);
+      throw error;
+    }
   }
 
   async toggleActiveState(id: string) {
-    const user = await this.findOne(id);
-    return this.updateStatus({ id, isActive: !user.isActive });
+    try {
+      const user = await this.findOne(id);
+      return this.updateStatus({ id, isActive: !user.isActive });
+    } catch (error) {
+      this.logger.error(error.message);
+      throw error;
+    }
   }
 
   async findOne(id: string) {
@@ -104,114 +114,144 @@ export class UsersService {
   }
 
   async getByIds(ids: string[]) {
-    const querySpec = {
-      query: 'SELECT * FROM c WHERE ARRAY_CONTAINS(@ids, c.id)',
-      parameters: [
-        {
-          name: '@ids',
-          value: ids,
-        },
-      ],
-    };
-    const { resources } = await this.usersContainer.items.query<User>(querySpec).fetchAll();
-    return resources;
+    try {
+      const querySpec = {
+        query: 'SELECT * FROM c WHERE ARRAY_CONTAINS(@ids, c.id)',
+        parameters: [
+          {
+            name: '@ids',
+            value: ids,
+          },
+        ],
+      };
+      const { resources } = await this.usersContainer.items.query<User>(querySpec).fetchAll();
+      return resources;
+    } catch (error) {
+      this.logger.error(error.message);
+      throw error;
+    }
   }
 
   async findBySlug(slug: string) {
-    const querySpec = {
-      query: 'SELECT * FROM c WHERE c.slug = @slug AND c.isActive = true',
-      parameters: [
-        {
-          name: '@slug',
-          value: slug,
-        },
-      ],
-    };
-    const { resources } = await this.usersContainer.items.query<User>(querySpec).fetchAll();
-    if (resources.length === 0) {
-      throw new NotFoundException('User not found');
+    try {
+      const querySpec = {
+        query: 'SELECT * FROM c WHERE c.slug = @slug AND c.isActive = true',
+        parameters: [
+          {
+            name: '@slug',
+            value: slug,
+          },
+        ],
+      };
+      const { resources } = await this.usersContainer.items.query<User>(querySpec).fetchAll();
+      if (resources.length === 0) {
+        throw new NotFoundException('User not found');
+      }
+      const extraData = await this.getExtraAuthorData(resources[0].id);
+      return this.toJson(resources[0], extraData);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw error;
     }
-    const extraData = await this.getExtraAuthorData(resources[0].id);
-    return this.toJson(resources[0], extraData);
   }
 
   private async getExtraAuthorData(id: string) {
-    const querySpecPosts = {
-      query: `
-        SELECT c.id, c.likes FROM c 
-        WHERE c.userId = @id
-        AND c.isActive = true
-      `,
-      parameters: [
-        {
-          name: '@id',
-          value: id,
-        },
-      ],
-    };
-    const { resources: posts } = await this.postsContainer.items.query<{id: string, likes: number}>(querySpecPosts).fetchAll();
-    console.log(posts);
-    const likes = posts.reduce((acc, post) => acc + post.likes, 0);
-    return {
-      postsCount: posts.length,
-      postLikes: likes,
-    };
+    try {
+      const querySpecPosts = {
+        query: `
+          SELECT c.id, c.likes FROM c 
+          WHERE c.userId = @id
+          AND c.isActive = true
+        `,
+        parameters: [
+          {
+            name: '@id',
+            value: id,
+          },
+        ],
+      };
+      const { resources: posts } = await this.postsContainer.items.query<{ id: string, likes: number }>(querySpecPosts).fetchAll();
+      console.log(posts);
+      const likes = posts.reduce((acc, post) => acc + post.likes, 0);
+      return {
+        postsCount: posts.length,
+        postLikes: likes,
+      };
+    } catch (error) {
+      this.logger.error(error.message);
+      return {};
+    }
   }
 
   async create(createUserDto: CreateUserDto) {
-    const user = await this.usersRepository.create(createUserDto);
-    this.mailService.sendRegisterNotification({user});
-    return this.toJson(user);
+    try {
+      const user = await this.usersRepository.create(createUserDto);
+      this.mailService.sendRegisterNotification({ user });
+      return this.toJson(user);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw error;
+    }
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-    //TODO: update slug if name changes
-    //the user can't change its requested role, only an admin can do it, there is a separate endpoint for that
-    delete updateUserDto.requestedRole;
-    const isAdmin = this.isAdmin();
-    const loggedUser = this.getLoggedUser();
-    if (!isAdmin && loggedUser?.id !== id) {
-      throw new NotFoundException('Unauthorized');
+    try {
+      //TODO: update slug if name changes
+      //the user can't change its requested role, only an admin can do it, there is a separate endpoint for that
+      delete updateUserDto.requestedRole;
+      const isAdmin = this.isAdmin();
+      const loggedUser = this.getLoggedUser();
+      if (!isAdmin && loggedUser?.id !== id) {
+        throw new NotFoundException('Unauthorized');
+      }
+      const user = await this.getById(id);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      const updatedUser = {
+        ...user,
+        ...updateUserDto,
+      };
+      if (updateUserDto.password) {
+        updatedUser.password = bcrypt.hashSync(updateUserDto.password, PASSWORD_SALT_ROUNDS);
+      }
+      const { resource } = await this.usersContainer.item(user.id).replace(updatedUser);
+      return this.toJson(resource as User);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw error;
     }
-    const user = await this.getById(id);
-    if(!user){
-      throw new NotFoundException('User not found');
-    }
-    const updatedUser = {
-      ...user,
-      ...updateUserDto,
-    };
-    if (updateUserDto.password) {
-      updatedUser.password = bcrypt.hashSync(updateUserDto.password, PASSWORD_SALT_ROUNDS);
-    }
-    const { resource } = await this.usersContainer.item(user.id).replace(updatedUser);
-    return this.toJson(resource as User);
   }
 
   async resetPassword(id: string, password: string) {
-    this.logger.debug(`reset password for user ${id}`);
-    const user = await this.getById(id);
-    if(!user){
-      throw new NotFoundException('User not found');
+    try {
+      this.logger.debug(`reset password for user ${id}`);
+      const user = await this.getById(id);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      user.password = bcrypt.hashSync(password, PASSWORD_SALT_ROUNDS);
+      const { resource } = await this.usersContainer.item(user.id).replace(user);
+      return this.toJson(resource as User);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw error;
     }
-    user.password = bcrypt.hashSync(password, PASSWORD_SALT_ROUNDS);
-    const { resource } = await this.usersContainer.item(user.id).replace(user);
-    return this.toJson(resource as User);
   }
 
-  async acceptChangeRoleRequest(id: string, changeRoleRequestDto: ChangeRoleRequestDto){
+  async acceptChangeRoleRequest(id: string, changeRoleRequestDto: ChangeRoleRequestDto) {
     this.logger.debug(`accept change role request for user ${id}`);
     this.revokeWhenIsNotAdmin();
     const user = await this.getById(id);
-    if(!user){
+    if (!user) {
       throw new NotFoundException('User not found');
     }
-    if(changeRoleRequestDto.action === Action.ACCEPT){
-      if(!ROLES_THAT_CAN_BE_REQUESTED.includes(user.requestedRole)){
+    if (changeRoleRequestDto.action === Action.ACCEPT) {
+      if (!ROLES_THAT_CAN_BE_REQUESTED.includes(user.requestedRole)) {
         throw new BadRequestException(APP_ERRORS[ERROR_CODES.INVALID_CHANGE_ROLE_REQUEST]);
       }
       user.role = user.requestedRole;
-    } 
+    }
     delete user.requestedRole;
     const { resource } = await this.usersContainer.item(user.id, user.id).replace(user);
     this.logger.debug(`role changed for user ${id}`);
@@ -279,13 +319,14 @@ export class UsersService {
 
   async toJson(user: User, extraData: any = {}, schools?: School[]) {
     let school: School;
-    if(schools.length > 0){
+    if (schools?.length > 0) {
+      this.logger.debug(`getting school from param`);
       school = schools.find(s => s.id === user.schoolId);
-    } else{
+    } else {
+      this.logger.debug(`getting school from db`);
       school = await this.schoolsRepository.getById(user.schoolId);
     }
     user.country = this.countriesService.getCountry(user.countryCode);
-    this.logger.debug(`school ${JSON.stringify(school)}`);
     return {
       ...FormatCosmosItem.cleanDocument(user, ['password']),
       school: school ? FormatCosmosItem.cleanDocument(school) : null,
