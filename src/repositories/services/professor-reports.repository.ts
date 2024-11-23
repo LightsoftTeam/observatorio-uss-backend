@@ -155,14 +155,13 @@ export class ProfessorReportsRepository {
       this.schoolsRepository.findAll(),
       this.usersRepository.getProfessorsForReports(),
     ]);
+    const attendedProfessors = [];
     const report: {
       [schoolId: string]: {
         school: Partial<School>;
         attended: number;
         pending: number;
         professorsCount: number;
-        professorWhoAttendedIds: string[];
-        professors?: Partial<User>[];
       }
     } = {};
     for (const school of schools) {
@@ -170,7 +169,6 @@ export class ProfessorReportsRepository {
         school,
         attended: 0,
         pending: 0,
-        professorWhoAttendedIds: [],
         professorsCount: users.filter(user => user.schoolId === school.id).length,
       };
     }
@@ -189,7 +187,7 @@ export class ProfessorReportsRepository {
         const isAttended = participant.attendanceStatus === AttendanceStatus.ATTENDED;
         this.logger.debug(`Professor ${professor.id} is ${isAttended ? 'attended' : 'pending'}`);
         const row = report[professor.schoolId];
-        if (row.professorWhoAttendedIds.includes(professor.id)) {
+        if (attendedProfessors.includes(professor.id)) {
           this.logger.debug(`Professor ${professor.id} already counted`);
           return;
         }
@@ -198,20 +196,30 @@ export class ProfessorReportsRepository {
         } else {
           this.logger.debug(`Professor ${professor.id} is attended`);
           row.attended += 1;
-          row.professorWhoAttendedIds.push(professor.id);
+          attendedProfessors.push(professor.id);
         }
       });
     });
-    return Object.values(report)
+    const professorsResume = users.map(user => {
+      const isAttended = attendedProfessors.includes(user.id);
+      return {
+        name: user.name,
+        email: user.email,
+        documentType: user.documentType,
+        documentNumber: user.documentNumber,
+        employmentType: user.employmentType,
+        status: isAttended ? AttendanceStatus.ATTENDED : AttendanceStatus.PENDING,
+      }
+    });
+    const participationBySchool = Object.values(report)
       .map(row => {
         row.pending = row.professorsCount - row.attended;
-        row.professors = row.professorWhoAttendedIds.map(professorId => {
-          const professor = users.find(professor => professor.id === professorId);
-          return FormatCosmosItem.cleanDocument(professor, ['password']);
-        });
         row.school = FormatCosmosItem.cleanDocument(row.school);
-        delete row.professorWhoAttendedIds;
         return row;
       });
+    return {
+      participationBySchool,
+      professorsResume,
+    }
   }
 }
