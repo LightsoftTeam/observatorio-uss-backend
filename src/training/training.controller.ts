@@ -334,6 +334,7 @@ export class TrainingController {
     description: 'Bad Request',
   })
   async migrateFromExcel() {
+    console.log('migrating controller');
     return this.migrationService.migrateFromExcel();
   }
 }

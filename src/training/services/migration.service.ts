@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
 import { BooleanResponse, ParticipantRow, TrainingRow } from '../types/training-migration.types';
 import { AttendanceStatus, Training, TrainingStatus } from '../entities/training.entity';
@@ -42,7 +42,8 @@ export class MigrationService {
   headerResultName = 'Estado';
 
   async migrateFromExcel() {
-    const trace: TrainingMigrationTrace[] = [];
+    try {
+      const trace: TrainingMigrationTrace[] = [];
     const { sheetsClient: sheetsClient, sheets, spreadsheetId, sheetNames } = await getFileInfo();
     const [trainingSheetName, ...participantsSheetNames] = sheetNames;
     const { headers: trainingHeaders, rows: trainingRows } = await getSheetRows<TrainingRow>({ sheets: sheetsClient, spreadsheetId, sheetName: trainingSheetName });
@@ -139,6 +140,13 @@ export class MigrationService {
     this.logger.debug(`Migration results: ${JSON.stringify(migrationResults)}`);
     await updateColumnInBatch({ sheetsClient, payload: migrationResults });
     return trace;
+    } catch (error) {
+      this.logger.error(`Error migrating from excel`);
+      this.logger.error(error.message);
+      throw new InternalServerErrorException({
+        message: error.message,
+      });
+    }
   }
 
   async importTraining(trainingRow: TrainingRow) {
