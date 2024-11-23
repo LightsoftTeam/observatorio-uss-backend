@@ -165,7 +165,7 @@ export class MailService {
                 <p>Bienvenido a la comunidad de Observatorio USS. Nos complace tenerte con nosotros.</p>
                 <p>La administración de Observatorio USS ha creado tu cuenta de acceso para que puedas comenzar a utilizar nuestros servicios.</p>
                 <p>Para ingresar, utiliza tu correo electrónico junto con la siguiente contraseña temporal: <strong>${password}</strong></p>
-                <p><a href="${process.env.OBSERVATORY_APP_URL}" style="color: #007bff; text-decoration: none;">Acceder a Observatorio USS</a></p>
+                <p><a href="${process.env.OBSERVATORY_APP_URL}/iniciar-sesion" style="color: #007bff; text-decoration: none;">Acceder a Observatorio USS</a></p>
                 <p>Te recomendamos que actualices tu contraseña en cualquier momento desde tu perfil: <a href="${process.env.OBSERVATORY_APP_URL}/mi-cuenta" style="color: #007bff; text-decoration: none;">Mi Perfil</a></p>
                 <p>¡Esperamos que disfrutes de todos los recursos y oportunidades que encontrarás en Observatorio USS!</p>
                 <p>Saludos cordiales,<br>El equipo de Observatorio USS</p>
