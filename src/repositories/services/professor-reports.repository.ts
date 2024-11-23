@@ -8,6 +8,7 @@ import { EmploymentType, Role, User } from "src/users/entities/user.entity";
 import { GetProfessorParticipationBySchoolDto } from "src/reports/dto/get-professor-participation-by-school.dto";
 import { SchoolsRepository } from "./schools.repository";
 import { School } from "src/schools/entities/school.entity";
+import { FormatCosmosItem } from "src/common/helpers/format-cosmos-item.helper";
 
 @Injectable()
 export class ProfessorReportsRepository {
@@ -62,6 +63,7 @@ export class ProfessorReportsRepository {
   }
 
   async getParticipation(semesterId: string) {
+    this.logger.debug(`Getting participation for semester ${semesterId}`);
     const professorIds = (await this.usersRepository.getProfessorsForReports({ fields: ['id'] })).map(professor => professor.id);
     const report = {
       [AttendanceStatus.ATTENDED]: 0,
@@ -70,7 +72,8 @@ export class ProfessorReportsRepository {
 
     const querySpec = {
       query: `
-                SELECT c.id AS trainingId, p.id AS participantId, p.attendanceStatus, p.foreignId FROM c JOIN p IN c.participants
+                SELECT c.id AS trainingId, p.id AS participantId, p.attendanceStatus, p.foreignId 
+                FROM c JOIN p IN c.participants
                 WHERE c.semesterId = @semesterId
                 AND p.attendanceStatus = @status  
               `,
@@ -81,6 +84,7 @@ export class ProfessorReportsRepository {
     }
 
     const { resources } = await this.trainingContainer.items.query<{ foreignId: string, attendanceStatus: AttendanceStatus, participantId: string, trainingId: string }>(querySpec).fetchAll();
+    this.logger.debug(`Found ${resources.length} participants`);
 
     professorIds.forEach(professorId => {
       const professorTrainingsInYear = resources.some(training => training.foreignId === professorId);
@@ -106,7 +110,7 @@ export class ProfessorReportsRepository {
 
     const querySpec = {
       query: `
-                SELECT c.foreignId, c.createdAt, p.attendanceStatus 
+                SELECT p.attendanceStatus, p.foreignId 
                 FROM c JOIN p IN c.participants 
                 WHERE c.semesterId = @semesterId
                 AND p.attendanceStatus = @status  
@@ -117,7 +121,8 @@ export class ProfessorReportsRepository {
       ],
     }
 
-    const { resources } = await this.trainingContainer.items.query<{ foreignId: string, createdAt: string, attendanceStatus: AttendanceStatus }>(querySpec).fetchAll();
+    const { resources } = await this.trainingContainer.items.query<{ foreignId: string, attendanceStatus: AttendanceStatus }>(querySpec).fetchAll();
+    this.logger.debug(`Found ${resources.length} participants`);
     professors.forEach((professor => {
       const professorAttended = resources.some(training => training.foreignId === professor.id);
       const professorEmploymentType = professor.employmentType;
@@ -177,26 +182,34 @@ export class ProfessorReportsRepository {
       training.participants.forEach(participant => {
         const professor = users.find(professor => professor.id === participant.foreignId);
         if (!professor) {
-          this.logger.debug(`Professor with id ${participant.foreignId} not found`);
+          this.logger.debug(`Professor with id ${participant.foreignId} not found - training: ${training.id}`);
           return;
         }
-        this.logger.debug(`Found professor ${JSON.stringify(professor)}`);
+        this.logger.debug(`Professor founded`);
         const isAttended = participant.attendanceStatus === AttendanceStatus.ATTENDED;
         this.logger.debug(`Professor ${professor.id} is ${isAttended ? 'attended' : 'pending'}`);
         const row = report[professor.schoolId];
-        this.logger.debug(`Row for school ${professor.schoolId}: ${JSON.stringify(row)}`);
-        if (row.professorWhoAttendedIds.includes(professor.id) || !isAttended) {
+        if (row.professorWhoAttendedIds.includes(professor.id)) {
+          this.logger.debug(`Professor ${professor.id} already counted`);
           return;
         }
-        this.logger.debug(`Counting professor ${professor.id}`);
-        row.attended += 1;
-        row.professorWhoAttendedIds.push(professor.id);
+        if (!isAttended) {
+          this.logger.debug(`Professor ${professor.id} is pending`);
+        } else {
+          this.logger.debug(`Professor ${professor.id} is attended`);
+          row.attended += 1;
+          row.professorWhoAttendedIds.push(professor.id);
+        }
       });
     });
     return Object.values(report)
       .map(row => {
         row.pending = row.professorsCount - row.attended;
-        row.professors = row.professorWhoAttendedIds.map(professorId => users.find(professor => professor.id === professorId));
+        row.professors = row.professorWhoAttendedIds.map(professorId => {
+          const professor = users.find(professor => professor.id === professorId);
+          return FormatCosmosItem.cleanDocument(professor, ['password']);
+        });
+        row.school = FormatCosmosItem.cleanDocument(row.school);
         delete row.professorWhoAttendedIds;
         return row;
       });
