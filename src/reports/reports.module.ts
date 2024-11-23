@@ -9,22 +9,19 @@ import { CommonModule } from 'src/common/common.module';
 import { SchoolsService } from 'src/schools/schools.service';
 import { SemestersService } from 'src/semesters/semesters.service';
 import { StorageService } from 'src/storage/storage.service';
-import { ProfessorReportsService } from 'src/professors/services/professor-reports.service';
-import { ProfessorsModule } from 'src/professors/professors.module';
 import { SchoolsModule } from 'src/schools/schools.module';
 import { UsersService } from 'src/users/users.service';
 import { UsersModule } from 'src/users/users.module';
-import { ProfessorsService } from 'src/professors/professors.service';
 import { StorageModule } from 'src/storage/storage.module';
+import { ProfessorReportsRepository } from 'src/repositories/services/professor-reports.repository';
 
 @Module({
   controllers: [ReportsController],
-  providers: [ReportsService, CompetenciesService, TrainingService, ProfessorsService, ProfessorReportsService, UsersService, SchoolsService, SemestersService, StorageService],
+  providers: [ReportsService, CompetenciesService, TrainingService, ProfessorReportsRepository, UsersService, SchoolsService, SemestersService, StorageService],
   imports: [
     CommonModule,
     CompetenciesModule,
     TrainingModule,
-    ProfessorsModule,
     SchoolsModule,
     UsersModule,
     StorageModule,

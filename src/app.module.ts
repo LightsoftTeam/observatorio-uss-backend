@@ -12,7 +12,6 @@ import { StorageModule } from './storage/storage.module';
 import { AuthoritiesModule } from './authorities/authorities.module';
 import { TagsModule } from './tags/tags.module';
 import { TrainingModule } from './training/training.module';
-import { ProfessorsModule } from './professors/professors.module';
 import { SchoolsModule } from './schools/schools.module';
 import { MailService } from './common/services/mail.service';
 import { StatisticsModule } from './statistics/statistics.module';
@@ -22,6 +21,11 @@ import { SemestersModule } from './semesters/semesters.module';
 import { ReportsModule } from './reports/reports.module';
 import { OpenaiModule } from './openai/openai.module';
 import { ConversationsModule } from './conversations/conversations.module';
+import { AppConfigurationModule } from './app-configuration/app-configuration.module';
+import { RepositoriesModule } from './repositories/repositories.module';
+import { ApplicationLoggerService } from './common/services/application-logger.service';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { GeneralInterceptor } from './common/interceptors/general.interceptor';
 
 @Module({
   imports: [
@@ -49,7 +53,6 @@ import { ConversationsModule } from './conversations/conversations.module';
     AuthoritiesModule,
     TagsModule,
     TrainingModule,
-    ProfessorsModule,
     SchoolsModule,
     StatisticsModule,
     CompetenciesModule,
@@ -58,8 +61,13 @@ import { ConversationsModule } from './conversations/conversations.module';
     OpenaiModule,
     ConversationsModule,
     EventEmitterModule.forRoot(),
+    AppConfigurationModule,
+    RepositoriesModule,
   ],
   controllers: [AppController],
-  providers: [AppService, MailService],
+  providers: [
+    AppService, 
+    MailService
+  ],
 })
 export class AppModule { }

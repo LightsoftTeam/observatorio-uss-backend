@@ -1,10 +1,10 @@
-export interface TrainingRow{
+export interface TrainingRow extends Row{
     "codigo": string;
     "nombre": string;
     semestre: string;
     "descripcion": string;
     tipo: MigrationTrainingType;
-    "organizador": string;
+    "escuela": string;
     "modalidad": MigrationTrainingModality;
     "capacidad": string;
     "competencia": string;
@@ -14,6 +14,7 @@ export interface TrainingRow{
     "organizador en certificado": string;
     "desde": string;
     "hasta": string;
+    "horas academicas": number;
 }
 
 export enum MigrationTrainingModality {
@@ -48,7 +49,7 @@ export enum MigrationDocumentType {
     CE = 'CE',
     PASAPORTE = 'PASAPORTE',
 }
-export interface ParticipantRow{
+export interface ParticipantRow extends Row{
     nombre: string;
     email: string;
     "tipo de documento": MigrationDocumentType;
@@ -57,4 +58,11 @@ export interface ParticipantRow{
     'tipo de empleo': MigrationEmploymentType;
     asistencia: BooleanResponse;
     roles: string;
+    pais: string;
+    "interesa reporteria": BooleanResponse;
+}
+
+interface Row{
+    Estado: string;
+    Message: string;
 }

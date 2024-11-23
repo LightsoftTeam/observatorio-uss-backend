@@ -14,7 +14,6 @@ async function bootstrap() {
   app.enableCors();
   const config = new DocumentBuilder()
     .setTitle('Observatorio USS')
-    // .setDescription('The cats API description')
     .setVersion('1.0')
     .addTag('Api')
     .build();

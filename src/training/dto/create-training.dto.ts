@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsDateString, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, ValidateNested } from "class-validator";
+import { ArrayMaxSize, IsArray, IsDateString, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Matches, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
 import { TrainingModality, TrainingStatus, TrainingType } from "../entities/training.entity";
 
@@ -13,18 +13,25 @@ export class ExecutionRequest {
     id?: string;
     
     @ApiProperty({
-        description: 'The date of the execution',
-        example: '2022-07-01',
+        description: 'The date of the execution in iso format',
+        example: '2022-07-01T00:00:00.000Z',
     })
     @IsDateString()
     from: string;
 
     @ApiProperty({
         description: 'The end date of the execution',
-        example: '2022-07-01',
+        example: '2022-07-01T23:59:59.999Z',
     })
     @IsDateString()
     to: string;
+
+    @ApiProperty({
+        description: 'The duration of the execution in minutes',
+        example: '60 is 1 hour',
+    })
+    @IsNumber()
+    durationInMinutes: number;
 
     @ApiProperty({
         description: 'The place of the execution',
@@ -182,4 +189,42 @@ export class CreateTrainingDto {
     @IsOptional()
     @IsDateString()
     certificateEmisionDate?: string;
+
+    @ApiProperty({
+        description: 'The image url of the credential background',
+        example: 'https://example.com/signature.png',
+        nullable: true,
+    })
+    @IsString()
+    @IsOptional()
+    credentialBackgroundUrl?: string;
+    
+    @ApiProperty({
+        description: 'The text to share of the credential',
+        example: 'This is the credential of the training number 1',
+        nullable: true,
+    })
+    @IsString()
+    @IsOptional()
+    credentialTextToShare?: string;
+
+    @ApiProperty({
+        description: 'The help text of the credential',
+        example: 'This is the credential of the training number 1',
+        nullable: true,
+    })
+    @IsString()
+    @IsOptional()
+    credentialHelpText?: string;
+
+    @ApiProperty({
+        description: 'The logos of the credential',
+        example: ['https://example.com/logo.png'],
+        nullable: true,
+    })
+    @ArrayMaxSize(4)
+    @IsArray()
+    @IsString({ each: true })
+    @IsOptional()
+    credentialLogos?: string[];
 }

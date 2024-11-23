@@ -1,9 +1,8 @@
 import { InjectModel } from '@nestjs/azure-database';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import type { Container } from '@azure/cosmos';
 import { AttendanceStatus, ExecutionAttendance, Training, TrainingCertificate, TrainingParticipant, TrainingRole } from '../entities/training.entity';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
-import { ProfessorsService } from 'src/professors/professors.service';
 import { AddParticipantDto } from '../dto/add-participant.dto';
 import { TrainingService } from '../training.service';
 import { isUUID } from 'class-validator';
@@ -16,6 +15,11 @@ import nodeHtmlToImage from 'node-html-to-image';
 import { StorageService } from 'src/storage/storage.service';
 import { CertificatesHelper } from 'src/common/helpers/certificates.helper';
 import { ERROR_CODES, APP_ERRORS } from '../../common/constants/errors.constants';
+import { UsersRepository } from 'src/repositories/services/users.repository';
+import { ROLES_THAT_CAN_PARTICIPATE_IN_TRAINING } from '../constants';
+import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
+import { UsersService } from 'src/users/users.service';
+import { Role } from 'src/users/entities/user.entity';
 const HTML_TO_PDF = require('html-pdf-node');
 
 @Injectable()
@@ -25,9 +29,10 @@ export class ParticipantsService {
         @InjectModel(Training)
         private readonly trainingContainer: Container,
         private readonly logger: ApplicationLoggerService,
-        private readonly professorService: ProfessorsService,
+        private readonly usersRepository: UsersRepository,
         private readonly trainingService: TrainingService,
         private readonly storageService: StorageService,
+        private readonly usersService: UsersService,
     ) {
         this.logger.setContext(ParticipantsService.name);
     }
@@ -63,30 +68,36 @@ export class ParticipantsService {
 
     async addParticipant(trainingId: string, addParticipantDto: AddParticipantDto) {
         try {
-            this.logger.log(`Adding professor ${addParticipantDto.professorId} to training ${trainingId}`);
             const training = await this.trainingService.getTrainingById(trainingId);
             if (!training) {
                 this.logger.error(`Training ${trainingId} not found`);
                 throw new NotFoundException('Training not found');
             }
-            const { professorId, roles } = addParticipantDto;
-            if (!isUUID(professorId)) {
-                throw new BadRequestException('The professorId must be a valid UUID.');
+            const { userId, roles } = addParticipantDto;
+            if (userId && !isUUID(userId)) {
+                throw new BadRequestException('The userId must be a valid UUID.');
             }
-            //TODO: validate that professorId exists in the database
-            const participant = training.participants.find((participant) => participant.foreignId === professorId);
+            const loggedUser = this.usersService.getLoggedUser();
+            if (userId && (!this.usersService.isAdmin() || loggedUser?.role !== Role.EVENT_MANAGER)) {
+                throw new UnauthorizedException('Cannot add a specific participant');
+            }
+            const user = userId ? await this.usersRepository.getById(userId) : loggedUser;
+            if (!ROLES_THAT_CAN_PARTICIPATE_IN_TRAINING.includes(user.role)) {
+                throw new BadRequestException(APP_ERRORS[ERROR_CODES.ROLE_CANNOT_PARTICIPATE_IN_TRAINING]);
+            }
+            const participant = training.participants.find((participant) => participant.foreignId === user.id);
             this.validateMultipleRoles(roles);
             if (!participant) {
-                this.logger.log(`Participant ${professorId} does not exist in training ${trainingId}`);
+                this.logger.log(`Participant with userId ${user.id} does not exist in training ${trainingId}`);
                 training.participants.push({
                     id: uuidv4(),
-                    foreignId: professorId,
+                    foreignId: user.id,
                     roles,
                     attendanceStatus: AttendanceStatus.PENDING,
                     certificates: [],
                 });
                 const { resource: trainingUpdated } = await this.trainingContainer.item(trainingId, trainingId).replace(training);
-                const newParticipant = trainingUpdated.participants.find((participant) => participant.foreignId === professorId);
+                const newParticipant = trainingUpdated.participants.find((participant) => participant.foreignId === user.id);
                 return this.fillParticipant(newParticipant);
             }
             if (participant.roles.length === roles.length && participant.roles.every((role) => roles.includes(role))) {
@@ -173,10 +184,10 @@ export class ParticipantsService {
     private async fillParticipant(participant: TrainingParticipant) {
         this.logger.log(`Filling participant ${participant.id}`);
         const { foreignId } = participant;
-        const professor = await this.professorService.findOne(foreignId);
+        const user = await this.usersRepository.getById(foreignId);
         return {
             ...participant,
-            professor,
+            user: FormatCosmosItem.cleanDocument(user, ['password']),
         };
     }
 
@@ -192,7 +203,7 @@ export class ParticipantsService {
             if (!participant) {
                 throw new BadRequestException(APP_ERRORS[ERROR_CODES.QR_CODE_NOT_FOUND]);
             }
-            const { id, name, code, modality, executions } = training;
+            const { id, name, code, modality, executions, credentialBackgroundUrl, credentialHelpText, credentialLogos, credentialTextToShare } = training;
             const filledParticipant = await this.fillParticipant(participant);
             return {
                 training: {
@@ -200,6 +211,10 @@ export class ParticipantsService {
                     name,
                     code,
                     modality,
+                    credentialBackgroundUrl,
+                    credentialHelpText,
+                    credentialLogos,
+                    credentialTextToShare,
                 },
                 executions: executions.map((execution) => {
                     const { attendance, ...rest } = execution;
@@ -217,6 +232,7 @@ export class ParticipantsService {
     }
 
     async getTrainingByParticipantId(participantId: string): Promise<Training | null> {
+        this.logger.debug(`Getting training by participantId ${participantId}`);
         const querySpec = {
             query: `SELECT value c from c join p in c.participants where p.id = @participantId`,
             parameters: [
@@ -225,9 +241,10 @@ export class ParticipantsService {
         }
         const { resources } = await this.trainingContainer.items.query<Training>(querySpec).fetchAll();
         if (resources.length === 0) {
+            this.logger.log(`training for participant ${participantId} not found`);
             return null;
         }
-        this.logger.log(`Participant ${participantId} found`);
+        this.logger.log(`Training for participant ${participantId} found`);
         return resources[0];
     }
 
@@ -242,19 +259,34 @@ export class ParticipantsService {
             if (!execution) {
                 throw new NotFoundException('Execution not found');
             }
-            const { participantId, status } = addAttendanceToExecutionDto;
-            const participant = training.participants.find((participant) => participant.id === participantId);
+            const { participantId } = addAttendanceToExecutionDto;
+            const loggedUser = this.usersService.getLoggedUser();
+            if (participantId && (!this.usersService.isAdmin() || loggedUser?.role !== Role.EVENT_MANAGER)) {
+                throw new UnauthorizedException('Cannot add attendance to a specific participant');
+            }
+            const participant = training.participants.find((participant) => {
+                if (!participantId) {
+                    this.logger.log('Participant not found, using logged user');
+                    this.logger.debug(`Logged user: ${loggedUser?.id}`);
+                    if (!loggedUser) {
+                        return false;
+                    }
+                    this.logger.debug(`comparing: ${participant.foreignId} === ${loggedUser.id}`);
+                    return participant.foreignId === loggedUser.id;
+                }
+                return participant.id === participantId;
+            });
             if (!participant) {
                 throw new NotFoundException('Participant not found');
             }
-            const assistance = execution.attendance.find((assistance) => assistance.participantId === participantId);
+            const assistance = execution.attendance.find((assistance) => assistance.participantId === participant.id);
             if (assistance) {
                 throw new BadRequestException('The participant is already added to the execution.');
             }
             const attendance: ExecutionAttendance = {
                 id: uuidv4(),
-                participantId,
-                status: status ?? AttendanceStatus.ATTENDED,
+                participantId: participant.id,
+                status: AttendanceStatus.ATTENDED,
                 createdAt: new Date().toISOString(),
             }
             execution.attendance.push(attendance);
@@ -291,7 +323,7 @@ export class ParticipantsService {
             });
             participant.certificates = certificates;
             await this.trainingContainer.item(training.id, training.id).replace(training);
-            return participant;
+            return this.fillParticipant(participant);
         } catch (error) {
             this.logger.error(`changeStatus ${error.message}`);
             throw error;
@@ -328,8 +360,8 @@ export class ParticipantsService {
         }, 0);
         const durationInHours = Math.round((durationinMiliseconds / 1000 / 60 / 60) * 100) / 100;
         const filledParticipant = await this.fillParticipant(participant);
-        const { id, professor } = filledParticipant;
-        const { name } = professor;
+        const { id, user } = filledParticipant;
+        const { name } = user;
         const certificates: TrainingCertificate[] = await Promise.all(roles.map(async (role) => {
             const certificate: TrainingCertificate = {
                 id: uuidv4(),
@@ -355,53 +387,26 @@ export class ParticipantsService {
                 signatureUrl: certificateSignatureUrl,
                 certificateOrganizer
             };
-            this.logger.log(`Certificate: ${JSON.stringify(certificate)}`)
-            const html = getTrainingCertificateTemplate(data);
-            const buffer: Buffer = await this.getPdfBuffer(html);
-            this.logger.log(`Buffer ${buffer.length}`)
-            const { blobUrl } = await this.storageService.uploadBuffer({
-                buffer,
-                blobName: CertificatesHelper.getBlobName(certificate.id),
-                contentType: 'application/pdf',
-            });
-            certificate.url = blobUrl;
+            const start = new Date();
+            if (process.env.NODE_ENV === 'development') {
+                this.logger.debug(`Development mode, returning test certificate`);
+                certificate.url = 'https://www.test.com/test.pdf';
+            } else {
+                this.logger.log(`Certificate: ${JSON.stringify(certificate)}`)
+                const html = getTrainingCertificateTemplate(data);
+                const buffer: Buffer = await this.getPdfBuffer(html);
+                this.logger.log(`Buffer ${buffer.length}`)
+                const { blobUrl } = await this.storageService.uploadBuffer({
+                    buffer,
+                    blobName: CertificatesHelper.getBlobName(certificate.id),
+                    contentType: 'application/pdf',
+                });
+                certificate.url = blobUrl;
+            }
+            this.logger.debug(`Certificate generated in ${new Date().getTime() - start.getTime()}ms`);
             return certificate;
         }));
         return certificates;
-    }
-
-    async getCertificate(participantId: string) {
-        // const training = await this.getTrainingByParticipantId(participantId);
-        // if (!training) {
-        //     throw new BadRequestException(ERRORS[ERROR_CODES.PARTICIPANT_NOT_FOUND]);
-        // }
-        // const participant = training.participants.find((participant) => participant.id === participantId);
-        // //TODO: validate that the training is completed and set certificate status
-        // const filledParticipant = await this.fillParticipant(participant);
-        // if (participant.attendanceStatus !== AttendanceStatus.ATTENDED || !participant.certificate) {
-        //     throw new BadRequestException(ERRORS[ERROR_CODES.TRAINING_NOT_COMPLETED]);
-        // }
-        // const { name: trainingName } = training;
-        // const { id, professor, role, certificate } = filledParticipant;
-        // const { name } = professor;
-        // const data: TrainingCertificateTemplateData = {
-        //     id,
-        //     name,
-        //     role,
-        //     trainingName,
-        //     emisionDate: participant.certificate.emisionDate,
-        //     trainingFromDate: participant.certificate.trainingFromDate,
-        //     trainingToDate: participant.certificate.trainingToDate,
-        //     duration: participant.certificate.duration,
-        // };
-        // const html = getTrainingCertificateTemplate(data);
-        // const buffer: Buffer = await this.getPdfBuffer(html);
-        // const { blobUrl } = await this.storageService.uploadMessageMedia({
-        //     buffer,
-        //     blobName: CertificatesHelper.getBlobName(certificate.id),
-        //     contentType: 'application/pdf',
-        // });
-        return participantId;
     }
 
     async getParticipantQr(participantId: string) {
@@ -413,8 +418,8 @@ export class ParticipantsService {
             }
             const participant = training.participants.find((participant) => participant.id === participantId);
             const filledParticipant = await this.fillParticipant(participant);
-            const { id, roles, professor } = filledParticipant;
-            const { documentNumber, documentType, email, name } = professor;
+            const { id, roles, user } = filledParticipant;
+            const { documentNumber, documentType, email, name } = user;
             const data: TrainingParticipantQrTemplateData = {
                 documentNumber,
                 documentType,

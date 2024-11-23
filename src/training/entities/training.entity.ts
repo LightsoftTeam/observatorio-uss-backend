@@ -12,6 +12,7 @@ export interface Execution {
     id: string;
     from: string;
     to: string;
+    durationInMinutes: number;
     place?: string;
     attendance: ExecutionAttendance[];
 }
@@ -86,5 +87,9 @@ export class Training {
     certificateBackgroundUrl?: string;
     certificateSignatureUrl?: string;
     certificateEmisionDate?: string;
+    credentialBackgroundUrl?: string;
+    credentialTextToShare?: string;
+    credentialHelpText?: string;
+    credentialLogos?: string[];
     @CosmosDateTime() createdAt: Date;
 }

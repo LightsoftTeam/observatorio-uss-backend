@@ -4,8 +4,6 @@ import { AuthController } from './auth.controller';
 import { UsersModule } from 'src/users/users.module';
 import { JwtService, JwtModule } from '@nestjs/jwt';
 import { ConfigService, ConfigModule } from '@nestjs/config';
-import { UsersService } from 'src/users/users.service';
-import { PostsModule } from 'src/posts/posts.module';
 import { AuthGuard } from './guards/auth.guard';
 import { OtpService } from 'src/common/services/otp.service';
 import { UserTokensService } from './services/user-tokens.service';
@@ -13,7 +11,7 @@ import { UserTokensService } from './services/user-tokens.service';
 @Global()
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, JwtService, ConfigService, UsersService, OtpService, AuthGuard, UserTokensService],
+  providers: [AuthService, JwtService, ConfigService, OtpService, AuthGuard, UserTokensService],
   imports: [
     UsersModule,
     ConfigModule,
@@ -28,12 +26,10 @@ import { UserTokensService } from './services/user-tokens.service';
       },
       inject: [ConfigService],
     }),
-    PostsModule
   ],
   exports: [
     JwtModule,
     JwtService,
-    UsersService,
     AuthGuard
   ]
 })

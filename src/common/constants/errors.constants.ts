@@ -11,10 +11,11 @@ export enum ERROR_CODES {
     INVALID_OTP = 'INVALID_OTP',
     INVALID_AUTHOR = 'INVALID_AUTHOR',
     POST_IS_NOT_PENDING_APPROVAL = 'POST_IS_NOT_PENDING_APPROVAL',
-    PROFESSOR_ALREADY_EXISTS = 'PROFESSOR_ALREADY_EXISTS',
     USER_ALREADY_EXISTS = 'USER_ALREADY_EXISTS',
     NESTED_COMMENT_NOT_ALLOWED = 'NESTED_COMMENT_NOT_ALLOWED',
     POST_DOES_NOT_HAVE_CONTENT = 'POST_DOES_NOT_HAVE_CONTENT',
+    INVALID_CHANGE_ROLE_REQUEST = 'INVALID_CHANGE_ROLE_REQUEST',
+    ROLE_CANNOT_PARTICIPATE_IN_TRAINING = 'ROLE_CANNOT_PARTICIPATE_IN_TRAINING',
 }
 
 export const APP_ERRORS = {
@@ -66,10 +67,6 @@ export const APP_ERRORS = {
         code: ERROR_CODES.POST_IS_NOT_PENDING_APPROVAL,
         message: 'The post is not pending approval'
     },
-    [ERROR_CODES.PROFESSOR_ALREADY_EXISTS]: {
-        code: ERROR_CODES.PROFESSOR_ALREADY_EXISTS,
-        message: 'The professor already exists'
-    },
     [ERROR_CODES.USER_ALREADY_EXISTS]: {
         code: ERROR_CODES.USER_ALREADY_EXISTS,
         message: 'The user already exists'
@@ -81,5 +78,13 @@ export const APP_ERRORS = {
     [ERROR_CODES.POST_DOES_NOT_HAVE_CONTENT]: {
         code: ERROR_CODES.POST_DOES_NOT_HAVE_CONTENT,
         message: 'Post does not have content'
+    },
+    [ERROR_CODES.INVALID_CHANGE_ROLE_REQUEST]: {
+        code: ERROR_CODES.INVALID_CHANGE_ROLE_REQUEST,
+        message: 'Invalid change role request'
+    },
+    [ERROR_CODES.ROLE_CANNOT_PARTICIPATE_IN_TRAINING]: {
+        code: ERROR_CODES.ROLE_CANNOT_PARTICIPATE_IN_TRAINING,
+        message: 'Role cannot participate in training'
     },
 }

@@ -3,7 +3,7 @@ import type { Container } from '@azure/cosmos';
 import { UsersService } from 'src/users/users.service';
 import { InjectModel } from '@nestjs/azure-database';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
-import { PostsRepository } from '../repositories/post.repository';
+import { PostsRepository } from '../../repositories/services/post.repository';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { ApprovalStatus, Post } from '../entities/post.entity';
 import { PostsService } from '../posts.service';

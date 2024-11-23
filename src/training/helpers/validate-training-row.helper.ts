@@ -1,4 +1,5 @@
 import { MigrationTrainingModality, MigrationTrainingType, TrainingRow } from "../types/training-migration.types";
+import { getIsoDateFromMigrationDate } from "./get-iso-date-from-migration-date.helper";
 
 export function validateTrainingRow(trainingDataRow: TrainingRow) {
     const {
@@ -9,9 +10,10 @@ export function validateTrainingRow(trainingDataRow: TrainingRow) {
         desde,
         hasta,
         modalidad,
-        organizador,
+        escuela,
         semestre,
         tipo,
+        "horas academicas": academicHours,
         // "fecha de emision": emisionDate,
         // "organizador en certificado": certificateOrganizer,
         // "firma de certificado": certificateSignature,
@@ -31,19 +33,15 @@ export function validateTrainingRow(trainingDataRow: TrainingRow) {
     if (!competencia) {
         throw new Error('El campo "competencia" es requerido');
     }
-    if(!desde){
-        throw new Error('El campo "desde" es requerido');
-    }
-    if(!hasta){
-        throw new Error('El campo "hasta" es requerido');
-    }
+    trainingDataRow.desde = getIsoDateFromMigrationDate(desde);
+    trainingDataRow.hasta = getIsoDateFromMigrationDate(hasta);
     if (!modalidad) {
         throw new Error('El campo "modalidad" es requerido');
     }
     if (!Object.values(MigrationTrainingModality).includes(modalidad as MigrationTrainingModality)) {
         throw new Error('El campo "modalidad" tiene un valor inválido');
     }
-    if (!organizador) {
+    if (!escuela) {
         throw new Error('El campo "organizador" es requerido');
     }
     if (!semestre) {
@@ -54,6 +52,9 @@ export function validateTrainingRow(trainingDataRow: TrainingRow) {
     }
     if(!Object.values(MigrationTrainingType).includes(tipo as MigrationTrainingType)){
         throw new Error('El campo "tipo" tiene un valor inválido');
+    }
+    if(!academicHours || isNaN(academicHours)){
+        trainingDataRow['horas academicas'] = 0;
     }
     return trainingDataRow;
 }

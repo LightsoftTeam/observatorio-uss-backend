@@ -8,16 +8,18 @@ import { CompetenciesService } from '../../competencies/competencies.service';
 import { SchoolsService } from 'src/schools/schools.service';
 import { InjectModel } from '@nestjs/azure-database';
 import type { Container } from '@azure/cosmos';
-import { ProfessorsService } from 'src/professors/professors.service';
-import { Professor } from 'src/professors/entities/professor.entity';
 import { ParticipantsService } from './participants.service';
 import { validateTrainingRow } from '../helpers/validate-training-row.helper';
 import { TrainingService } from '../training.service';
 import { validateParticipantRow } from '../helpers/validate-participant-row.helper';
-import { getIsoDateFromMigrationDate } from '../helpers/get-iso-date-from-migration-date.helper';
 import { getDocumentType, getEmploymentType, getModality, getRoles, getTrainingType } from '../mappers/migration.mappers';
-import { getFileInfo, getSheetRows } from '../helpers/sheets.helpers';
+import { getFileInfo, getSheetRows, updateColumnInBatch, UpdateInBatchPayload } from '../helpers/sheets.helpers';
 import { TrainingMigrationEvent, TrainingMigrationTrace } from '../entities/training-migration-event.entity';
+import { UsersRepository } from 'src/repositories/services/users.repository';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { generateRandomPassword } from '../helpers/generate-random-password';
+import { MailService } from 'src/common/services/mail.service';
+import { Role } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class MigrationService {
@@ -27,24 +29,44 @@ export class MigrationService {
     private readonly semestersService: SemestersService,
     private readonly competenciesService: CompetenciesService,
     private readonly schoolsService: SchoolsService,
-    private readonly professorsService: ProfessorsService,
     private readonly participantsService: ParticipantsService,
     private readonly trainingService: TrainingService,
     @InjectModel(Training)
     private readonly trainingContainer: Container,
-    @InjectModel(Professor)
-    private readonly professorsContainer: Container,
     @InjectModel(TrainingMigrationEvent)
     private readonly trainingMigrationContainer: Container,
+    private readonly usersRepository: UsersRepository,
+    private readonly mailService: MailService,
   ) { }
+
+  headerResultName = 'Estado';
 
   async migrateFromExcel() {
     const trace: TrainingMigrationTrace[] = [];
-    const { sheets, spreadsheetId, sheetNames } = await getFileInfo();
+    const { sheetsClient: sheetsClient, sheets, spreadsheetId, sheetNames } = await getFileInfo();
     const [trainingSheetName, ...participantsSheetNames] = sheetNames;
-    const trainingRows = await getSheetRows<TrainingRow>({ sheets, spreadsheetId, sheetName: trainingSheetName });
+    const { headers: trainingHeaders, rows: trainingRows } = await getSheetRows<TrainingRow>({ sheets: sheetsClient, spreadsheetId, sheetName: trainingSheetName });
     this.logger.debug('Initializing migration');
+    const columnResultIndex = trainingHeaders.indexOf(this.headerResultName);
+    if (columnResultIndex === -1) {
+      throw new Error(`No se encontró la columna ${this.headerResultName}`);
+    }
+    const migrationResults: UpdateInBatchPayload = {};
+    const trainingSheetId = sheets.find(sheet => sheet.properties.title === trainingSheetName).properties.sheetId;
+    let trainingRowsCount = 1;
+    migrationResults[trainingSheetId] = {
+      values: [],
+      rowIndex: trainingRowsCount,
+      columnIndex: columnResultIndex,
+    };
     for (const trainingDataRow of trainingRows) {
+      trainingRowsCount++;
+      if (trainingDataRow.Estado === 'success') {
+        this.logger.warn(`Skipping row training ${trainingDataRow.codigo} because it was already processed`);
+        migrationResults[trainingSheetId].values.push('success');
+        continue;
+      }
+      this.logger.debug(`Processing row: ${JSON.stringify(trainingDataRow)}`);
       this.logger.debug(`Initializing training migration`);
       let training: Training;
       try {
@@ -53,28 +75,56 @@ export class MigrationService {
           isSuccessful: true,
           message: `Capacitación ${trainingDataRow.codigo} importada satisfactoriamente`,
         });
+        migrationResults[trainingSheetId].values.push('success');
       } catch (error) {
+        this.logger.debug(`Controlling error in training ${trainingDataRow.codigo}: ${error.message}`);
         trace.push({
           isSuccessful: false,
           message: error.message,
         })
+        migrationResults[trainingSheetId].values.push('error: ' + error.message);
         continue;
       }
       this.logger.debug(`Searching participants sheet for training ${trainingDataRow.codigo}`);
-      const participantRows: ParticipantRow[] = await getSheetRows<ParticipantRow>({ sheets, spreadsheetId, sheetName: participantsSheetNames.find(name => name.includes(trainingDataRow.codigo)) });
+      const participantsSheetId = sheets.find(sheet => sheet.properties.title === trainingDataRow.codigo)?.properties?.sheetId;
+      if (!participantsSheetId) {
+        this.logger.warn(`No se encontró la hoja de participantes para la capacitación ${trainingDataRow.codigo}`);
+        continue;
+      }
+      const { rows: participantRows, headers: participantsHeaders } = await getSheetRows<ParticipantRow>({ sheets: sheetsClient, spreadsheetId, sheetName: participantsSheetNames.find(name => name.includes(trainingDataRow.codigo)) });
       this.logger.debug(`Adding participants to training - ${participantRows.length} participants`);
+      const participantColumnResultIndex = participantsHeaders.indexOf(this.headerResultName);
+      if (participantColumnResultIndex === -1) {
+        throw new Error(`No se encontró la columna ${this.headerResultName}`);
+      }
+      let participantRawCount = 1;
+      migrationResults[participantsSheetId] = {
+        values: [],
+        rowIndex: participantRawCount,
+        columnIndex: participantColumnResultIndex,
+      }; 
       for (const participantRow of participantRows) {
+        participantRawCount++;
+        if (participantRow.Estado === 'success') {
+          this.logger.warn(`Skipping row participant ${participantRow.nombre} because it was already processed`);
+          continue;
+        }
+        this.logger.debug(`Processing participant row: ${JSON.stringify(participantRow)}`);
         try {
           await this.addParticipantToTraining({ training, participantRow });
           trace.push({
             isSuccessful: true,
             message: `Participante ${participantRow.nombre} importado satisfactoriamente en capacitación ${trainingDataRow.codigo}`,
           });
+          migrationResults[participantsSheetId].values.push('success');
         } catch (error) {
+          this.logger.debug(`Controlling error in participant ${participantRow.nombre}: ${error.message}`);
+          const message = `Participante ${participantRow.nombre} no importado: ${error.message} en capacitación ${trainingDataRow.codigo}`;
           trace.push({
             isSuccessful: false,
-            message: `Participante ${participantRow.nombre} no importado: ${error.message} en capacitación ${trainingDataRow.codigo}`,
+            message,
           });
+          migrationResults[participantsSheetId].values.push('error: ' + error.message);
           continue;
         }
       }
@@ -85,7 +135,10 @@ export class MigrationService {
       createdAt: new Date(),
     }
     this.trainingMigrationContainer.items.create(resume);
-    return { trace };
+    this.logger.log(`Updating migration results in remote spreadsheet`);
+    this.logger.debug(`Migration results: ${JSON.stringify(migrationResults)}`);
+    await updateColumnInBatch({ sheetsClient, payload: migrationResults });
+    return trace;
   }
 
   async importTraining(trainingRow: TrainingRow) {
@@ -100,7 +153,7 @@ export class MigrationService {
         competencia: competencyName,
         modalidad: modality,
         nombre: name,
-        organizador: organizerName,
+        escuela: escuelaName,
         semestre: semesterName,
         tipo: type,
         descripcion: description,
@@ -108,10 +161,12 @@ export class MigrationService {
         "fecha de emision": certificateEmisionDatePeru,
         "organizador en certificado": certificateOrganizer,
         "firma de certificado": certificateSignatureUrl,
+        "horas academicas": academicHours,
       } = data;
       const existingTraining = await this.trainingService.getByCode(code);
       if (existingTraining) {
-        throw new Error(`La capacitación ya existe`);
+        this.logger.warn(`Training with code ${code} already exists, returning existing training`);
+        return existingTraining;
       }
       this.logger.debug(`Formatting training type`);
       let formattedType = getTrainingType(type);
@@ -119,12 +174,12 @@ export class MigrationService {
       let formattedModality = getModality(modality);
       this.logger.debug(`Parsing capacity`);
       const capacity = parseInt(capacityString);
-      const certificateEmisionDate = certificateEmisionDatePeru ? getIsoDateFromMigrationDate(certificateEmisionDatePeru) : undefined;
+      const certificateEmisionDate = certificateEmisionDatePeru ?? undefined;
       this.logger.debug(`Searching foreigns`);
       let [semester, competency, school] = await Promise.all([
         this.semestersService.getByName(semesterName),
         this.competenciesService.getByName(competencyName),
-        this.schoolsService.getByName(organizerName),
+        this.schoolsService.getByName(escuelaName),
       ]);
       if (!semester) {
         this.logger.debug(`Semester with name ${data.semestre} not found. Creating new semester`);
@@ -135,8 +190,8 @@ export class MigrationService {
         competency = await this.competenciesService.create({ name: data.competencia });
       }
       if (!school) {
-        this.logger.debug(`School with name ${data.organizador} not found. Creating new school`);
-        school = await this.schoolsService.create({ name: data.organizador });
+        this.logger.debug(`School with name ${escuelaName} not found. Creating new school`);
+        school = await this.schoolsService.create({ name: escuelaName });
       }
       const trainingPayload: Training = {
         code,
@@ -145,13 +200,14 @@ export class MigrationService {
         organizer: school.id,
         participants: [],
         semesterId: semester.id,
-        status: TrainingStatus.ACTIVE,
+        status: TrainingStatus.INACTIVE,
         type: formattedType,
         executions: [{
           id: uuidv4(),
           attendance: [],
-          from: getIsoDateFromMigrationDate(fromDate),
-          to: getIsoDateFromMigrationDate(toDate),
+          from: fromDate,
+          to: toDate,
+          durationInMinutes: academicHours * 60,
         }],
         competencyId: competency.id,
         description,
@@ -182,10 +238,13 @@ export class MigrationService {
         'tipo de empleo': employmentType,
         asistencia: isAttended,
         roles: rolesInput,
+        pais: countryCode,
+        'interesa reporteria': interesaReporteria,
       } = data;
       const roles = getRoles(rolesInput);
       let formattedDocumentType = getDocumentType(documentType);
-      let professor = await this.professorsService.getByDocument({ documentNumber, documentType: formattedDocumentType });
+      this.logger.debug(`Searching professor with document ${formattedDocumentType} ${documentNumber}`);
+      let professor = await this.usersRepository.getByDocument({ documentNumber, documentType: formattedDocumentType });
       const attendanceStatus = isAttended.toUpperCase().trim() === BooleanResponse.SI ? AttendanceStatus.ATTENDED : AttendanceStatus.PENDING;
       if (!professor) {
         this.logger.debug(`Professor with document ${documentNumber} not found. Creating new professor`);
@@ -195,17 +254,25 @@ export class MigrationService {
           school = await this.schoolsService.create({ name: schoolName });
         }
         let formattedEmploymentType = getEmploymentType(employmentType);
-        const professorPayload: Professor = {
+        const professorPayload: CreateUserDto = {
           name,
           email,
+          role: Role.PROFESSOR,
           documentType: formattedDocumentType,
           documentNumber,
-          schoolId: school.name,
+          schoolId: school.id,
           employmentType: formattedEmploymentType,
-          createdAt: new Date(),
+          countryCode,
+          password: generateRandomPassword(),
+          excludedFromReports: interesaReporteria === BooleanResponse.SI ? undefined : true,
         }
-        const { resource } = await this.professorsContainer.items.create(professorPayload);
-        professor = resource;
+        professor = await this.usersRepository.create(professorPayload);
+        this.mailService.sendNewAccountWithPassword({ user: professor, password: professorPayload.password });
+      }
+      const existingParticipant = training.participants.find(participant => participant.foreignId === professor.id);
+      if (existingParticipant) {
+        this.logger.warn(`Participant with document ${documentNumber} already exists in training ${training.code}`);
+        return;
       }
       const participant = {
         id: uuidv4(),

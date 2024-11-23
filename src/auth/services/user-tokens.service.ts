@@ -1,5 +1,4 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { UsersService } from 'src/users/users.service';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
 import { v4 as uuidv4 } from 'uuid';
 import { TokenReason, UserToken } from 'src/common/entities/user-token.entity';
@@ -8,13 +7,14 @@ import { Container } from '@azure/cosmos';
 import { MailService } from 'src/common/services/mail.service';
 import { getResetPasswordTemplate } from '../templates/reset-password.template';
 import { APP_ERRORS, ERROR_CODES } from 'src/common/constants/errors.constants';
+import { UsersRepository } from 'src/repositories/services/users.repository';
 
 const EXPIRATION_TIME_IN_SECONDS = process.env.OTP_EXPIRATION_TIME_IN_SECONDS ? Number(process.env.OTP_EXPIRATION_TIME_IN_SECONDS) : 300;
 
 @Injectable()
 export class UserTokensService {
     constructor(
-        private readonly userService: UsersService,
+        private readonly usersRepository: UsersRepository,
         private readonly mailService: MailService,
         private readonly logger: ApplicationLoggerService,
         @InjectModel(UserToken)
@@ -24,7 +24,7 @@ export class UserTokensService {
     async sendResetPasswordOtp(email: string) {
         this.logger.debug(`Sending reset password OTP to ${email}`);
         const token = uuidv4();
-        const user = await this.userService.findByEmail(email);
+        const user = await this.usersRepository.findByEmail(email);
         if (!user) {
             throw new NotFoundException('User not found');
         }
