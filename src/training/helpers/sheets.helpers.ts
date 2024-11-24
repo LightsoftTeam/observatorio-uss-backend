@@ -26,7 +26,7 @@ export async function getSheetRows<T>({ sheets, spreadsheetId, sheetName }: { sh
 export async function getFileInfo() {
     const spreadsheetId = process.env.TRAINING_MIGRATION_SPREADSHEET_ID;
     const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-    const key = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+    const key = process.env.GOOGLE_SERVICE_ACCOUNT_KEY.split(String.raw`\n`).join('\n');
     const scopes = ['https://www.googleapis.com/auth/spreadsheets'];
     const client = new JWT({
         email,
