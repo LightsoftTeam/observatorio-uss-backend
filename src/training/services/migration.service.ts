@@ -62,8 +62,8 @@ export class MigrationService {
     };
     for (const trainingDataRow of trainingRows) {
       trainingRowsCount++;
-      if (trainingDataRow.Estado === 'success') {
-        this.logger.warn(`Skipping row training ${trainingDataRow.codigo} because it was already processed`);
+      if (trainingDataRow.Estado === 'success' || trainingDataRow.Estado === 'paused') {
+        this.logger.warn(`Skipping row training ${trainingDataRow.codigo} because state is ${trainingDataRow.Estado}`);
         migrationResults[trainingSheetId].values.push('success');
         continue;
       }
