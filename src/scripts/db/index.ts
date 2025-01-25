@@ -7,3 +7,4 @@ const dbName = process.env.DB_NAME;
 const cosmosClient = new CosmosClient({ endpoint, key });
 export const postsContainer = cosmosClient.database(dbName).container('posts');
 export const userContainer = cosmosClient.database(dbName).container('users');
+export const trainingContainer = cosmosClient.database(dbName).container('trainings');

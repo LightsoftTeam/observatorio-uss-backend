@@ -337,4 +337,19 @@ export class TrainingController {
     console.log('migrating controller');
     return this.migrationService.migrateFromExcel();
   }
+
+  @Post('regenerate/:id')
+  @HttpCode(HttpStatus.OK)
+  @ApiResponse({
+    status: 200,
+    description: 'The data has been successfully regenerated',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request',
+  })
+  async regenerateCertificates(@Param('id') id: string) {
+    console.log('migrating controller');
+    return this.participantsService.regenerateCertificates(id);
+  }
 }

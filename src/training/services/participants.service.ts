@@ -20,6 +20,7 @@ import { ROLES_THAT_CAN_PARTICIPATE_IN_TRAINING } from '../constants';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { UsersService } from 'src/users/users.service';
 import { Role } from 'src/users/entities/user.entity';
+import { map } from 'rxjs';
 const HTML_TO_PDF = require('html-pdf-node');
 
 @Injectable()
@@ -340,6 +341,7 @@ export class ParticipantsService {
             trainingFromDate: new Date().toISOString(),
             trainingToDate: new Date().toISOString(),
             duration: 24,
+            signatureUrls: ['https://placehold.co/600x400', 'https://placehold.co/600x400', 'https://placehold.co/600x400'],
         }
         const html = getTrainingCertificateTemplate(data);
         const buffer: Buffer = await this.getPdfBuffer(html);
@@ -349,7 +351,7 @@ export class ParticipantsService {
     async generateCertificates({ training, participant }: { training: Training, participant: TrainingParticipant }): Promise<TrainingCertificate[]> {
         this.logger.log(`Generating certificate for participant ${participant.id}`);
         const { roles } = participant;
-        const { executions, name: trainingName, certificateBackgroundUrl, certificateSignatureUrl, certificateEmisionDate, certificateOrganizer } = training;
+        const { executions, name: trainingName, certificateBackgroundUrl, certificateSignatureUrls, certificateEmisionDate, certificateOrganizer } = training;
         const trainingFromDate = executions[0].from;
         const trainingToDate = executions[executions.length - 1].to;
         const durationinMiliseconds = executions.reduce((acc, execution) => {
@@ -384,7 +386,7 @@ export class ParticipantsService {
                 trainingToDate,
                 duration: durationInHours,
                 backgroundUrl: certificateBackgroundUrl,
-                signatureUrl: certificateSignatureUrl,
+                signatureUrls: certificateSignatureUrls,
                 certificateOrganizer
             };
             const start = new Date();
@@ -444,5 +446,39 @@ export class ParticipantsService {
         const options = { format: 'A4' };
         const file = { content: html };
         return HTML_TO_PDF.generatePdf(file, options);
+    }
+
+    async regenerateCertificates(trainingId: string) {
+        this.logger.debug(`Regenerating certificates for training ${trainingId}`);
+        // const trainings = await this.trainingService.findAll() as Training[];
+        // const filteredIds = trainings.map((training) => training.id).filter((id) => id !== "73b8598d-adbe-4d36-b7ea-7dc95837a26c" && id !== "bcdd1a1b-1436-4cd4-8fa6-719363fab697");
+        const filteredIds = [trainingId];
+        const results = [];
+        await Promise.all(filteredIds.map(async (trainingId) => {
+            try {
+                const rg = await this.regenerate(trainingId);
+                results.push(rg);
+            } catch (error) {
+                this.logger.error(`Error regenerating training ${trainingId}: ${error.message}`);
+            }
+        }));
+        return results;
+    }
+
+    async regenerate(trainingId: string) {
+        const training = await this.trainingService.getTrainingById(trainingId);
+        if (!training) {
+            throw new NotFoundException('Training not found');
+        }
+        const participants = training.participants;
+        this.logger.debug(`Participants founded: ${participants.length}`);
+        for (const participant of participants) {
+            this.logger.debug(`Regenerating certificate for participant ${participant.id}`);
+            const certificates = await this.generateCertificates({ training, participant });
+            this.logger.debug(`Certificates generated: ${certificates.length}`);
+            participant.certificates = certificates;
+        }
+        const { resource: trainingUpdated } = await this.trainingContainer.item(trainingId, trainingId).replace(training);
+        return trainingUpdated;
     }
 }
