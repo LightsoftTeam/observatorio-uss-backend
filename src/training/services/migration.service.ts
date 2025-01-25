@@ -222,7 +222,7 @@ export class MigrationService {
         certificateBackgroundUrl,
         certificateEmisionDate,
         certificateOrganizer,
-        certificateSignatureUrl,
+        certificateSignatureUrls: certificateSignatureUrl ? certificateSignatureUrl.split(',') : [],
         capacity,
         createdAt: new Date(),
       }

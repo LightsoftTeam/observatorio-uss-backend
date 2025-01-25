@@ -341,6 +341,7 @@ export class ParticipantsService {
             trainingFromDate: new Date().toISOString(),
             trainingToDate: new Date().toISOString(),
             duration: 24,
+            signatureUrls: ['https://placehold.co/600x400', 'https://placehold.co/600x400', 'https://placehold.co/600x400'],
         }
         const html = getTrainingCertificateTemplate(data);
         const buffer: Buffer = await this.getPdfBuffer(html);
@@ -350,7 +351,7 @@ export class ParticipantsService {
     async generateCertificates({ training, participant }: { training: Training, participant: TrainingParticipant }): Promise<TrainingCertificate[]> {
         this.logger.log(`Generating certificate for participant ${participant.id}`);
         const { roles } = participant;
-        const { executions, name: trainingName, certificateBackgroundUrl, certificateSignatureUrl, certificateEmisionDate, certificateOrganizer } = training;
+        const { executions, name: trainingName, certificateBackgroundUrl, certificateSignatureUrls, certificateEmisionDate, certificateOrganizer } = training;
         const trainingFromDate = executions[0].from;
         const trainingToDate = executions[executions.length - 1].to;
         const durationinMiliseconds = executions.reduce((acc, execution) => {
@@ -385,7 +386,7 @@ export class ParticipantsService {
                 trainingToDate,
                 duration: durationInHours,
                 backgroundUrl: certificateBackgroundUrl,
-                signatureUrl: certificateSignatureUrl,
+                signatureUrls: certificateSignatureUrls,
                 certificateOrganizer
             };
             const start = new Date();

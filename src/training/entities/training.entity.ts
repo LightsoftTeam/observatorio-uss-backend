@@ -85,7 +85,7 @@ export class Training {
     competencyId: string;
     certificateOrganizer?: string;
     certificateBackgroundUrl?: string;
-    certificateSignatureUrl?: string;
+    certificateSignatureUrls: string[];
     certificateEmisionDate?: string;
     credentialBackgroundUrl?: string;
     credentialTextToShare?: string;

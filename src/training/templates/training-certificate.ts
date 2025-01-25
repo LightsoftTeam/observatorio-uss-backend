@@ -21,7 +21,6 @@ const MONTH_NAMES = [
 
 //TODO: Change the default certificate background URL to the correct one in oficial server
 const DEFAULT_CERTIFICATE_BACKGROUND_URL = 'https://lightsoft.blob.core.windows.net/lightsoft/observatorio-uss%2F1722569940652_fondo_certificado_uss_default.png?sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2099-03-03T13:12:01Z&st=2024-03-03T05:12:01Z&spr=https,http&sig=%2BfzCUZcEebdMsuMC3NDjtrpAoFCoB9I1QbITCfpvmcg%3D';
-const DEFAULT_SIGNATURE_URL = 'https://cdn.shopify.com/s/files/1/0594/4639/5086/files/underline_b49eefdc-d72c-4e68-84a4-dcbd1404a772.jpg';
 
 export interface TrainingCertificateTemplateData {
     participantId: string;
@@ -34,7 +33,7 @@ export interface TrainingCertificateTemplateData {
     emisionDate: string;
     certificateOrganizer?: string;
     backgroundUrl?: string;
-    signatureUrl?: string;
+    signatureUrls: string[];
 }
 
 export function getTrainingCertificateTemplate(data: TrainingCertificateTemplateData) {
@@ -42,7 +41,7 @@ export function getTrainingCertificateTemplate(data: TrainingCertificateTemplate
         name,
         emisionDate,
         backgroundUrl = DEFAULT_CERTIFICATE_BACKGROUND_URL,
-        signatureUrl = DEFAULT_SIGNATURE_URL,
+        signatureUrls,
     } = data;
     emisionDate = FormatDate.toHuman(emisionDate);
 
@@ -111,7 +110,9 @@ export function getTrainingCertificateTemplate(data: TrainingCertificateTemplate
 
                 .innerContainer .signature {
                     display: flex;
+                    flex-wrap: wrap;
                     justify-content: center;
+                    gap: 80px 20px;
                     margin-top: 40px;
                 }
 
@@ -134,7 +135,7 @@ export function getTrainingCertificateTemplate(data: TrainingCertificateTemplate
                                 <p>Pimentel, ${emisionDate}</p>
                         </div>
                         <div class="signature">
-                            <img src="${signatureUrl}">
+                            ${signatureUrls.map((url) => `<img src="${url}" alt="Firma">`).join('')}
                         </div>
                     </div>
                 </div>

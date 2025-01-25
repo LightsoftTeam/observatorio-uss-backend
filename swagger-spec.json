@@ -3309,11 +3309,15 @@
             "example": "https://example.com/certificate.png",
             "nullable": true
           },
-          "certificateSignatureUrl": {
-            "type": "string",
-            "description": "The signature url of the certificate",
-            "example": "https://example.com/signature.png",
-            "nullable": true
+          "certificateSignatureUrls": {
+            "description": "The signature urls of the certificate",
+            "example": [
+              "https://example.com/signature.png"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "certificateEmisionDate": {
             "type": "string",
@@ -3366,7 +3370,7 @@
           "competencyId",
           "certificateOrganizer",
           "certificateBackgroundUrl",
-          "certificateSignatureUrl",
+          "certificateSignatureUrls",
           "certificateEmisionDate",
           "credentialBackgroundUrl",
           "credentialTextToShare",
@@ -3482,11 +3486,15 @@
             "example": "https://example.com/certificate.png",
             "nullable": true
           },
-          "certificateSignatureUrl": {
-            "type": "string",
-            "description": "The signature url of the certificate",
-            "example": "https://example.com/signature.png",
-            "nullable": true
+          "certificateSignatureUrls": {
+            "description": "The signature urls of the certificate",
+            "example": [
+              "https://example.com/signature.png"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "certificateEmisionDate": {
             "type": "string",

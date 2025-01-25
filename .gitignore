@@ -39,3 +39,4 @@ lerna-debug.log*
 
 local.settings.json
 /localdata
+src/scripts
