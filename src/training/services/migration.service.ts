@@ -64,7 +64,7 @@ export class MigrationService {
       trainingRowsCount++;
       if (trainingDataRow.Estado === 'success' || trainingDataRow.Estado === 'paused') {
         this.logger.warn(`Skipping row training ${trainingDataRow.codigo} because state is ${trainingDataRow.Estado}`);
-        migrationResults[trainingSheetId].values.push('success');
+        migrationResults[trainingSheetId].values.push(trainingDataRow.Estado);
         continue;
       }
       this.logger.debug(`Processing row: ${JSON.stringify(trainingDataRow)}`);
@@ -108,6 +108,7 @@ export class MigrationService {
         participantRawCount++;
         if (participantRow.Estado === 'success' || participantRow.Estado === 'paused') {
           this.logger.warn(`Skipping row participant ${participantRow.nombre} because it was already processed ${participantRow.Estado}`);
+          migrationResults[participantsSheetId].values.push(participantRow.Estado);
           continue;
         }
         this.logger.debug(`Processing participant row: ${JSON.stringify(participantRow)}`);
@@ -302,7 +303,7 @@ export class MigrationService {
       await this.trainingContainer.item(training.id, training.id).replace(training);
     } catch (error) {
       this.logger.error(`Error adding participant ${participantRow.nombre} to training ${training.code}: ${error.message}`);
-      throw new Error(`Ocurrió un error inesperado`);
+      throw new Error(error.message);
     }
   }
 }
