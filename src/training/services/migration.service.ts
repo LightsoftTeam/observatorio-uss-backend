@@ -106,8 +106,8 @@ export class MigrationService {
       }; 
       for (const participantRow of participantRows) {
         participantRawCount++;
-        if (participantRow.Estado === 'success') {
-          this.logger.warn(`Skipping row participant ${participantRow.nombre} because it was already processed`);
+        if (participantRow.Estado === 'success' || participantRow.Estado === 'paused') {
+          this.logger.warn(`Skipping row participant ${participantRow.nombre} because it was already processed ${participantRow.Estado}`);
           continue;
         }
         this.logger.debug(`Processing participant row: ${JSON.stringify(participantRow)}`);

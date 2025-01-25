@@ -49,7 +49,6 @@ export class MailService {
                 if (error) {
                     reject(error);
                 } else {
-                    console.log({ info });
                     resolve(info);
                 }
             });
@@ -180,7 +179,7 @@ export class MailService {
                 this.logger.log(`Welcome message sent to ${to}`);
             })
             .catch((error) => {
-                this.logger.error(`Error welcome message to ${to}`);
+                this.logger.error(`Error sending password to ${to}`);
                 this.logger.error(error.message);
             });
     }

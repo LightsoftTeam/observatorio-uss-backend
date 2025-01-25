@@ -20,6 +20,7 @@ import { ROLES_THAT_CAN_PARTICIPATE_IN_TRAINING } from '../constants';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { UsersService } from 'src/users/users.service';
 import { Role } from 'src/users/entities/user.entity';
+import { map } from 'rxjs';
 const HTML_TO_PDF = require('html-pdf-node');
 
 @Injectable()
@@ -444,5 +445,39 @@ export class ParticipantsService {
         const options = { format: 'A4' };
         const file = { content: html };
         return HTML_TO_PDF.generatePdf(file, options);
+    }
+
+    async regenerateCertificates(trainingId: string) {
+        this.logger.debug(`Regenerating certificates for training ${trainingId}`);
+        // const trainings = await this.trainingService.findAll() as Training[];
+        // const filteredIds = trainings.map((training) => training.id).filter((id) => id !== "73b8598d-adbe-4d36-b7ea-7dc95837a26c" && id !== "bcdd1a1b-1436-4cd4-8fa6-719363fab697");
+        const filteredIds = [trainingId];
+        const results = [];
+        await Promise.all(filteredIds.map(async (trainingId) => {
+            try {
+                const rg = await this.regenerate(trainingId);
+                results.push(rg);
+            } catch (error) {
+                this.logger.error(`Error regenerating training ${trainingId}: ${error.message}`);
+            }
+        }));
+        return results;
+    }
+
+    async regenerate(trainingId: string) {
+        const training = await this.trainingService.getTrainingById(trainingId);
+        if (!training) {
+            throw new NotFoundException('Training not found');
+        }
+        const participants = training.participants;
+        this.logger.debug(`Participants founded: ${participants.length}`);
+        for (const participant of participants) {
+            this.logger.debug(`Regenerating certificate for participant ${participant.id}`);
+            const certificates = await this.generateCertificates({ training, participant });
+            this.logger.debug(`Certificates generated: ${certificates.length}`);
+            participant.certificates = certificates;
+        }
+        const { resource: trainingUpdated } = await this.trainingContainer.item(trainingId, trainingId).replace(training);
+        return trainingUpdated;
     }
 }
