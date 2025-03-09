@@ -450,9 +450,8 @@ export class ParticipantsService {
 
     async regenerateCertificates(trainingId: string) {
         this.logger.debug(`Regenerating certificates for training ${trainingId}`);
-        // const trainings = await this.trainingService.findAll() as Training[];
-        // const filteredIds = trainings.map((training) => training.id).filter((id) => id !== "73b8598d-adbe-4d36-b7ea-7dc95837a26c" && id !== "bcdd1a1b-1436-4cd4-8fa6-719363fab697");
-        const filteredIds = [trainingId];
+        const trainings = await this.trainingService.findAll() as Training[];
+        const filteredIds = trainings.filter(t => t.id != "73b8598d-adbe-4d36-b7ea-7dc95837a26c").map((training) => training.id);
         const results = [];
         await Promise.all(filteredIds.map(async (trainingId) => {
             try {

@@ -88,14 +88,18 @@ export class StorageService {
     };
 
     async uploadFile(file: UploadedFileMetadata, uploadFileDto: UploadFileDto, azureStorage: AzureStorageService){
-        this.logger.log('Uploading file...');
+        this.logger.log('uploadFile :: Uploading file...');
+        this.logger.log(`uploadFile :: dto ${JSON.stringify(uploadFileDto)}`);
         const { name, saveReference } = uploadFileDto;
         try {
             const masterFolder = process.env.AZURE_STORAGE_FOLDER ? `${process.env.AZURE_STORAGE_FOLDER}/` : '';
+            this.logger.log(`uploadFile :: masterFolder ${masterFolder}`);
             const folder = masterFolder + (saveReference ? 'multimedia/' : '');
+            this.logger.log(`uploadFile :: folder ${folder}`);
             const ext = file.originalname.split('.').at(-1);
+            this.logger.log(`uploadFile :: ext ${ext}`);
             const originalname = this.getFileFullName({name: name || file.originalname, ext, folder});
-            console.log(originalname);
+            this.logger.log(`uploadFile :: originalname ${originalname}`);
             file = {
                 ...file,
                 originalname
@@ -113,11 +117,14 @@ export class StorageService {
                 this.logger.log('Reference saved to database');
                 return FormatCosmosItem.cleanDocument(resource, ['path']);
             }
+            this.logger.log('File uploaded');
             return {
                 url
             };
         } catch (error) {
+            this.logger.error("Ocurrió un error al subir el archivo");
             this.logger.error(error.message);
+            throw error;
         }
     }
 

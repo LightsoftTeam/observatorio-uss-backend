@@ -25,6 +25,7 @@ export class StorageController {
         file: UploadedFileMetadata,
         @Body() uploadFileDto: UploadFileDto,
     ) {
+        console.log({file});
         return this.storageService.uploadFile(file, uploadFileDto, this.azureStorageService);
     }
 
