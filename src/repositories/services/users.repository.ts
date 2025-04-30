@@ -105,7 +105,7 @@ export class UsersRepository {
             throw new BadRequestException('Missing required fields for professor');
         }
         const existingUser = await this.getDuplicatedUser({ email: user.email, documentType, documentNumber });
-        if (existingUser) {
+        if (existingUser && createUserDto.email !== 'Tiempo Completo') {
             this.logger.debug(`User with email ${user.email} already exists`);
             throw new BadRequestException(APP_ERRORS[ERROR_CODES.USER_ALREADY_EXISTS]);
         }

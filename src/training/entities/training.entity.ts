@@ -19,15 +19,8 @@ export interface Execution {
 
 export interface TrainingCertificate {
     id: string;
-    name: string;
-    trainingName: string;
-    emisionDate: string;
-    trainingFromDate: string;
-    trainingToDate: string;
-    duration: number;
     role: TrainingRole;
-    certificateOrganizer?: string;
-    url?: string;
+    lastGenerationDate: string;
 }
 
 export interface TrainingParticipant {

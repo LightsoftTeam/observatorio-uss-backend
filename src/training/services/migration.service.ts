@@ -19,7 +19,9 @@ import { UsersRepository } from 'src/repositories/services/users.repository';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { generateRandomPassword } from '../helpers/generate-random-password';
 import { MailService } from 'src/common/services/mail.service';
-import { Role } from 'src/users/entities/user.entity';
+import { Role, User } from 'src/users/entities/user.entity';
+import { readFile, writeFile } from 'fs/promises';
+import { Competency } from 'src/competencies/entities/competency.entity';
 
 @Injectable()
 export class MigrationService {
@@ -33,6 +35,10 @@ export class MigrationService {
     private readonly trainingService: TrainingService,
     @InjectModel(Training)
     private readonly trainingContainer: Container,
+    @InjectModel(User)
+    private readonly usersContainer: Container,
+    @InjectModel(Competency)
+    private readonly competenciesContainer: Container,
     @InjectModel(TrainingMigrationEvent)
     private readonly trainingMigrationContainer: Container,
     private readonly usersRepository: UsersRepository,
@@ -42,6 +48,26 @@ export class MigrationService {
   headerResultName = 'Estado';
 
   async migrateFromExcel() {
+    // const {resources: allTrainings} = await this.trainingContainer.items.readAll().fetchAll();
+    // const {resources: allUsers} = await this.usersContainer.items.readAll().fetchAll();
+    // writeFile('trainings-backup.json', JSON.stringify(allTrainings, null, 2), { encoding: 'utf-8' });
+    // writeFile('users-backup.json', JSON.stringify(allUsers, null, 2), { encoding: 'utf-8' });
+    // const { resources: allCompetencies } = await this.competenciesContainer.items.readAll().fetchAll();
+    // writeFile('competencies-backup.json', JSON.stringify(allCompetencies, null, 2), { encoding: 'utf-8' });
+    // return 1;
+    // const usersJson = await readFile('users-backup.json', { encoding: 'utf-8' });
+    // const users = JSON.parse(usersJson);
+    // const userToCreate = users.filter(u => u.role != 'professor').map(i => {
+    //   const {_rid,_self,_etag,_attachments,_ts,...rest} = i;
+    //   return rest;
+    // })
+    // console.log(userToCreate.splice(0,1))
+    // for (const u of userToCreate) {
+    //   console.log('insertando usuario', u.id);
+    //   await this.usersContainer.items.create(u);
+    // }
+    // return 1;
+    
     try {
       const trace: TrainingMigrationTrace[] = [];
     const { sheetsClient: sheetsClient, sheets, spreadsheetId, sheetNames } = await getFileInfo();
@@ -62,7 +88,8 @@ export class MigrationService {
     };
     for (const trainingDataRow of trainingRows) {
       trainingRowsCount++;
-      if (trainingDataRow.Estado === 'success' || trainingDataRow.Estado === 'paused') {
+      // if (trainingDataRow.Estado === 'success' || trainingDataRow.Estado === 'paused') {
+      if (trainingDataRow.Estado === 'paused') {
         this.logger.warn(`Skipping row training ${trainingDataRow.codigo} because state is ${trainingDataRow.Estado}`);
         migrationResults[trainingSheetId].values.push(trainingDataRow.Estado);
         continue;
@@ -255,7 +282,21 @@ export class MigrationService {
       this.logger.debug(`Searching professor with document ${formattedDocumentType} ${documentNumber}`);
       let professor = await this.usersRepository.getByDocument({ documentNumber, documentType: formattedDocumentType });
       const attendanceStatus = isAttended.toUpperCase().trim() === BooleanResponse.SI ? AttendanceStatus.ATTENDED : AttendanceStatus.PENDING;
+      if(professor && professor.role !== Role.PROFESSOR) {
+        //eliminamos el recurso 
+        this.logger.debug(`User with document ${documentNumber} is not a professor. Deleting user`);
+        await this.usersContainer.item(professor.id, professor.id).delete();
+        this.logger.debug(`User with document ${documentNumber} deleted. Creating new professor`);
+        professor = null;
+      }
       if (!professor) {
+        const userByEmail = await this.usersRepository.findByEmail(email);
+        if(userByEmail && userByEmail.role !== Role.PROFESSOR) {
+          //eliminamos el recurso 
+          this.logger.debug(`User with email ${email} is not a professor. Deleting user`);
+          await this.usersContainer.item(userByEmail.id, userByEmail.id).delete();
+          this.logger.debug(`User with email ${email} deleted. Creating new professor`);
+        }
         this.logger.debug(`Professor with document ${documentNumber} not found. Creating new professor`);
         let school = await this.schoolsService.getByName(schoolName);
         if (!school) {
@@ -276,7 +317,8 @@ export class MigrationService {
           excludedFromReports: interesaReporteria === BooleanResponse.SI ? undefined : true,
         }
         professor = await this.usersRepository.create(professorPayload);
-        this.mailService.sendNewAccountWithPassword({ user: professor, password: professorPayload.password });
+        await this.syncUsersLocalBackup(professorPayload);
+        // this.mailService.sendNewAccountWithPassword({ user: professor, password: professorPayload.password });
       }
       const existingParticipant = training.participants.find(participant => participant.foreignId === professor.id);
       if (existingParticipant) {
@@ -290,20 +332,28 @@ export class MigrationService {
         certificates: [],
         foreignId: professor.id,
       };
-      if (attendanceStatus === AttendanceStatus.ATTENDED) {
-        participant.certificates = await this.participantsService.generateCertificates({ training, participant });
-        training.executions[0].attendance.push({
-          id: uuidv4(),
-          participantId: participant.id,
-          status: AttendanceStatus.ATTENDED,
-          createdAt: new Date().toISOString(),
-        });
-      }
+      // if (attendanceStatus === AttendanceStatus.ATTENDED) {
+      //   participant.certificates = await this.participantsService.generateCertificate({ training, participant });
+      //   training.executions[0].attendance.push({
+      //     id: uuidv4(),
+      //     participantId: participant.id,
+      //     status: AttendanceStatus.ATTENDED,
+      //     createdAt: new Date().toISOString(),
+      //   });
+      // }
       training.participants.push(participant);
       await this.trainingContainer.item(training.id, training.id).replace(training);
     } catch (error) {
       this.logger.error(`Error adding participant ${participantRow.nombre} to training ${training.code}: ${error.message}`);
       throw new Error(error.message);
     }
+  }
+
+  async syncUsersLocalBackup(user: CreateUserDto) {
+    const usersJson = await readFile('users-backup.json', { encoding: 'utf-8' });
+    const users = JSON.parse(usersJson);
+    users.push(user);
+    await writeFile('passwords-backup.json', JSON.stringify(users, null, 2), { encoding: 'utf-8' });
+    this.logger.debug(`User ${user.name} synced to local backup`);
   }
 }

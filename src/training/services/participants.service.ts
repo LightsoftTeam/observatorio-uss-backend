@@ -13,14 +13,13 @@ import { TrainingCertificateTemplateData, getTrainingCertificateTemplate } from 
 import { TrainingParticipantQrTemplateData, getParticipantQrTemplate } from '../templates/participant-qr';
 import nodeHtmlToImage from 'node-html-to-image';
 import { StorageService } from 'src/storage/storage.service';
-import { CertificatesHelper } from 'src/common/helpers/certificates.helper';
 import { ERROR_CODES, APP_ERRORS } from '../../common/constants/errors.constants';
 import { UsersRepository } from 'src/repositories/services/users.repository';
 import { ROLES_THAT_CAN_PARTICIPATE_IN_TRAINING } from '../constants';
 import { FormatCosmosItem } from 'src/common/helpers/format-cosmos-item.helper';
 import { UsersService } from 'src/users/users.service';
-import { Role } from 'src/users/entities/user.entity';
 import { map } from 'rxjs';
+import { Role } from 'src/users/entities/user.entity';
 const HTML_TO_PDF = require('html-pdf-node');
 
 @Injectable()
@@ -318,12 +317,12 @@ export class ParticipantsService {
             if (executions.length === 0) {
                 throw new BadRequestException(APP_ERRORS[ERROR_CODES.TRAINING_NOT_HAVE_EXECUTIONS]);
             }
-            const certificates = await this.generateCertificates({
-                training,
-                participant,
-            });
-            participant.certificates = certificates;
-            await this.trainingContainer.item(training.id, training.id).replace(training);
+            // const certificates = await this.generateCertificates({
+            //     training,
+            //     participant,
+            // });
+            // participant.certificates = certificates;
+            // await this.trainingContainer.item(training.id, training.id).replace(training);
             return this.fillParticipant(participant);
         } catch (error) {
             this.logger.error(`changeStatus ${error.message}`);
@@ -348,67 +347,66 @@ export class ParticipantsService {
         return buffer;
     }
 
-    async generateCertificates({ training, participant }: { training: Training, participant: TrainingParticipant }): Promise<TrainingCertificate[]> {
+    async generateCertificate({ trainingId, participantId, role }: {
+        trainingId: string;
+        participantId: string;
+        role: TrainingRole;
+    }): Promise<Buffer> {
+        const training = await this.getTrainingByParticipantId(participantId);
+            if (!training) {
+                throw new NotFoundException('Training not found');
+            }
+            this.logger.log(`Training ${training.id} found`);
+            const participant = training.participants.find((participant) => participant.id === participantId);
+        if(!participant.attendanceStatus || participant.attendanceStatus !== AttendanceStatus.ATTENDED) {
+            throw new BadRequestException(APP_ERRORS[ERROR_CODES.PARTICIPANT_NOT_ATTENDED]);
+        }
+        if(!participant.roles.includes(role)){
+            throw new BadRequestException(APP_ERRORS[ERROR_CODES.ROLE_CANNOT_PARTICIPATE_IN_TRAINING]);
+        }
         this.logger.log(`Generating certificate for participant ${participant.id}`);
-        const { roles } = participant;
         const { executions, name: trainingName, certificateBackgroundUrl, certificateSignatureUrls, certificateEmisionDate, certificateOrganizer } = training;
         const trainingFromDate = executions[0].from;
         const trainingToDate = executions[executions.length - 1].to;
-        const durationinMiliseconds = executions.reduce((acc, execution) => {
-            const from = new Date(execution.from);
-            const to = new Date(execution.to);
-            acc += to.getTime() - from.getTime();
-            return acc;
+        const durationInMinutes = executions.reduce((acc, execution) => {
+            const durationInMinutes = execution.durationInMinutes;
+            return acc + durationInMinutes;
         }, 0);
-        const durationInHours = Math.round((durationinMiliseconds / 1000 / 60 / 60) * 100) / 100;
+        const durationInHours = Math.floor(durationInMinutes / 60);
         const filledParticipant = await this.fillParticipant(participant);
-        const { id, user } = filledParticipant;
+        const { id, user, certificates } = filledParticipant;
         const { name } = user;
-        const certificates: TrainingCertificate[] = await Promise.all(roles.map(async (role) => {
-            const certificate: TrainingCertificate = {
+        let roleCertificate = certificates.find((certificate) => certificate.role === role);
+        if (roleCertificate) {
+            this.logger.log(`Certificate for participant ${participant.id} already exists`);
+            roleCertificate.lastGenerationDate = new Date().toISOString();
+            await this.trainingContainer.item(training.id, training.id).replace(training);
+        } else {
+            this.logger.log(`Certificate for participant ${participant.id} does not exist`);
+            roleCertificate = {
                 id: uuidv4(),
-                name,
-                trainingName,
-                duration: durationInHours,
-                emisionDate: certificateEmisionDate,
                 role,
-                trainingFromDate,
-                trainingToDate,
-                certificateOrganizer,
+                lastGenerationDate: new Date().toISOString(),
             }
-            const data: TrainingCertificateTemplateData = {
-                participantId: id,
-                name,
-                role,
-                trainingName,
-                emisionDate: certificateEmisionDate,
-                trainingFromDate,
-                trainingToDate,
-                duration: durationInHours,
-                backgroundUrl: certificateBackgroundUrl,
-                signatureUrls: certificateSignatureUrls,
-                certificateOrganizer
-            };
-            const start = new Date();
-            if (process.env.NODE_ENV === 'development') {
-                this.logger.debug(`Development mode, returning test certificate`);
-                certificate.url = 'https://www.test.com/test.pdf';
-            } else {
-                this.logger.log(`Certificate: ${JSON.stringify(certificate)}`)
-                const html = getTrainingCertificateTemplate(data);
-                const buffer: Buffer = await this.getPdfBuffer(html);
-                this.logger.log(`Buffer ${buffer.length}`)
-                const { blobUrl } = await this.storageService.uploadBuffer({
-                    buffer,
-                    blobName: CertificatesHelper.getBlobName(certificate.id),
-                    contentType: 'application/pdf',
-                });
-                certificate.url = blobUrl;
-            }
-            this.logger.debug(`Certificate generated in ${new Date().getTime() - start.getTime()}ms`);
-            return certificate;
-        }));
-        return certificates;
+            certificates.push(roleCertificate);
+            await this.trainingContainer.item(training.id, training.id).replace(training);
+        }
+        const data: TrainingCertificateTemplateData = {
+            participantId: id,
+            name,
+            role,
+            trainingName,
+            emisionDate: certificateEmisionDate,
+            trainingFromDate,
+            trainingToDate,
+            duration: durationInHours,
+            backgroundUrl: certificateBackgroundUrl,
+            signatureUrls: certificateSignatureUrls,
+            certificateOrganizer
+        };
+        const html = getTrainingCertificateTemplate(data);
+        const buffer: Buffer = await this.getPdfBuffer(html);
+        return buffer;
     }
 
     async getParticipantQr(participantId: string) {
@@ -446,38 +444,5 @@ export class ParticipantsService {
         const options = { format: 'A4' };
         const file = { content: html };
         return HTML_TO_PDF.generatePdf(file, options);
-    }
-
-    async regenerateCertificates(trainingId: string) {
-        this.logger.debug(`Regenerating certificates for training ${trainingId}`);
-        const trainings = await this.trainingService.findAll() as Training[];
-        const filteredIds = trainings.filter(t => t.id != "73b8598d-adbe-4d36-b7ea-7dc95837a26c").map((training) => training.id);
-        const results = [];
-        await Promise.all(filteredIds.map(async (trainingId) => {
-            try {
-                const rg = await this.regenerate(trainingId);
-                results.push(rg);
-            } catch (error) {
-                this.logger.error(`Error regenerating training ${trainingId}: ${error.message}`);
-            }
-        }));
-        return results;
-    }
-
-    async regenerate(trainingId: string) {
-        const training = await this.trainingService.getTrainingById(trainingId);
-        if (!training) {
-            throw new NotFoundException('Training not found');
-        }
-        const participants = training.participants;
-        this.logger.debug(`Participants founded: ${participants.length}`);
-        for (const participant of participants) {
-            this.logger.debug(`Regenerating certificate for participant ${participant.id}`);
-            const certificates = await this.generateCertificates({ training, participant });
-            this.logger.debug(`Certificates generated: ${certificates.length}`);
-            participant.certificates = certificates;
-        }
-        const { resource: trainingUpdated } = await this.trainingContainer.item(trainingId, trainingId).replace(training);
-        return trainingUpdated;
     }
 }
