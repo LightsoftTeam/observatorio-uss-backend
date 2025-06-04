@@ -12,8 +12,9 @@ export class CertificatesHelper {
     // * @returns string
     // * @description Get the filename for the certificate with a format understandable by the user
     // */
-    static getUserFilename(certificate: TrainingCertificate) {
-        const { name, role } = certificate;
-        return `${name}-${role}.pdf`;
-    }
+    // static getUserFilename(certificate: TrainingCertificate) {
+    //     const random6Hash = Math.random().toString(36).substring(2, 8);
+    //     const { name, role } = certificate;
+    //     return `${name}-${role}.pdf`;
+    // }
 }

@@ -14,6 +14,7 @@ import { TrainingBadRequestDto } from './dto/bad-response-dto';
 import { VerifyParticipantSuccessResponseDto } from './dto/verify-participant-response.dto';
 import { MigrationService } from './services/migration.service';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { GenerateCertificateDto } from './dto/generate-certificate.dto';
 
 @ApiTags('Training')
 @Controller('training')
@@ -338,7 +339,7 @@ export class TrainingController {
     return this.migrationService.migrateFromExcel();
   }
 
-  @Post('regenerate/:id')
+  @Post(':id/participants/:participantId/generate-certificate')
   @HttpCode(HttpStatus.OK)
   @ApiResponse({
     status: 200,
@@ -348,8 +349,14 @@ export class TrainingController {
     status: 400,
     description: 'Bad Request',
   })
-  async regenerateCertificates(@Param('id') id: string) {
+  async generateCertificate(@Param('id') id: string, @Param('participantId') participantId: string, @Body() body: GenerateCertificateDto, @Res() res: Response) {
     console.log('migrating controller');
-    return this.participantsService.regenerateCertificates(id);
+    const buffer = await this.participantsService.generateCertificate({trainingId: id, participantId, role: body.role});
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="certificate.pdf"');
+    const stream = new Readable();
+    stream.push(buffer);
+    stream.push(null);
+    stream.pipe(res);
   }
 }

@@ -1787,9 +1787,9 @@
         ]
       }
     },
-    "/api/training/regenerate/{id}": {
+    "/api/training/{id}/participants/{participantId}/generate-certificate": {
       "post": {
-        "operationId": "TrainingController_regenerateCertificates",
+        "operationId": "TrainingController_generateCertificate",
         "parameters": [
           {
             "name": "id",
@@ -1798,8 +1798,26 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "participantId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateCertificateDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "The data has been successfully regenerated"
@@ -3187,7 +3205,8 @@
               "NESTED_COMMENT_NOT_ALLOWED",
               "POST_DOES_NOT_HAVE_CONTENT",
               "INVALID_CHANGE_ROLE_REQUEST",
-              "ROLE_CANNOT_PARTICIPATE_IN_TRAINING"
+              "ROLE_CANNOT_PARTICIPATE_IN_TRAINING",
+              "PARTICIPANT_NOT_ATTENDED"
             ]
           },
           "message": {
@@ -3807,6 +3826,10 @@
         "required": [
           "participantId"
         ]
+      },
+      "GenerateCertificateDto": {
+        "type": "object",
+        "properties": {}
       },
       "CreateSchoolDto": {
         "type": "object",

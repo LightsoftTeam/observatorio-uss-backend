@@ -37,6 +37,14 @@ const BASIC_FIELDS = [
   'competencyId',
   'semesterId',
   'type',
+  'certificateOrganizer',
+  'certificateBackgroundUrl',
+  'certificateSignatureUrls',
+  'certificateEmisionDate',
+  'credentialBackgroundUrl',
+  'credentialTextToShare',
+  'credentialHelpText',
+  'credentialLogos',
 ];
 
 @Injectable()
@@ -280,7 +288,8 @@ export class TrainingService {
           this.logger.error(`Blob ${blobName} not found`);
           continue;
         }
-        zip.addFile(CertificatesHelper.getUserFilename(certificate), buffer);
+        const user = await this.usersRepository.getById(participant.foreignId);
+        zip.addFile((user?.name ?? participant.id) + `-${certificate.role}.pdf`, buffer);
       }
     }
 
