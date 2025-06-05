@@ -46,6 +46,7 @@ export class MigrationService {
   ) { }
 
   headerResultName = 'Estado';
+  sentEmailHeaderName = 'EmailSent';
 
   async migrateFromExcel() {
     // const {resources: allTrainings} = await this.trainingContainer.items.readAll().fetchAll();
@@ -67,107 +68,193 @@ export class MigrationService {
     //   await this.usersContainer.items.create(u);
     // }
     // return 1;
-    
+
     try {
       const trace: TrainingMigrationTrace[] = [];
-    const { sheetsClient: sheetsClient, sheets, spreadsheetId, sheetNames } = await getFileInfo();
-    const [trainingSheetName, ...participantsSheetNames] = sheetNames;
-    const { headers: trainingHeaders, rows: trainingRows } = await getSheetRows<TrainingRow>({ sheets: sheetsClient, spreadsheetId, sheetName: trainingSheetName });
-    this.logger.debug('Initializing migration');
-    const columnResultIndex = trainingHeaders.indexOf(this.headerResultName);
-    if (columnResultIndex === -1) {
-      throw new Error(`No se encontró la columna ${this.headerResultName}`);
-    }
-    const migrationResults: UpdateInBatchPayload = {};
-    const trainingSheetId = sheets.find(sheet => sheet.properties.title === trainingSheetName).properties.sheetId;
-    let trainingRowsCount = 1;
-    migrationResults[trainingSheetId] = {
-      values: [],
-      rowIndex: trainingRowsCount,
-      columnIndex: columnResultIndex,
-    };
-    for (const trainingDataRow of trainingRows) {
-      trainingRowsCount++;
-      // if (trainingDataRow.Estado === 'success' || trainingDataRow.Estado === 'paused') {
-      if (trainingDataRow.Estado === 'paused') {
-        this.logger.warn(`Skipping row training ${trainingDataRow.codigo} because state is ${trainingDataRow.Estado}`);
-        migrationResults[trainingSheetId].values.push(trainingDataRow.Estado);
-        continue;
-      }
-      this.logger.debug(`Processing row: ${JSON.stringify(trainingDataRow)}`);
-      this.logger.debug(`Initializing training migration`);
-      let training: Training;
-      try {
-        training = await this.importTraining(trainingDataRow);
-        trace.push({
-          isSuccessful: true,
-          message: `Capacitación ${trainingDataRow.codigo} importada satisfactoriamente`,
-        });
-        migrationResults[trainingSheetId].values.push('success');
-      } catch (error) {
-        this.logger.debug(`Controlling error in training ${trainingDataRow.codigo}: ${error.message}`);
-        trace.push({
-          isSuccessful: false,
-          message: error.message,
-        })
-        migrationResults[trainingSheetId].values.push('error: ' + error.message);
-        continue;
-      }
-      this.logger.debug(`Searching participants sheet for training ${trainingDataRow.codigo}`);
-      const participantsSheetId = sheets.find(sheet => sheet.properties.title === trainingDataRow.codigo)?.properties?.sheetId;
-      if (!participantsSheetId) {
-        this.logger.warn(`No se encontró la hoja de participantes para la capacitación ${trainingDataRow.codigo}`);
-        continue;
-      }
-      const { rows: participantRows, headers: participantsHeaders } = await getSheetRows<ParticipantRow>({ sheets: sheetsClient, spreadsheetId, sheetName: participantsSheetNames.find(name => name.includes(trainingDataRow.codigo)) });
-      this.logger.debug(`Adding participants to training - ${participantRows.length} participants`);
-      const participantColumnResultIndex = participantsHeaders.indexOf(this.headerResultName);
-      if (participantColumnResultIndex === -1) {
+      const { sheetsClient: sheetsClient, sheets, spreadsheetId, sheetNames } = await getFileInfo();
+      const [trainingSheetName, ...participantsSheetNames] = sheetNames;
+      const { headers: trainingHeaders, rows: trainingRows } = await getSheetRows<TrainingRow>({ sheets: sheetsClient, spreadsheetId, sheetName: trainingSheetName });
+      this.logger.debug('Initializing migration');
+      const columnResultIndex = trainingHeaders.indexOf(this.headerResultName);
+      if (columnResultIndex === -1) {
         throw new Error(`No se encontró la columna ${this.headerResultName}`);
       }
-      let participantRawCount = 1;
-      migrationResults[participantsSheetId] = {
+      const migrationResults: UpdateInBatchPayload = {};
+      const trainingSheetId = sheets.find(sheet => sheet.properties.title === trainingSheetName).properties.sheetId;
+      let trainingRowsCount = 1;
+      migrationResults[trainingSheetId] = {
         values: [],
-        rowIndex: participantRawCount,
-        columnIndex: participantColumnResultIndex,
-      }; 
-      for (const participantRow of participantRows) {
-        participantRawCount++;
-        if (participantRow.Estado === 'success' || participantRow.Estado === 'paused') {
-          this.logger.warn(`Skipping row participant ${participantRow.nombre} because it was already processed ${participantRow.Estado}`);
-          migrationResults[participantsSheetId].values.push(participantRow.Estado);
+        rowIndex: trainingRowsCount,
+        columnIndex: columnResultIndex,
+      };
+      for (const trainingDataRow of trainingRows) {
+        trainingRowsCount++;
+        // if (trainingDataRow.Estado === 'success' || trainingDataRow.Estado === 'paused') {
+        if (trainingDataRow.Estado === 'paused') {
+          this.logger.warn(`Skipping row training ${trainingDataRow.codigo} because state is ${trainingDataRow.Estado}`);
+          migrationResults[trainingSheetId].values.push(trainingDataRow.Estado);
           continue;
         }
-        this.logger.debug(`Processing participant row: ${JSON.stringify(participantRow)}`);
+        this.logger.debug(`Processing row: ${JSON.stringify(trainingDataRow)}`);
+        this.logger.debug(`Initializing training migration`);
+        let training: Training;
         try {
-          await this.addParticipantToTraining({ training, participantRow });
+          training = await this.importTraining(trainingDataRow);
           trace.push({
             isSuccessful: true,
-            message: `Participante ${participantRow.nombre} importado satisfactoriamente en capacitación ${trainingDataRow.codigo}`,
+            message: `Capacitación ${trainingDataRow.codigo} importada satisfactoriamente`,
           });
-          migrationResults[participantsSheetId].values.push('success');
+          migrationResults[trainingSheetId].values.push('success');
         } catch (error) {
-          this.logger.debug(`Controlling error in participant ${participantRow.nombre}: ${error.message}`);
-          const message = `Participante ${participantRow.nombre} no importado: ${error.message} en capacitación ${trainingDataRow.codigo}`;
+          this.logger.debug(`Controlling error in training ${trainingDataRow.codigo}: ${error.message}`);
           trace.push({
             isSuccessful: false,
-            message,
-          });
-          migrationResults[participantsSheetId].values.push('error: ' + error.message);
+            message: error.message,
+          })
+          migrationResults[trainingSheetId].values.push('error: ' + error.message);
           continue;
         }
+        this.logger.debug(`Searching participants sheet for training ${trainingDataRow.codigo}`);
+        const participantsSheetId = sheets.find(sheet => sheet.properties.title === trainingDataRow.codigo)?.properties?.sheetId;
+        if (!participantsSheetId) {
+          this.logger.warn(`No se encontró la hoja de participantes para la capacitación ${trainingDataRow.codigo}`);
+          continue;
+        }
+        const { rows: participantRows, headers: participantsHeaders } = await getSheetRows<ParticipantRow>({ sheets: sheetsClient, spreadsheetId, sheetName: participantsSheetNames.find(name => name.includes(trainingDataRow.codigo)) });
+        this.logger.debug(`Adding participants to training - ${participantRows.length} participants`);
+        const participantColumnResultIndex = participantsHeaders.indexOf(this.headerResultName);
+        if (participantColumnResultIndex === -1) {
+          throw new Error(`No se encontró la columna ${this.headerResultName}`);
+        }
+        let participantRawCount = 1;
+        migrationResults[participantsSheetId] = {
+          values: [],
+          rowIndex: participantRawCount,
+          columnIndex: participantColumnResultIndex,
+        };
+        for (const participantRow of participantRows) {
+          participantRawCount++;
+          if (participantRow.Estado === 'success' || participantRow.Estado === 'paused') {
+            this.logger.warn(`Skipping row participant ${participantRow.nombre} because it was already processed ${participantRow.Estado}`);
+            migrationResults[participantsSheetId].values.push(participantRow.Estado);
+            continue;
+          }
+          this.logger.debug(`Processing participant row: ${JSON.stringify(participantRow)}`);
+          try {
+            await this.addParticipantToTraining({ training, participantRow });
+            trace.push({
+              isSuccessful: true,
+              message: `Participante ${participantRow.nombre} importado satisfactoriamente en capacitación ${trainingDataRow.codigo}`,
+            });
+            migrationResults[participantsSheetId].values.push('success');
+          } catch (error) {
+            this.logger.debug(`Controlling error in participant ${participantRow.nombre}: ${error.message}`);
+            const message = `Participante ${participantRow.nombre} no importado: ${error.message} en capacitación ${trainingDataRow.codigo}`;
+            trace.push({
+              isSuccessful: false,
+              message,
+            });
+            migrationResults[participantsSheetId].values.push('error: ' + error.message);
+            continue;
+          }
+        }
       }
+      const resume: TrainingMigrationEvent = {
+        sheetNames,
+        trace,
+        createdAt: new Date(),
+      }
+      this.trainingMigrationContainer.items.create(resume);
+      this.logger.log(`Updating migration results in remote spreadsheet`);
+      this.logger.debug(`Migration results: ${JSON.stringify(migrationResults)}`);
+      await updateColumnInBatch({ sheetsClient, payload: migrationResults });
+      return trace;
+    } catch (error) {
+      this.logger.error(`Error migrating from excel`);
+      this.logger.error(error.message);
+      throw new InternalServerErrorException({
+        message: error.message,
+      });
     }
-    const resume: TrainingMigrationEvent = {
-      sheetNames,
-      trace,
-      createdAt: new Date(),
-    }
-    this.trainingMigrationContainer.items.create(resume);
-    this.logger.log(`Updating migration results in remote spreadsheet`);
-    this.logger.debug(`Migration results: ${JSON.stringify(migrationResults)}`);
-    await updateColumnInBatch({ sheetsClient, payload: migrationResults });
-    return trace;
+  }
+
+  async sendMails() {
+    try {
+      const { sheetsClient: sheetsClient, sheets, spreadsheetId, sheetNames } = await getFileInfo();
+      const [trainingSheetName, ...participantsSheetNames] = sheetNames;
+      const { headers: trainingHeaders, rows: trainingRows } = await getSheetRows<TrainingRow>({ sheets: sheetsClient, spreadsheetId, sheetName: trainingSheetName });
+      this.logger.debug('Initializing mails sending');
+      const columnResultIndex = trainingHeaders.indexOf(this.sentEmailHeaderName);
+      if (columnResultIndex === -1) {
+        throw new Error(`No se encontró la columna ${this.sentEmailHeaderName}`);
+      }
+      const migrationResults: UpdateInBatchPayload = {};
+      const trainingSheetId = sheets.find(sheet => sheet.properties.title === trainingSheetName).properties.sheetId;
+      let trainingRowsCount = 1;
+      migrationResults[trainingSheetId] = {
+        values: [],
+        rowIndex: trainingRowsCount,
+        columnIndex: columnResultIndex,
+      };
+      for (const trainingDataRow of trainingRows) {
+        trainingRowsCount++;
+        // if (trainingDataRow.Estado === 'success' || trainingDataRow.Estado === 'paused') {
+        if (trainingDataRow.EmailSent === 'paused') {
+          this.logger.warn(`Skipping row training ${trainingDataRow.codigo} because state is ${trainingDataRow.EmailSent}`);
+          migrationResults[trainingSheetId].values.push(trainingDataRow.EmailSent);
+          continue;
+        }
+        this.logger.debug(`Processing row: ${JSON.stringify(trainingDataRow)}`);
+        this.logger.debug(`Initializing training migration`);
+        let training: Training;
+        try {
+          migrationResults[trainingSheetId].values.push('success');
+        } catch (error) {
+          this.logger.debug(`Controlling error in training ${trainingDataRow.codigo}: ${error.message}`);
+          migrationResults[trainingSheetId].values.push('error: ' + error.message);
+          continue;
+        }
+        this.logger.debug(`Searching participants sheet for training ${trainingDataRow.codigo}`);
+        const participantsSheetId = sheets.find(sheet => sheet.properties.title === trainingDataRow.codigo)?.properties?.sheetId;
+        if (!participantsSheetId) {
+          this.logger.warn(`No se encontró la hoja de participantes para la capacitación ${trainingDataRow.codigo}`);
+          continue;
+        }
+        const { rows: participantRows, headers: participantsHeaders } = await getSheetRows<ParticipantRow>({ sheets: sheetsClient, spreadsheetId, sheetName: participantsSheetNames.find(name => name.includes(trainingDataRow.codigo)) });
+        this.logger.debug(`Adding participants to training - ${participantRows.length} participants`);
+        const participantColumnResultIndex = participantsHeaders.indexOf(this.sentEmailHeaderName);
+        if (participantColumnResultIndex === -1) {
+          throw new Error(`No se encontró la columna ${this.sentEmailHeaderName}`);
+        }
+        let participantRawCount = 1;
+        migrationResults[participantsSheetId] = {
+          values: [],
+          rowIndex: participantRawCount,
+          columnIndex: participantColumnResultIndex,
+        };
+        for (const participantRow of participantRows) {
+          participantRawCount++;
+          if (participantRow.EmailSent === 'success' || participantRow.EmailSent === 'paused') {
+            this.logger.warn(`Skipping row participant ${participantRow.nombre} because it was already processed ${participantRow.EmailSent}`);
+            migrationResults[participantsSheetId].values.push(participantRow.EmailSent);
+            continue;
+          }
+          this.logger.debug(`Processing participant row: ${JSON.stringify(participantRow)}`);
+          try {
+            await this.sendEmail({ training, participantRow });
+            migrationResults[participantsSheetId].values.push('success');
+          } catch (error) {
+            this.logger.debug(`Controlling error in participant ${participantRow.nombre}: ${error.message}`);
+            const message = `Participante ${participantRow.nombre} no importado: ${error.message} en capacitación ${trainingDataRow.codigo}`;
+            migrationResults[participantsSheetId].values.push('error: ' + error.message);
+            continue;
+          }
+        }
+      }
+      this.logger.log(`Updating migration results in remote spreadsheet`);
+      this.logger.debug(`Migration results: ${JSON.stringify(migrationResults)}`);
+      await updateColumnInBatch({ sheetsClient, payload: migrationResults });
+      return 1;
     } catch (error) {
       this.logger.error(`Error migrating from excel`);
       this.logger.error(error.message);
@@ -282,7 +369,7 @@ export class MigrationService {
       this.logger.debug(`Searching professor with document ${formattedDocumentType} ${documentNumber}`);
       let professor = await this.usersRepository.getByDocument({ documentNumber, documentType: formattedDocumentType });
       const attendanceStatus = isAttended.toUpperCase().trim() === BooleanResponse.SI ? AttendanceStatus.ATTENDED : AttendanceStatus.PENDING;
-      if(professor && professor.role !== Role.PROFESSOR) {
+      if (professor && professor.role !== Role.PROFESSOR) {
         //eliminamos el recurso 
         this.logger.debug(`User with document ${documentNumber} is not a professor. Deleting user`);
         await this.usersContainer.item(professor.id, professor.id).delete();
@@ -291,7 +378,7 @@ export class MigrationService {
       }
       if (!professor) {
         const userByEmail = await this.usersRepository.findByEmail(email);
-        if(userByEmail && userByEmail.role !== Role.PROFESSOR) {
+        if (userByEmail && userByEmail.role !== Role.PROFESSOR) {
           //eliminamos el recurso 
           this.logger.debug(`User with email ${email} is not a professor. Deleting user`);
           await this.usersContainer.item(userByEmail.id, userByEmail.id).delete();
@@ -349,11 +436,70 @@ export class MigrationService {
     }
   }
 
+  async sendEmail({ training, participantRow }: { training: Training, participantRow: ParticipantRow }) {
+    try {
+      const pu = await this.getProcessedUsers();
+      const data = validateParticipantRow(participantRow);
+      let {
+        email,
+      } = data;
+      email = email.trim().toLowerCase();
+      const user = await this.usersRepository.findByEmail(email);
+      if (!user) {
+        this.logger.error(`User with email ${email} not found`);
+        throw new Error(`User with email ${email} not found`);
+      }
+      if(pu.includes(user.id)) {
+        this.logger.warn(`User with email ${email} already processed`);
+        return;
+      }
+      const isValidEmail = this.isValidEmail(email);
+      if(!isValidEmail) {
+        this.logger.error(`Email ${email} is not valid`);
+        throw new Error(`Email ${email} is not valid`);
+      }
+      const password = generateRandomPassword();
+      console.log('old password', user.password);
+      user.password = password;
+      console.log("actualizando password");
+      await this.usersRepository.updatePassword(user.id, password);
+      // user.email = "joseluis.aries22@gmail.com";
+      console.log({password});
+      console.log(user.id);
+      await this.mailService.sendNewAccountWithPassword({
+        user,
+        password
+      });
+      await this.appendProcessedUser(user.id);
+    } catch (error) {
+      this.logger.error(`Error sendding email participant ${participantRow.nombre}`);
+      throw new Error(error.message);
+    }
+  }
+
+  isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
   async syncUsersLocalBackup(user: CreateUserDto) {
     const usersJson = await readFile('users-backup.json', { encoding: 'utf-8' });
     const users = JSON.parse(usersJson);
     users.push(user);
     await writeFile('passwords-backup.json', JSON.stringify(users, null, 2), { encoding: 'utf-8' });
     this.logger.debug(`User ${user.name} synced to local backup`);
+  }
+
+  async getProcessedUsers(){
+    const usersJson = await readFile('already-users.json', { encoding: 'utf-8' });
+    const users = JSON.parse(usersJson);
+    return users;
+  }
+
+  async appendProcessedUser(userId: string) {
+    const users = await this.getProcessedUsers();
+    users.push(userId);
+    await writeFile('already-users.json', JSON.stringify(users, null, 2), { encoding: 'utf-8' });
+    this.logger.debug(`User ${userId} appended to processed users`);
   }
 }

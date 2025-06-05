@@ -336,7 +336,8 @@ export class TrainingController {
   })
   async migrateFromExcel() {
     console.log('migrating controller');
-    return this.migrationService.migrateFromExcel();
+    // return this.migrationService.migrateFromExcel();
+    return this.migrationService.sendMails();
   }
 
   @Post(':id/participants/:participantId/generate-certificate')

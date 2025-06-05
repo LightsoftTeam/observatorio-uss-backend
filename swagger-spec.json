@@ -29,6 +29,20 @@
         ]
       }
     },
+    "/api/send-massive-mail": {
+      "post": {
+        "operationId": "AppController_sendMassiveMail",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "v1"
+        ]
+      }
+    },
     "/api/posts": {
       "post": {
         "operationId": "PostsController_create",

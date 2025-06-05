@@ -113,6 +113,21 @@ export class UsersRepository {
         return resource;
     }
 
+    async updatePassword(id: string, password: string) {
+        const hashedPassword = bcrypt.hashSync(password, PASSWORD_SALT_ROUNDS);
+        const user = await this.getById(id);
+        if (!user) {
+            this.logger.debug(`User with id ${id} not found`);
+            throw new Error(`User with id ${id} not found`);
+        }
+        this.logger.debug(`Updating password for user ${user.email}`);
+        user.password = hashedPassword;
+        user.updatedAt = new Date();
+        const { resource } = await this.usersContainer.item(id, id).replace<User>(user);
+        this.logger.debug(`Password updated for user ${user.email}`);
+        return resource;
+    }
+
     async getDuplicatedUser({email, documentType, documentNumber}: {email: string, documentType: DocumentType, documentNumber: string}) {
         this.logger.debug(`Checking for duplicated user with email ${email} and document ${documentType} ${documentNumber}`);
         const querySpec = {
@@ -142,11 +157,11 @@ export class UsersRepository {
 
     async findByEmail(email: string): Promise<User | null> {
         const querySpec = {
-            query: 'SELECT * FROM c WHERE c.email = @email',
+            query: 'SELECT * FROM c WHERE LOWER(c.email) = @lowerEmail',
             parameters: [
                 {
-                    name: '@email',
-                    value: email,
+                    name: '@lowerEmail',
+                    value: email.toLowerCase(),
                 },
             ],
         };
