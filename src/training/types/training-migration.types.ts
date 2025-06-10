@@ -65,4 +65,5 @@ export interface ParticipantRow extends Row{
 interface Row{
     Estado: string;
     Message: string;
+    EmailSent: string;
 }

@@ -29,6 +29,20 @@
         ]
       }
     },
+    "/api/send-massive-mail": {
+      "post": {
+        "operationId": "AppController_sendMassiveMail",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "v1"
+        ]
+      }
+    },
     "/api/posts": {
       "post": {
         "operationId": "PostsController_create",
@@ -1780,6 +1794,30 @@
           },
           "400": {
             "description": "Bad Request"
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
+    "/api/training/update-mails": {
+      "post": {
+        "operationId": "TrainingController_updateMails",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingBadRequestDto"
+                }
+              }
+            }
           }
         },
         "tags": [

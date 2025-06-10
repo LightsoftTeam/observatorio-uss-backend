@@ -14,7 +14,9 @@ export class MailService {
     ) {
         console.log(process.env.EMAIL_USER, process.env.EMAIL_PASSWORD);
         this.transporter = nodemailer.createTransport({
-            service: 'gmail',
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true,
             auth: {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASSWORD,
@@ -33,8 +35,6 @@ export class MailService {
             subject,
             html: template,
         };
-
-        this.logger.log(`Sending email ${JSON.stringify(mailOptions)}`);
 
         const sendMailIsActive = (process.env.SEND_MAIL_NOTIFICATIONS || 'true') === 'true';
         if (!sendMailIsActive) {
@@ -113,7 +113,7 @@ export class MailService {
                 `;
                 break;
         }
-        
+
         return this.sendMail({
             to,
             template,
@@ -160,14 +160,41 @@ export class MailService {
         const { name, email: to } = user;
         this.logger.debug(`Sending register notification to ${to}`);
         const template = `
-                <h1>¡Hola, ${name}!</h1>
-                <p>Bienvenido a la comunidad de Observatorio USS. Nos complace tenerte con nosotros.</p>
-                <p>La administración de Observatorio USS ha creado tu cuenta de acceso para que puedas comenzar a utilizar nuestros servicios.</p>
-                <p>Para ingresar, utiliza tu correo electrónico junto con la siguiente contraseña temporal: <strong>${password}</strong></p>
-                <p><a href="${process.env.OBSERVATORY_APP_URL}/iniciar-sesion" style="color: #007bff; text-decoration: none;">Acceder a Observatorio USS</a></p>
-                <p>Te recomendamos que actualices tu contraseña en cualquier momento desde tu perfil: <a href="${process.env.OBSERVATORY_APP_URL}/mi-cuenta" style="color: #007bff; text-decoration: none;">Mi Perfil</a></p>
-                <p>¡Esperamos que disfrutes de todos los recursos y oportunidades que encontrarás en Observatorio USS!</p>
-                <p>Saludos cordiales,<br>El equipo de Observatorio USS</p>
+            <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 40px 20px;">
+                <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; padding: 30px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);">
+                <h1 style="color: #2c3e50; font-size: 24px; margin-bottom: 20px;">¡Hola, ${name}!</h1>
+                <p style="color: #555; font-size: 16px; line-height: 1.6;">
+                    Bienvenido a la comunidad de <strong>Observatorio USS</strong>. Nos complace tenerte con nosotros.
+                </p>
+                <p style="color: #555; font-size: 16px; line-height: 1.6;">
+                    La administración ha creado tu cuenta de acceso para que puedas comenzar a utilizar nuestros servicios.
+                </p>
+                <p style="color: #555; font-size: 16px; line-height: 1.6;">
+                    Para ingresar, utiliza tu correo electrónico junto con la siguiente contraseña temporal:
+                    <span style="display: inline-block; margin-top: 10px; background-color: #f1f1f1; padding: 8px 12px; border-radius: 4px; font-weight: bold; color: #333;">
+                    ${password}
+                    </span>
+                </p>
+                <p style="margin-top: 30px;">
+                    <a href="${process.env.OBSERVATORY_APP_URL}/iniciar-sesion"
+                    style="display: inline-block; padding: 12px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px;">
+                    Acceder a Observatorio USS
+                    </a>
+                </p>
+                <p style="margin-top: 20px; color: #555; font-size: 16px; line-height: 1.6;">
+                    Te recomendamos que actualices tu contraseña desde tu perfil:
+                    <a href="${process.env.OBSERVATORY_APP_URL}/mi-cuenta" style="color: #007bff; text-decoration: none;">
+                    Mi Perfil
+                    </a>
+                </p>
+                <p style="color: #555; font-size: 16px; line-height: 1.6;">
+                    ¡Esperamos que disfrutes de todos los recursos y oportunidades que encontrarás en Observatorio USS!
+                </p>
+                <p style="margin-top: 30px; color: #888; font-size: 14px;">
+                    Saludos cordiales,<br>El equipo de Observatorio USS
+                </p>
+                </div>
+            </div>
             `;
 
         return this.sendMail({
@@ -181,6 +208,7 @@ export class MailService {
             .catch((error) => {
                 this.logger.error(`Error sending password to ${to}`);
                 this.logger.error(error.message);
+                throw new Error(`Error sending password to ${to}: ${error.message}`);
             });
     }
 }

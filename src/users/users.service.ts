@@ -185,6 +185,7 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto) {
     try {
+      createUserDto.email = createUserDto.email.toLowerCase().trim();
       const user = await this.usersRepository.create(createUserDto);
       this.mailService.sendRegisterNotification({ user });
       return this.toJson(user);

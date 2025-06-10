@@ -33,7 +33,7 @@
     "@faker-js/faker": "^8.4.0",
     "@nestjs/azure-database": "^3.0.0",
     "@nestjs/azure-func-http": "^0.10.0",
-    "@nestjs/azure-storage": "^3.0.0",
+    "@nestjs/azure-storage": "^4.0.0",
     "@nestjs/cache-manager": "^2.2.1",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.1.1",
