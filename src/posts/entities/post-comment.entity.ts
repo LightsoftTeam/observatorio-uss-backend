@@ -1,5 +1,4 @@
 import { CosmosDateTime, CosmosPartitionKey } from "@nestjs/azure-database";
-import { children } from 'cheerio/lib/api/traversing';
 import { User } from "src/users/entities/user.entity";
 
 export class Like{
