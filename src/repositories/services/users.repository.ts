@@ -128,6 +128,29 @@ export class UsersRepository {
         return resource;
     }
 
+    async getAllUsers(){
+        this.logger.log('Getting all users');
+        const querySpec = {
+            query: 'SELECT * FROM c',
+            parameters: [],
+        };
+        const { resources } = await this.usersContainer.items.query<User>(querySpec).fetchAll();
+        return resources;
+    }
+
+    async updateEmail(id: string, email: string) {
+        const user = await this.getById(id);
+        if (!user) {
+            this.logger.debug(`User with id ${id} not found`);
+            throw new Error(`User with id ${id} not found`);
+        }
+        this.logger.debug(`Updating email for user ${user.email}`);
+        user.email = email;
+        const { resource } = await this.usersContainer.item(id, id).replace<User>(user);
+        this.logger.debug(`Email updated for user ${user.email}`);
+        return resource;
+    }
+
     async getDuplicatedUser({email, documentType, documentNumber}: {email: string, documentType: DocumentType, documentNumber: string}) {
         this.logger.debug(`Checking for duplicated user with email ${email} and document ${documentType} ${documentNumber}`);
         const querySpec = {

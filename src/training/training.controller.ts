@@ -340,6 +340,14 @@ export class TrainingController {
     return this.migrationService.sendMails();
   }
 
+  @Post('update-mails')
+  @HttpCode(HttpStatus.OK)
+  async updateMails() {
+    console.log('migrating controller');
+    // return this.migrationService.migrateFromExcel();
+    return this.migrationService.updateMails();
+  }
+
   @Post(':id/participants/:participantId/generate-certificate')
   @HttpCode(HttpStatus.OK)
   @ApiResponse({

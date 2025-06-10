@@ -22,6 +22,7 @@ import { MailService } from 'src/common/services/mail.service';
 import { Role, User } from 'src/users/entities/user.entity';
 import { readFile, writeFile } from 'fs/promises';
 import { Competency } from 'src/competencies/entities/competency.entity';
+import { DocumentType } from 'src/common/types/document-type.enum';
 
 @Injectable()
 export class MigrationService {
@@ -178,6 +179,23 @@ export class MigrationService {
     }
   }
 
+  async updateMails(){
+    const users = await this.usersRepository.getAllUsers();
+    await writeFile('users-backup.json', JSON.stringify(users, null, 2), { encoding: 'utf-8' });
+    this.logger.debug(`Users updated in local backup`);
+    for (const element of users) {
+      const mail = element.email;
+      const newEmail = mail.toLowerCase().trim();
+      if (mail !== newEmail) {
+        this.logger.debug(`Updating email from ${mail} to ${newEmail}`);
+        await this.usersRepository.updateEmail(element.id, newEmail);
+      } else {
+        this.logger.debug(`Email ${mail} is already in lowercase and trimmed`);
+      }
+    }
+    return 1;
+  }
+
   async sendMails() {
     try {
       const { sheetsClient: sheetsClient, sheets, spreadsheetId, sheetNames } = await getFileInfo();
@@ -200,6 +218,11 @@ export class MigrationService {
         trainingRowsCount++;
         // if (trainingDataRow.Estado === 'success' || trainingDataRow.Estado === 'paused') {
         if (trainingDataRow.EmailSent === 'paused') {
+          this.logger.warn(`Skipping row training ${trainingDataRow.codigo} because state is ${trainingDataRow.EmailSent}`);
+          migrationResults[trainingSheetId].values.push(trainingDataRow.EmailSent);
+          continue;
+        }
+        if( trainingDataRow.EmailSent === 'success') {
           this.logger.warn(`Skipping row training ${trainingDataRow.codigo} because state is ${trainingDataRow.EmailSent}`);
           migrationResults[trainingSheetId].values.push(trainingDataRow.EmailSent);
           continue;
@@ -442,9 +465,24 @@ export class MigrationService {
       const data = validateParticipantRow(participantRow);
       let {
         email,
+        
       } = data;
       email = email.trim().toLowerCase();
-      const user = await this.usersRepository.findByEmail(email);
+      let user = await this.usersRepository.findByEmail(email);
+      if(user){
+        console.log("Ya se envió el correo a este usuario", email);
+        return;
+      } else {
+        this.logger.debug(`User with email ${email} not found, creating new user`);
+        user = await this.usersRepository.getByDocument({
+          documentType: DocumentType.DNI,
+          documentNumber: data['numero de documento'],
+        });
+        if(!user){
+          console.log("No se encontró el usuario por documento");
+          return;
+        }
+      }
       if (!user) {
         this.logger.error(`User with email ${email} not found`);
         throw new Error(`User with email ${email} not found`);
@@ -463,7 +501,8 @@ export class MigrationService {
       user.password = password;
       console.log("actualizando password");
       await this.usersRepository.updatePassword(user.id, password);
-      // user.email = "joseluis.aries22@gmail.com";
+      await this.usersRepository.updateEmail(user.id, password);
+      console.log(user.email);
       console.log({password});
       console.log(user.id);
       await this.mailService.sendNewAccountWithPassword({

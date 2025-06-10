@@ -1801,6 +1801,30 @@
         ]
       }
     },
+    "/api/training/update-mails": {
+      "post": {
+        "operationId": "TrainingController_updateMails",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingBadRequestDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Training"
+        ]
+      }
+    },
     "/api/training/{id}/participants/{participantId}/generate-certificate": {
       "post": {
         "operationId": "TrainingController_generateCertificate",
