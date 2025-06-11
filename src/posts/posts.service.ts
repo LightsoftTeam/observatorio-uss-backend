@@ -16,7 +16,6 @@ import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { AlgoliaService, PostAlgoliaRecord } from 'src/common/services/algolia.service';
 import { ApplicationLoggerService } from 'src/common/services/application-logger.service';
 import { Role } from 'src/users/entities/user.entity';
-import { scrapedPosts } from 'src/scrap/outputs/posts';
 import { PostsRepository } from '../repositories/services/post.repository';
 import { APP_ERRORS, ERROR_CODES } from 'src/common/constants/errors.constants';
 import { PostComment } from './entities/post-comment.entity';
@@ -372,10 +371,11 @@ export class PostsService {
   async seed() {
     // const authors = await this.usersService.findAll();
     // const authorIds = authors.map(a => a.id);
-    const mocks = scrapedPosts;
-    const promises = mocks.map(async (mock) => this.create(mock as CreatePostDto));
-    const response = await Promise.all(promises);
-    return response;
+    // const mocks = scrapedPosts;
+    // const promises = mocks.map(async (mock) => this.create(mock as CreatePostDto));
+    // const response = await Promise.all(promises);
+    // return response;
+    return 1;
   }
 
   async updateSlugs() {
