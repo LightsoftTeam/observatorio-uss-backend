@@ -369,12 +369,6 @@ export class PostsService {
   }
 
   async seed() {
-    // const authors = await this.usersService.findAll();
-    // const authorIds = authors.map(a => a.id);
-    // const mocks = scrapedPosts;
-    // const promises = mocks.map(async (mock) => this.create(mock as CreatePostDto));
-    // const response = await Promise.all(promises);
-    // return response;
     return 1;
   }
 
