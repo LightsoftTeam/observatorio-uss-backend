@@ -284,13 +284,14 @@ export class TrainingController {
     description: 'Bad Request',
   })
   async downloadQr(@Param('participantId') participantId: string, @Res() res: Response) {
-    const buffer = await this.participantsService.getParticipantQr(participantId);
-    res.setHeader('Content-Type', 'image/png');
-    res.setHeader('Content-Disposition', 'attachment; filename="qr.png"');
-    const stream = new Readable();
-    stream.push(buffer);
-    stream.push(null);
-    stream.pipe(res);
+    return 1;
+    // const buffer = await this.participantsService.getParticipantQr(participantId);
+    // res.setHeader('Content-Type', 'image/png');
+    // res.setHeader('Content-Disposition', 'attachment; filename="qr.png"');
+    // const stream = new Readable();
+    // stream.push(buffer);
+    // stream.push(null);
+    // stream.pipe(res);
   }
 
   @UseGuards(AuthGuard)

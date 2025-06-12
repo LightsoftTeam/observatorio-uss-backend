@@ -11,7 +11,7 @@ import { UpdateParticipantDto } from '../dto/update-participant.dto';
 import { AddAttendanceToExecutionDto } from '../dto/add-attendance-to-execution.dto';
 import { TrainingCertificateTemplateData, getTrainingCertificateTemplate } from '../templates/training-certificate';
 import { TrainingParticipantQrTemplateData, getParticipantQrTemplate } from '../templates/participant-qr';
-import nodeHtmlToImage from 'node-html-to-image';
+// import nodeHtmlToImage from 'node-html-to-image';
 import { StorageService } from 'src/storage/storage.service';
 import { ERROR_CODES, APP_ERRORS } from '../../common/constants/errors.constants';
 import { UsersRepository } from 'src/repositories/services/users.repository';
@@ -409,36 +409,36 @@ export class ParticipantsService {
         return buffer;
     }
 
-    async getParticipantQr(participantId: string) {
-        try {
-            this.logger.log(`Generating QR code for participant ${participantId}`);
-            const training = await this.getTrainingByParticipantId(participantId);
-            if (!training) {
-                throw new BadRequestException(APP_ERRORS[ERROR_CODES.PARTICIPANT_NOT_FOUND]);
-            }
-            const participant = training.participants.find((participant) => participant.id === participantId);
-            const filledParticipant = await this.fillParticipant(participant);
-            const { id, roles, user } = filledParticipant;
-            const { documentNumber, documentType, email, name } = user;
-            const data: TrainingParticipantQrTemplateData = {
-                documentNumber,
-                documentType,
-                email,
-                name,
-                participantId: id,
-                roles,
-            }
-            const html = getParticipantQrTemplate(data);
-            const buffer = await nodeHtmlToImage({
-                html,
-                selector: '#content',
-            });
-            return buffer;
-        } catch (error) {
-            this.logger.error(`getParticipantQr ${error.message}`);
-            throw error;
-        }
-    }
+    // async getParticipantQr(participantId: string) {
+    //     try {
+    //         this.logger.log(`Generating QR code for participant ${participantId}`);
+    //         const training = await this.getTrainingByParticipantId(participantId);
+    //         if (!training) {
+    //             throw new BadRequestException(APP_ERRORS[ERROR_CODES.PARTICIPANT_NOT_FOUND]);
+    //         }
+    //         const participant = training.participants.find((participant) => participant.id === participantId);
+    //         const filledParticipant = await this.fillParticipant(participant);
+    //         const { id, roles, user } = filledParticipant;
+    //         const { documentNumber, documentType, email, name } = user;
+    //         const data: TrainingParticipantQrTemplateData = {
+    //             documentNumber,
+    //             documentType,
+    //             email,
+    //             name,
+    //             participantId: id,
+    //             roles,
+    //         }
+    //         const html = getParticipantQrTemplate(data);
+    //         const buffer = await nodeHtmlToImage({
+    //             html,
+    //             selector: '#content',
+    //         });
+    //         return buffer;
+    //     } catch (error) {
+    //         this.logger.error(`getParticipantQr ${error.message}`);
+    //         throw error;
+    //     }
+    // }
 
     async getPdfBuffer(html: string): Promise<Buffer> {
         const options = { format: 'A4' };
